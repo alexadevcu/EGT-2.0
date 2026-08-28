@@ -6,6 +6,7 @@ import Day1Page from './pages/Day1Page'
 import Day2Page from './pages/Day2Page'
 import Day1RegistrationPage from './pages/Day1RegistrationPage'
 import Day2RegistrationPage from './pages/Day2RegistrationPage'
+import GuidelinesPage from './pages/GuidelinesPage'
 import AdminPage from './pages/AdminPage'
 import NotFoundPage from './pages/NotFoundPage'
 
@@ -27,6 +28,8 @@ export default function App() {
         setCurrentPageState('register-day1')
       } else if (path === '/register-day2') {
         setCurrentPageState('register-day2')
+      } else if (path === '/guidelines' || path === '/rules') {
+        setCurrentPageState('guidelines')
       } else if (path === '/admin') {
         setCurrentPageState('admin')
       } else {
@@ -40,8 +43,14 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleLocation)
   }, [])
 
+  // Scroll to top of window whenever currentPage state changes
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [currentPage])
+
   const setCurrentPage = (page) => {
     setCurrentPageState(page)
+    window.scrollTo(0, 0)
     const newPath = page === 'home' ? '/' : `/${page}`
     try {
       window.history.pushState({}, '', newPath)
@@ -98,6 +107,12 @@ export default function App() {
 
         {currentPage === 'register-day2' && (
           <Day2RegistrationPage
+            setCurrentPage={setCurrentPage}
+          />
+        )}
+
+        {currentPage === 'guidelines' && (
+          <GuidelinesPage
             setCurrentPage={setCurrentPage}
           />
         )}

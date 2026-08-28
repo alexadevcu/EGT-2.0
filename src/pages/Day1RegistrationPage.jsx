@@ -8,17 +8,25 @@ import {
   Calendar,
   MapPin,
   Clock,
-  Sparkles
+  Sparkles,
+  Ban
 } from 'lucide-react'
-import { saveDay1Registration, isSupabaseConfigured } from '../supabaseClient'
+import { saveDay1Registration, isSupabaseConfigured, getRegistrationSettings } from '../supabaseClient'
 
 export default function Day1RegistrationPage({ setCurrentPage }) {
   const [submittedPass, setSubmittedPass] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [isClosed, setIsClosed] = useState(getRegistrationSettings().day1Closed)
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    const checkSettings = () => {
+      setIsClosed(getRegistrationSettings().day1Closed)
+    }
+    checkSettings()
+    window.addEventListener('egt_settings_updated', checkSettings)
+    return () => window.removeEventListener('egt_settings_updated', checkSettings)
   }, [])
 
   const [formData, setFormData] = useState({
@@ -26,9 +34,9 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
     uid: '',
     email: '',
     phone: '',
-    department: 'CSE',
-    academicYear: '3rd Year',
-    category: 'Vocals & Jamming',
+    department: '',
+    academicYear: '',
+    category: '',
     otherCategory: '',
     entryType: 'Solo',
     teamName: '',
@@ -110,7 +118,27 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
       {/* REGISTRATION FORM CONTAINER */}
       <div className="glass-panel p-6 sm:p-10 rounded-3xl border border-rose-500/30 shadow-2xl">
         
-        {!submittedPass ? (
+        {isClosed ? (
+          <div className="text-center py-12 space-y-6">
+            <div className="w-20 h-20 rounded-full bg-rose-500/10 border border-rose-500/40 flex items-center justify-center mx-auto text-rose-400">
+              <Ban className="w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="font-['Syne'] text-2xl font-bold text-white">
+                Day 1 Registrations Full / Closed
+              </h2>
+              <p className="font-sans text-sm text-gray-300 max-w-md mx-auto">
+                Registrations for Day 1 (Stage Performers) are currently closed as capacity has been reached. Thank you for your overwhelming response!
+              </p>
+            </div>
+            <button
+              onClick={() => setCurrentPage('day1')}
+              className="btn-primary-gold px-8 py-3 rounded-full text-xs font-bold uppercase tracking-wider cursor-pointer"
+            >
+              Return to Day 1 Arena
+            </button>
+          </div>
+        ) : !submittedPass ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="border-b border-white/10 pb-4 flex justify-between items-center">
               <div>
@@ -200,14 +228,17 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
 
               <div>
                 <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                  Department
+                  Department *
                 </label>
                 <select
                   name="department"
+                  required
                   value={formData.department}
                   onChange={handleChange}
                   className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-400"
                 >
+                  <option value="">Select Department...</option>
+                  <option value="AIT CSE">AIT CSE</option>
                   <option value="CSE">CSE / IT</option>
                   <option value="ECE">ECE / EE</option>
                   <option value="ME">Mechanical</option>
@@ -218,14 +249,16 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
 
               <div>
                 <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                  Academic Year
+                  Academic Year *
                 </label>
                 <select
                   name="academicYear"
+                  required
                   value={formData.academicYear}
                   onChange={handleChange}
                   className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-400"
                 >
+                  <option value="">Select Academic Year...</option>
                   <option value="1st Year">1st Year</option>
                   <option value="2nd Year">2nd Year</option>
                   <option value="3rd Year">3rd Year</option>
@@ -236,93 +269,58 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
 
             {/* Day 1 Performance Category Fields */}
             <div className="space-y-5 pt-4 border-t border-white/10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                    Performance Category *
-                  </label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-400"
-                  >
-                    <option value="Vocals & Jamming">Vocals &amp; Acoustic Jamming</option>
-                    <option value="Dance & Choreography">Dance &amp; Choreography</option>
-                    <option value="Stand-up Comedy">Stand-up Comedy</option>
-                    <option value="Mono-Acts & Drama">Mono-Acts &amp; Drama Skits</option>
-                    <option value="Magic & Illusions">Magic &amp; Illusions</option>
-                    <option value="Beatboxing & Rap">Beatboxing &amp; Rap</option>
-                    <option value="Instrumental">Instrumental Performance</option>
-                    <option value="Other Talent">Other Creative Talent</option>
-                  </select>
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Performance Category *
+                </label>
+                <select
+                  name="category"
+                  required
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-400"
+                >
+                  <option value="">Select Performance Category...</option>
+                  <option value="Vocals & Jamming">Vocals &amp; Acoustic Jamming</option>
+                  <option value="Dance & Choreography">Dance &amp; Choreography</option>
+                  <option value="Stand-up Comedy">Stand-up Comedy</option>
+                  <option value="Mono-Acts & Drama">Mono-Acts &amp; Drama Skits</option>
+                  <option value="Magic & Illusions">Magic &amp; Illusions</option>
+                  <option value="Beatboxing & Rap">Beatboxing &amp; Rap</option>
+                  <option value="Instrumental">Instrumental Performance</option>
+                  <option value="Other Talent">Other Creative Talent</option>
+                </select>
 
-                  {formData.category === 'Other Talent' && (
-                    <div className="mt-3 animate-in fade-in duration-300">
-                      <label className="block font-['Space_Grotesk'] text-xs font-semibold text-rose-300 mb-1.5">
-                        Specify Your Creative Talent / Act *
-                      </label>
-                      <input
-                        type="text"
-                        name="otherCategory"
-                        required
-                        value={formData.otherCategory}
-                        onChange={handleChange}
-                        placeholder="e.g. Mime, Shadow Art, Fire Juggling, Poetry Recital"
-                        className="w-full bg-rose-500/10 border border-rose-400/40 rounded-xl px-4 py-3 text-sm text-white placeholder-rose-200/50 focus:outline-none focus:border-rose-400"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                    Entry Format
-                  </label>
-                  <select
-                    name="entryType"
-                    value={formData.entryType}
-                    onChange={handleChange}
-                    className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-400"
-                  >
-                    <option value="Solo">Solo Performance</option>
-                    <option value="Duo">Duo (2 Members)</option>
-                    <option value="Squad">Squad / Group Performance</option>
-                  </select>
-                </div>
+                {formData.category === 'Other Talent' && (
+                  <div className="mt-3 animate-in fade-in duration-300">
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-rose-300 mb-1.5">
+                      Specify Your Creative Talent / Act *
+                    </label>
+                    <input
+                      type="text"
+                      name="otherCategory"
+                      required
+                      value={formData.otherCategory}
+                      onChange={handleChange}
+                      placeholder="e.g. Mime, Shadow Art, Fire Juggling, Poetry Recital"
+                      className="w-full bg-rose-500/10 border border-rose-400/40 rounded-xl px-4 py-3 text-sm text-white placeholder-rose-200/50 focus:outline-none focus:border-rose-400"
+                    />
+                  </div>
+                )}
               </div>
 
-              {formData.entryType !== 'Solo' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                      Team / Squad Name
-                    </label>
-                    <input
-                      type="text"
-                      name="teamName"
-                      value={formData.teamName}
-                      onChange={handleChange}
-                      placeholder="e.g. Rhythm Beats Crew"
-                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                      Team Members (Names &amp; UIDs)
-                    </label>
-                    <input
-                      type="text"
-                      name="teamMembers"
-                      value={formData.teamMembers}
-                      onChange={handleChange}
-                      placeholder="e.g. Aman (22BCS102), Priya (22BCS103)"
-                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none"
-                    />
-                  </div>
+              {/* Solo Performance Note Banner */}
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-['Space_Grotesk'] flex items-start gap-3">
+                <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-amber-300 block text-sm mb-0.5">
+                    Solo Performance Event Note
+                  </span>
+                  <p className="text-gray-300 text-xs leading-relaxed">
+                    Day 1 Stage Performances are strictly <strong>Solo-based acts (Individual Entries)</strong>. Each performance has a strict time limit of <strong>3 minutes maximum</strong>.
+                  </p>
                 </div>
-              )}
+              </div>
 
               <div>
                 <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
@@ -353,8 +351,30 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
               </div>
             </div>
 
+            {/* Guidelines Agreement Checkbox */}
+            <div className="pt-4 border-t border-white/10">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  required
+                  className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-rose-500 focus:ring-rose-400 focus:ring-offset-0 cursor-pointer"
+                />
+                <span className="font-sans text-xs text-gray-300 group-hover:text-white transition-colors leading-relaxed">
+                  I have read, understood, and agree to abide by all the official{' '}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage('guidelines')}
+                    className="text-rose-400 hover:underline font-bold"
+                  >
+                    Event Guidelines &amp; Code of Conduct
+                  </button>
+                  . *
+                </span>
+              </label>
+            </div>
+
             {/* Submit Button */}
-            <div className="pt-6 border-t border-white/10">
+            <div className="pt-4">
               <button
                 type="submit"
                 disabled={isSubmitting}

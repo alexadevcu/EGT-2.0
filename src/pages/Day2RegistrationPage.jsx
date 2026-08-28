@@ -9,17 +9,25 @@ import {
   MapPin,
   Clock,
   Sparkles,
-  Zap
+  Zap,
+  Ban
 } from 'lucide-react'
-import { saveDay2Registration, isSupabaseConfigured } from '../supabaseClient'
+import { saveDay2Registration, isSupabaseConfigured, getRegistrationSettings } from '../supabaseClient'
 
 export default function Day2RegistrationPage({ setCurrentPage }) {
   const [submittedPass, setSubmittedPass] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [isClosed, setIsClosed] = useState(getRegistrationSettings().day2Closed)
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    const checkSettings = () => {
+      setIsClosed(getRegistrationSettings().day2Closed)
+    }
+    checkSettings()
+    window.addEventListener('egt_settings_updated', checkSettings)
+    return () => window.removeEventListener('egt_settings_updated', checkSettings)
   }, [])
 
   const [formData, setFormData] = useState({
@@ -27,13 +35,16 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
     uid: '',
     email: '',
     phone: '',
-    department: 'CSE',
-    academicYear: '3rd Year',
+    department: '',
+    academicYear: '',
     squadName: '',
-    teammate1: '',
-    teammate2: '',
-    githubLink: '',
-    techStack: 'C++'
+    teammate1Name: '',
+    teammate1Uid: '',
+    teammate2Name: '',
+    teammate2Uid: '',
+    teammate3Name: '',
+    teammate3Uid: '',
+    githubLink: ''
   })
 
   const handleChange = (e) => {
@@ -99,7 +110,27 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
       {/* REGISTRATION FORM CONTAINER */}
       <div className="glass-panel p-6 sm:p-10 rounded-3xl border border-cyan-400/30 shadow-2xl">
         
-        {!submittedPass ? (
+        {isClosed ? (
+          <div className="text-center py-12 space-y-6">
+            <div className="w-20 h-20 rounded-full bg-cyan-500/10 border border-cyan-400/40 flex items-center justify-center mx-auto text-cyan-400">
+              <Ban className="w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="font-['Syne'] text-2xl font-bold text-white">
+                Day 2 Registrations Full / Closed
+              </h2>
+              <p className="font-sans text-sm text-gray-300 max-w-md mx-auto">
+                Registrations for Day 2 (Technical Squads) are currently closed as capacity has been reached. Thank you for your overwhelming response!
+              </p>
+            </div>
+            <button
+              onClick={() => setCurrentPage('day2')}
+              className="btn-primary-cyan px-8 py-3 rounded-full text-xs font-bold uppercase tracking-wider cursor-pointer"
+            >
+              Return to Day 2 Arena
+            </button>
+          </div>
+        ) : !submittedPass ? (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="border-b border-white/10 pb-4 flex justify-between items-center">
               <div>
@@ -189,14 +220,17 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
 
               <div>
                 <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                  Department
+                  Department *
                 </label>
                 <select
                   name="department"
+                  required
                   value={formData.department}
                   onChange={handleChange}
                   className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
                 >
+                  <option value="">Select Department...</option>
+                  <option value="AIT CSE">AIT CSE</option>
                   <option value="CSE">CSE / IT</option>
                   <option value="ECE">ECE / EE</option>
                   <option value="ME">Mechanical</option>
@@ -207,14 +241,16 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
 
               <div>
                 <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                  Academic Year
+                  Academic Year *
                 </label>
                 <select
                   name="academicYear"
+                  required
                   value={formData.academicYear}
                   onChange={handleChange}
                   className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
                 >
+                  <option value="">Select Academic Year...</option>
                   <option value="1st Year">1st Year</option>
                   <option value="2nd Year">2nd Year</option>
                   <option value="3rd Year">3rd Year</option>
@@ -225,75 +261,164 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
 
             {/* Day 2 Tech Squad Fields */}
             <div className="space-y-5 pt-4 border-t border-white/10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                    Squad / Team Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="squadName"
-                    required
-                    value={formData.squadName}
-                    onChange={handleChange}
-                    placeholder="e.g. Cyber Horcrux Hunters"
-                    className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
-                  />
-                </div>
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Squad / Team Name *
+                </label>
+                <input
+                  type="text"
+                  name="squadName"
+                  required
+                  value={formData.squadName}
+                  onChange={handleChange}
+                  placeholder="e.g. Cyber Horcrux Hunters"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                />
+              </div>
 
-                <div>
-                  <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                    Primary Tech Stack / Specialization
-                  </label>
-                  <select
-                    name="techStack"
-                    value={formData.techStack}
-                    onChange={handleChange}
-                    className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
-                  >
-                    <option value="C++">C++ / Data Structures</option>
-                    <option value="Python">Python / Algorithms</option>
-                    <option value="Java">Java / DSA</option>
-                    <option value="Web Dev">Full Stack Web</option>
-                    <option value="AI/ML">AI &amp; Machine Learning</option>
-                  </select>
+              {/* Minimum Requirement Note Banner */}
+              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-['Space_Grotesk'] flex items-center justify-between">
+                <span className="font-bold">Squad Minimum Requirement:</span>
+                <span className="text-gray-300">1 Leader + 2 Teammates (Total 3 Members Min)</span>
+              </div>
+
+              {/* Teammate 1 (Minimum Requirement) */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                <div className="text-xs font-['Space_Grotesk'] font-bold text-gray-300 uppercase tracking-wider">
+                  Teammate 1 Details * (Minimum Requirement)
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 1 Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate1Name"
+                      required
+                      value={formData.teammate1Name}
+                      onChange={handleChange}
+                      placeholder="e.g. Neha Sharma"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 1 Student UID *
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate1Uid"
+                      required
+                      value={formData.teammate1Uid}
+                      onChange={handleChange}
+                      placeholder="e.g. 22BCS1098"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                    Teammate 1 (Name &amp; UID) *
-                  </label>
-                  <input
-                    type="text"
-                    name="teammate1"
-                    required
-                    value={formData.teammate1}
-                    onChange={handleChange}
-                    placeholder="e.g. Neha V. (22BCS1098)"
-                    className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
-                  />
+              {/* Teammate 2 (Minimum Requirement) */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                <div className="text-xs font-['Space_Grotesk'] font-bold text-gray-300 uppercase tracking-wider">
+                  Teammate 2 Details * (Minimum Requirement)
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 2 Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate2Name"
+                      required
+                      value={formData.teammate2Name}
+                      onChange={handleChange}
+                      placeholder="e.g. Simran Kaur"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
-                    Teammate 2 (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="teammate2"
-                    value={formData.teammate2}
-                    onChange={handleChange}
-                    placeholder="e.g. Simran (22BCS1102)"
-                    className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
-                  />
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 2 Student UID *
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate2Uid"
+                      required
+                      value={formData.teammate2Uid}
+                      onChange={handleChange}
+                      placeholder="e.g. 22BCS1102"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Teammate 3 (Optional) */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
+                <div className="text-xs font-['Space_Grotesk'] font-bold text-gray-400 uppercase tracking-wider">
+                  Teammate 3 Details (Optional)
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 3 Full Name (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate3Name"
+                      value={formData.teammate3Name}
+                      onChange={handleChange}
+                      placeholder="e.g. Rahul Verma"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 3 Student UID (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate3Uid"
+                      value={formData.teammate3Uid}
+                      onChange={handleChange}
+                      placeholder="e.g. 22BCS1145"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Guidelines Agreement Checkbox */}
+            <div className="pt-4 border-t border-white/10">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  required
+                  className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-cyan-400 focus:ring-offset-0 cursor-pointer"
+                />
+                <span className="font-sans text-xs text-gray-300 group-hover:text-white transition-colors leading-relaxed">
+                  I have read, understood, and agree to abide by all the official{' '}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage('guidelines')}
+                    className="text-cyan-400 hover:underline font-bold"
+                  >
+                    Event Guidelines &amp; Code of Conduct
+                  </button>
+                  . *
+                </span>
+              </label>
+            </div>
+
             {/* Submit Button */}
-            <div className="pt-6 border-t border-white/10">
+            <div className="pt-4">
               <button
                 type="submit"
                 disabled={isSubmitting}

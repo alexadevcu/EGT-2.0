@@ -76,6 +76,15 @@ export default function Header({ currentPage, setCurrentPage, onOpenRegister }) 
           >
             DAY 2 TECH
           </button>
+          <button
+            onClick={() => setCurrentPage('guidelines')}
+            className={`transition-colors cursor-pointer ${currentPage === 'guidelines'
+                ? 'text-amber-400 border-b-2 border-amber-400 pb-0.5'
+                : 'text-gray-300 hover:text-amber-400'
+              }`}
+          >
+            RULES
+          </button>
         </nav>
 
         {/* Right: Golden CONTACT US Pill Button */}

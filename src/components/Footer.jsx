@@ -44,6 +44,13 @@ export default function Footer({ setCurrentPage, onOpenRegister }) {
           >
             Day 2 Tech Arena
           </button>
+          <span>&bull;</span>
+          <button
+            onClick={() => setCurrentPage('guidelines')}
+            className="hover:text-amber-400 transition-colors cursor-pointer"
+          >
+            Rules &amp; Guidelines
+          </button>
         </div>
 
         {/* Copyright & Scroll Top */}

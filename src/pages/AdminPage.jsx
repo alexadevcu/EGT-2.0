@@ -21,18 +21,21 @@ import {
   Table,
   ExternalLink,
   Grid,
-  Printer,
-  Link2
+  ToggleLeft,
+  ToggleRight,
+  Power,
+  Ban
 } from 'lucide-react'
 import {
   getDay1Registrations,
   getDay2Registrations,
-  updateRegistrationStatus,
   deleteRegistration,
   isSupabaseConfigured,
   signInAdmin,
   signOutAdmin,
-  getAdminSession
+  getAdminSession,
+  getRegistrationSettings,
+  updateRegistrationSettings
 } from '../supabaseClient'
 
 export default function AdminPage({ setCurrentPage }) {
@@ -44,6 +47,16 @@ export default function AdminPage({ setCurrentPage }) {
   const [authError, setAuthError] = useState('')
   const [isAuthenticating, setIsAuthenticating] = useState(false)
 
+  // Registration Controls (Open vs Full/Closed)
+  const [regSettings, setRegSettings] = useState(getRegistrationSettings())
+
+  const handleToggleRegistration = (dayKey) => {
+    const updated = updateRegistrationSettings({
+      [dayKey]: !regSettings[dayKey]
+    })
+    setRegSettings(updated)
+  }
+
   // Data & Tabs State
   const [activeTab, setActiveTab] = useState('day1')
   const [day1Data, setDay1Data] = useState([])
@@ -54,7 +67,6 @@ export default function AdminPage({ setCurrentPage }) {
   const [viewMode, setViewMode] = useState('table') // 'table' | 'sheets'
   const [googleSheetUrl, setGoogleSheetUrl] = useState(import.meta.env.VITE_GOOGLE_SHEET_URL || '')
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
   const [selectedItem, setSelectedItem] = useState(null)
 
   // Check active Supabase session on mount
@@ -84,18 +96,11 @@ export default function AdminPage({ setCurrentPage }) {
     }
   }, [isAuthenticated])
 
-  // Admin Auth Handler (Sign In or Master Passcode)
+  // Admin Auth Handler (Pure Supabase Auth)
   const handleSupabaseLogin = async (e) => {
     e.preventDefault()
     setIsAuthenticating(true)
     setAuthError('')
-
-    // Master passcode fallback check
-    if (password === 'admin123' || password === 'takshashila') {
-      setIsAuthenticating(false)
-      setIsAuthenticated(true)
-      return
-    }
 
     const res = await signInAdmin(email, password)
     setIsAuthenticating(false)
@@ -104,7 +109,7 @@ export default function AdminPage({ setCurrentPage }) {
       setIsAuthenticated(true)
       setAuthError('')
     } else {
-      setAuthError(res.error || 'Authentication failed. Incorrect email/password.')
+      setAuthError(res.error || 'Authentication failed. Please check your Supabase admin credentials.')
     }
   }
 
@@ -160,8 +165,7 @@ export default function AdminPage({ setCurrentPage }) {
         'Team Name',
         'Team Members',
         'Previous Performance Link',
-        'Registration ID',
-        'Status'
+        'Registration ID'
       ].map(cleanField).join(','))
 
       dataToExport.forEach(row => {
@@ -180,8 +184,7 @@ export default function AdminPage({ setCurrentPage }) {
           row.team_name || '',
           row.team_members || '',
           row.previous_performance_link || '',
-          row.reg_id,
-          row.status
+          row.reg_id
         ].map(cleanField).join(','))
       })
     } else {
@@ -190,22 +193,36 @@ export default function AdminPage({ setCurrentPage }) {
         'Timestamp',
         'Email Address',
         'Leader Name',
-        'UID',
+        'Leader UID',
         'Mail id (Personal)',
         'Phone No.',
         'Year',
         'Department',
         'Squad Name',
-        'Tech Stack',
-        'Teammate 1',
-        'Teammate 2',
-        'GitHub Profile Link',
-        'Registration ID',
-        'Status'
+        'Teammate 1 Name',
+        'Teammate 1 UID',
+        'Teammate 2 Name',
+        'Teammate 2 UID',
+        'Teammate 3 Name',
+        'Teammate 3 UID',
+        'Registration ID'
       ].map(cleanField).join(','))
 
       dataToExport.forEach(row => {
         const timestamp = new Date(row.created_at || Date.now()).toLocaleString()
+        
+        // Parse teammate 1 name & UID
+        const t1Name = row.teammate_1_name || (row.teammate_1 ? row.teammate_1.split('(')[0].trim() : '')
+        const t1Uid = row.teammate_1_uid || (row.teammate_1 && row.teammate_1.includes('(') ? row.teammate_1.split('(')[1].replace(')', '').trim() : '')
+
+        // Parse teammate 2 name & UID
+        const t2Name = row.teammate_2_name || (row.teammate_2 ? row.teammate_2.split('(')[0].trim() : '')
+        const t2Uid = row.teammate_2_uid || (row.teammate_2 && row.teammate_2.includes('(') ? row.teammate_2.split('(')[1].replace(')', '').trim() : '')
+
+        // Parse teammate 3 name & UID
+        const t3Name = row.teammate_3_name || (row.teammate_3 ? row.teammate_3.split('(')[0].trim() : '')
+        const t3Uid = row.teammate_3_uid || (row.teammate_3 && row.teammate_3.includes('(') ? row.teammate_3.split('(')[1].replace(')', '').trim() : '')
+
         rows.push([
           timestamp,
           row.email,
@@ -216,12 +233,13 @@ export default function AdminPage({ setCurrentPage }) {
           row.academic_year,
           row.department,
           row.squad_name,
-          row.tech_stack,
-          row.teammate_1 || '',
-          row.teammate_2 || '',
-          row.github_link || '',
-          row.reg_id,
-          row.status
+          t1Name,
+          t1Uid,
+          t2Name,
+          t2Uid,
+          t3Name,
+          t3Uid,
+          row.reg_id
         ].map(cleanField).join(','))
       })
     }
@@ -342,13 +360,18 @@ export default function AdminPage({ setCurrentPage }) {
   }
 
   // Filter Logic (Authenticated only)
-  const currentDataset = (activeTab === 'day1' ? day1Data : day2Data) || []
+  const currentDataset = Array.isArray(activeTab === 'day1' ? day1Data : day2Data)
+    ? (activeTab === 'day1' ? day1Data : day2Data)
+    : []
+
   const filteredDataset = currentDataset.filter(item => {
     if (!item) return false
-    const searchString = JSON.stringify(item).toLowerCase()
-    const matchesSearch = searchString.includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || item.status === statusFilter
-    return matchesSearch && matchesStatus
+    try {
+      const searchString = JSON.stringify(item).toLowerCase()
+      return searchString.includes((searchTerm || '').toLowerCase())
+    } catch (err) {
+      return true
+    }
   })
 
   return (
@@ -468,6 +491,69 @@ export default function AdminPage({ setCurrentPage }) {
         </div>
       </div>
 
+      {/* Registration Open / Full Toggle Panel */}
+      <div className="glass-panel p-5 rounded-3xl border border-amber-500/30 mb-8 flex flex-col md:flex-row items-center justify-between gap-4 bg-gradient-to-r from-amber-950/20 via-black to-rose-950/20">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+            <Power className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-['Syne'] text-base font-bold text-white flex items-center gap-2">
+              <span>Registration Controls (Website Live Status)</span>
+            </h3>
+            <p className="font-sans text-xs text-gray-400">
+              Toggle registration availability live on the public website when capacity is reached.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+          {/* Day 1 Toggle */}
+          <button
+            onClick={() => handleToggleRegistration('day1Closed')}
+            className={`flex-1 md:flex-initial px-4 py-2.5 rounded-2xl border text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              regSettings.day1Closed
+                ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 shadow-rose-950/50'
+                : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-emerald-950/50'
+            }`}
+          >
+            {regSettings.day1Closed ? (
+              <>
+                <ToggleLeft className="w-4 h-4 text-rose-400" />
+                <span>Day 1: FULL / CLOSED</span>
+              </>
+            ) : (
+              <>
+                <ToggleRight className="w-4 h-4 text-emerald-400" />
+                <span>Day 1: OPEN</span>
+              </>
+            )}
+          </button>
+
+          {/* Day 2 Toggle */}
+          <button
+            onClick={() => handleToggleRegistration('day2Closed')}
+            className={`flex-1 md:flex-initial px-4 py-2.5 rounded-2xl border text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              regSettings.day2Closed
+                ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 shadow-rose-950/50'
+                : 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-cyan-950/50'
+            }`}
+          >
+            {regSettings.day2Closed ? (
+              <>
+                <ToggleLeft className="w-4 h-4 text-rose-400" />
+                <span>Day 2: FULL / CLOSED</span>
+              </>
+            ) : (
+              <>
+                <ToggleRight className="w-4 h-4 text-cyan-400" />
+                <span>Day 2: OPEN</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* Controls: Tabs, Search & Filters */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         
@@ -583,7 +669,6 @@ export default function AdminPage({ setCurrentPage }) {
                   <th className="py-1 px-3 border border-gray-700 text-center font-semibold">I</th>
                   <th className="py-1 px-3 border border-gray-700 text-center font-semibold">J</th>
                   <th className="py-1 px-3 border border-gray-700 text-center font-semibold">K</th>
-                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">L</th>
                 </tr>
 
                 {/* Purple Table Column Header Row (Matching Day 1 vs Day 2 Layout) */}
@@ -598,16 +683,15 @@ export default function AdminPage({ setCurrentPage }) {
                   <td className="py-2 px-3 border border-gray-700">Department</td>
                   <td className="py-2 px-3 border border-gray-700">Year</td>
                   <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Performance Category' : 'Squad Name'}</td>
-                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Entry Format' : 'Tech Stack'}</td>
-                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Team Details' : 'Teammates'}</td>
-                  <td className="py-2 px-3 border border-gray-700">Status</td>
+                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Format' : 'GitHub Link'}</td>
+                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Team Details' : 'Squad Teammates'}</td>
                 </tr>
               </thead>
 
               <tbody className="bg-[#181824] text-gray-200 divide-y divide-gray-800">
                 {filteredDataset.length === 0 ? (
                   <tr>
-                    <td colSpan="13" className="text-center py-10 text-gray-500 italic border border-gray-800">
+                    <td colSpan="12" className="text-center py-10 text-gray-500 italic border border-gray-800">
                       No records found in {activeTab === 'day1' ? 'Day 1 Performers' : 'Day 2 Technical Squads'} sheet.
                     </td>
                   </tr>
@@ -646,22 +730,12 @@ export default function AdminPage({ setCurrentPage }) {
                         {activeTab === 'day1' ? row.category : row.squad_name}
                       </td>
                       <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
-                        {activeTab === 'day1' ? row.entry_type : row.tech_stack}
+                        {activeTab === 'day1' ? (row.entry_type || 'Solo') : (row.github_link || 'N/A')}
                       </td>
                       <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
                         {activeTab === 'day1'
                           ? (row.team_name ? `${row.team_name} (${row.team_members || 'Group'})` : 'Solo')
-                          : ([row.teammate_1, row.teammate_2].filter(Boolean).join(', ') || 'Solo Leader')}
-                      </td>
-                      <td className="py-2 px-3 border border-gray-800 font-semibold uppercase text-[11px] whitespace-nowrap">
-                        <span className={`px-2 py-0.5 rounded ${
-                          row.status === 'approved' ? 'bg-emerald-500/20 text-emerald-300' :
-                          row.status === 'rejected' ? 'bg-rose-500/20 text-rose-300' :
-                          row.status === 'waitlist' ? 'bg-purple-500/20 text-purple-300' :
-                          'bg-amber-500/20 text-amber-300'
-                        }`}>
-                          {row.status}
-                        </span>
+                          : ([row.teammate_1, row.teammate_2, row.teammate_3].filter(Boolean).join(' | '))}
                       </td>
                     </tr>
                   ))
@@ -683,14 +757,13 @@ export default function AdminPage({ setCurrentPage }) {
                 <th className="py-4 px-6">{activeTab === 'day1' ? 'Category' : 'Squad Name'}</th>
                 <th className="py-4 px-6">{activeTab === 'day1' ? 'Format' : 'Tech Stack'}</th>
                 <th className="py-4 px-6">Contact</th>
-                <th className="py-4 px-6">Status</th>
                 <th className="py-4 px-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 font-sans">
               {filteredDataset.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-12 text-gray-400 text-sm font-light">
+                  <td colSpan="7" className="text-center py-12 text-gray-400 text-sm font-light">
                     No registrations found in Supabase database.
                   </td>
                 </tr>
@@ -725,31 +798,6 @@ export default function AdminPage({ setCurrentPage }) {
                     <td className="py-4 px-6 text-gray-300 text-[11px]">
                       <div>{row.phone}</div>
                       <div className="text-gray-500">{row.email}</div>
-                    </td>
-
-                    <td className="py-4 px-6">
-                      <select
-                        value={row.status || 'pending'}
-                        onChange={(e) => handleStatusChange(
-                          activeTab === 'day1' ? 'day1_registrations' : 'day2_registrations',
-                          row.reg_id,
-                          e.target.value
-                        )}
-                        className={`px-3 py-1 rounded-full text-[11px] font-['Space_Grotesk'] font-bold uppercase cursor-pointer outline-none ${
-                          row.status === 'approved'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                            : row.status === 'rejected'
-                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
-                            : row.status === 'waitlist'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
-                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
-                        }`}
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="waitlist">Waitlist</option>
-                      </select>
                     </td>
 
                     <td className="py-4 px-6 text-right space-x-2">
