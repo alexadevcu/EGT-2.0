@@ -37,14 +37,25 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
     phone: '',
     department: '',
     academicYear: '',
+    section: '',
+    group: '',
+    block: '',
     squadName: '',
     teammate1Name: '',
     teammate1Uid: '',
+    teammate1Section: '',
+    teammate1Group: '',
+    teammate1Block: '',
     teammate2Name: '',
     teammate2Uid: '',
+    teammate2Section: '',
+    teammate2Group: '',
+    teammate2Block: '',
     teammate3Name: '',
     teammate3Uid: '',
-    githubLink: ''
+    teammate3Section: '',
+    teammate3Group: '',
+    teammate3Block: ''
   })
 
   const handleChange = (e) => {
@@ -257,6 +268,53 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                   <option value="4th Year">4th Year</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Leader Section *
+                </label>
+                <input
+                  type="text"
+                  name="section"
+                  required
+                  value={formData.section}
+                  onChange={handleChange}
+                  placeholder="e.g. 801-A or Sec-A"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Leader Group *
+                </label>
+                <select
+                  name="group"
+                  required
+                  value={formData.group}
+                  onChange={handleChange}
+                  className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+                >
+                  <option value="">Select Group...</option>
+                  <option value="Group A">Group A</option>
+                  <option value="Group B">Group B</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Leader Block *
+                </label>
+                <input
+                  type="text"
+                  name="block"
+                  required
+                  value={formData.block}
+                  onChange={handleChange}
+                  placeholder="e.g. B1 Block"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                />
+              </div>
             </div>
 
             {/* Day 2 Tech Squad Fields */}
@@ -317,6 +375,53 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
                     />
                   </div>
+
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 1 Section *
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate1Section"
+                      required
+                      value={formData.teammate1Section}
+                      onChange={handleChange}
+                      placeholder="e.g. 801-A"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 1 Group *
+                    </label>
+                    <select
+                      name="teammate1Group"
+                      required
+                      value={formData.teammate1Group}
+                      onChange={handleChange}
+                      className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    >
+                      <option value="">Select Group...</option>
+                      <option value="Group A">Group A</option>
+                      <option value="Group B">Group B</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 1 Block *
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate1Block"
+                      required
+                      value={formData.teammate1Block}
+                      onChange={handleChange}
+                      placeholder="e.g. B1 Block"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -355,6 +460,53 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
                     />
                   </div>
+
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 2 Section *
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate2Section"
+                      required
+                      value={formData.teammate2Section}
+                      onChange={handleChange}
+                      placeholder="e.g. 801-B"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 2 Group *
+                    </label>
+                    <select
+                      name="teammate2Group"
+                      required
+                      value={formData.teammate2Group}
+                      onChange={handleChange}
+                      className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    >
+                      <option value="">Select Group...</option>
+                      <option value="Group A">Group A</option>
+                      <option value="Group B">Group B</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 2 Block *
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate2Block"
+                      required
+                      value={formData.teammate2Block}
+                      onChange={handleChange}
+                      placeholder="e.g. B2 Block"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -388,6 +540,50 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       value={formData.teammate3Uid}
                       onChange={handleChange}
                       placeholder="e.g. 22BCS1145"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 3 Section (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate3Section"
+                      value={formData.teammate3Section}
+                      onChange={handleChange}
+                      placeholder="e.g. 801-A"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 3 Group (Optional)
+                    </label>
+                    <select
+                      name="teammate3Group"
+                      value={formData.teammate3Group}
+                      onChange={handleChange}
+                      className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+                    >
+                      <option value="">Select Group...</option>
+                      <option value="Group A">Group A</option>
+                      <option value="Group B">Group B</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Teammate 3 Block (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="teammate3Block"
+                      value={formData.teammate3Block}
+                      onChange={handleChange}
+                      placeholder="e.g. B1 Block"
                       className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400"
                     />
                   </div>

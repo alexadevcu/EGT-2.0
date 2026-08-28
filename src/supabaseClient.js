@@ -212,18 +212,32 @@ export async function saveDay1Registration(data) {
     }
   }
 
+  const formattedTeamMembers = Array.isArray(data.teamMembersList) && data.teamMembersList.length > 0
+    ? data.teamMembersList.map((m, idx) => `${idx + 1}. ${m.fullName.trim()} (${m.uid.trim()}) [Sec: ${m.section.trim()}, ${m.group}, Blk: ${m.block.trim()}]`).join(' | ')
+    : sanitizeInput(data.teamMembers)
+
+  const rawTeamMembersJson = Array.isArray(data.teamMembersList) && data.teamMembersList.length > 0
+    ? JSON.stringify(data.teamMembersList)
+    : ''
+
   // Payload for backend insertion
   const insertPayload = {
     full_name: cleanFullName,
     uid: cleanUid,
     email: cleanEmail,
     phone: cleanPhone,
-    department: sanitizeInput(data.department) || 'CSE',
+    department: sanitizeInput(data.department) || 'AIT CSE',
     academic_year: sanitizeInput(data.academicYear) || '3rd Year',
+    section: sanitizeInput(data.section),
+    group_name: sanitizeInput(data.group),
+    block: sanitizeInput(data.block),
     category: sanitizeInput(data.category),
-    entry_type: sanitizeInput(data.entryType),
+    requires_audio_track: sanitizeInput(data.requiresAudioTrack),
+    audio_track_url: sanitizeInput(data.audioTrackUrl),
+    entry_type: sanitizeInput(data.entryType) || 'Solo',
     team_name: sanitizeInput(data.teamName),
-    team_members: sanitizeInput(data.teamMembers),
+    team_members: formattedTeamMembers,
+    team_members_raw: rawTeamMembersJson,
     performance_desc: sanitizeInput(data.performanceDesc),
     previous_performance_link: sanitizeInput(data.previousPerformanceLink),
     instagram: sanitizeInput(data.instagram),
@@ -290,10 +304,21 @@ export async function saveDay2Registration(data) {
   const cleanSquadName = sanitizeInput(data.squadName)
   const cleanT1Name = sanitizeInput(data.teammate1Name || data.teammate1)
   const cleanT1Uid = sanitizeInput(data.teammate1Uid).toUpperCase()
+  const cleanT1Section = sanitizeInput(data.teammate1Section)
+  const cleanT1Group = sanitizeInput(data.teammate1Group)
+  const cleanT1Block = sanitizeInput(data.teammate1Block)
+
   const cleanT2Name = sanitizeInput(data.teammate2Name || data.teammate2)
   const cleanT2Uid = sanitizeInput(data.teammate2Uid).toUpperCase()
+  const cleanT2Section = sanitizeInput(data.teammate2Section)
+  const cleanT2Group = sanitizeInput(data.teammate2Group)
+  const cleanT2Block = sanitizeInput(data.teammate2Block)
+
   const cleanT3Name = sanitizeInput(data.teammate3Name || data.teammate3)
   const cleanT3Uid = sanitizeInput(data.teammate3Uid).toUpperCase()
+  const cleanT3Section = sanitizeInput(data.teammate3Section)
+  const cleanT3Group = sanitizeInput(data.teammate3Group)
+  const cleanT3Block = sanitizeInput(data.teammate3Block)
 
   if (!cleanLeaderName || cleanLeaderName.length < 2) {
     return { success: false, error: 'Please enter a valid Squad Leader name.' }
@@ -317,9 +342,9 @@ export async function saveDay2Registration(data) {
     return { success: false, error: 'Teammate 2 Full Name and Student UID are both minimum requirements.' }
   }
 
-  const formattedT1 = cleanT1Uid ? `${cleanT1Name} (${cleanT1Uid})` : cleanT1Name
-  const formattedT2 = cleanT2Uid ? `${cleanT2Name} (${cleanT2Uid})` : cleanT2Name
-  const formattedT3 = cleanT3Uid ? `${cleanT3Name} (${cleanT3Uid})` : cleanT3Name
+  const formattedT1 = cleanT1Uid ? `${cleanT1Name} (${cleanT1Uid}) [Sec: ${cleanT1Section}, ${cleanT1Group}, Blk: ${cleanT1Block}]` : cleanT1Name
+  const formattedT2 = cleanT2Uid ? `${cleanT2Name} (${cleanT2Uid}) [Sec: ${cleanT2Section}, ${cleanT2Group}, Blk: ${cleanT2Block}]` : cleanT2Name
+  const formattedT3 = cleanT3Uid ? `${cleanT3Name} (${cleanT3Uid}) [Sec: ${cleanT3Section}, ${cleanT3Group}, Blk: ${cleanT3Block}]` : cleanT3Name
 
   // 4. Check for Duplicate UID in Supabase
   if (supabase) {
@@ -356,19 +381,30 @@ export async function saveDay2Registration(data) {
     uid: cleanUid,
     email: cleanEmail,
     phone: cleanPhone,
-    department: sanitizeInput(data.department) || 'CSE',
+    department: sanitizeInput(data.department) || 'AIT CSE',
     academic_year: sanitizeInput(data.academicYear) || '3rd Year',
+    section: sanitizeInput(data.section),
+    group_name: sanitizeInput(data.group),
+    block: sanitizeInput(data.block),
     squad_name: cleanSquadName,
     teammate_1: formattedT1,
     teammate_2: formattedT2,
     teammate_3: formattedT3 || '',
     teammate_1_name: cleanT1Name,
     teammate_1_uid: cleanT1Uid,
+    teammate_1_section: cleanT1Section,
+    teammate_1_group: cleanT1Group,
+    teammate_1_block: cleanT1Block,
     teammate_2_name: cleanT2Name,
     teammate_2_uid: cleanT2Uid,
+    teammate_2_section: cleanT2Section,
+    teammate_2_group: cleanT2Group,
+    teammate_2_block: cleanT2Block,
     teammate_3_name: cleanT3Name,
     teammate_3_uid: cleanT3Uid,
-    github_link: sanitizeInput(data.githubLink),
+    teammate_3_section: cleanT3Section,
+    teammate_3_group: cleanT3Group,
+    teammate_3_block: cleanT3Block,
     created_at: new Date().toISOString()
   }
 

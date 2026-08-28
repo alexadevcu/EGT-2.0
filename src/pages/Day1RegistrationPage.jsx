@@ -9,7 +9,10 @@ import {
   MapPin,
   Clock,
   Sparkles,
-  Ban
+  Ban,
+  Plus,
+  Trash2,
+  Users
 } from 'lucide-react'
 import { saveDay1Registration, isSupabaseConfigured, getRegistrationSettings } from '../supabaseClient'
 
@@ -36,8 +39,13 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
     phone: '',
     department: '',
     academicYear: '',
+    section: '',
+    group: '',
+    block: '',
     category: '',
     otherCategory: '',
+    requiresAudioTrack: '',
+    audioTrackUrl: '',
     entryType: 'Solo',
     teamName: '',
     teamMembers: '',
@@ -46,12 +54,39 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
     instagram: ''
   })
 
+  const [teamMembersList, setTeamMembersList] = useState([])
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
     }))
+  }
+
+  const handleAddTeamMember = () => {
+    if (teamMembersList.length >= 9) return // Leader + 9 Members = 10 Max
+    setTeamMembersList(prev => [
+      ...prev,
+      {
+        id: Date.now() + Math.random(),
+        fullName: '',
+        uid: '',
+        section: '',
+        group: '',
+        block: ''
+      }
+    ])
+  }
+
+  const handleRemoveTeamMember = (id) => {
+    setTeamMembersList(prev => prev.filter(m => m.id !== id))
+  }
+
+  const handleTeamMemberChange = (id, field, value) => {
+    setTeamMembersList(prev =>
+      prev.map(m => (m.id === id ? { ...m, [field]: value } : m))
+    )
   }
 
   const handleSubmit = async (e) => {
@@ -63,9 +98,26 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
       ? `Other (${formData.otherCategory.trim()})`
       : formData.category
 
+    if (formData.entryType === 'Team') {
+      if (!formData.teamName.trim()) {
+        setIsSubmitting(false)
+        setErrorMessage('Please enter your Team / Group Name.')
+        return
+      }
+      for (let i = 0; i < teamMembersList.length; i++) {
+        const m = teamMembersList[i]
+        if (!m.fullName.trim() || !m.uid.trim() || !m.section.trim() || !m.group || !m.block.trim()) {
+          setIsSubmitting(false)
+          setErrorMessage(`Please complete all fields (Name, UID, Section, Group, Block) for Team Member ${i + 1}.`)
+          return
+        }
+      }
+    }
+
     const payload = {
       ...formData,
-      category: finalCategory
+      category: finalCategory,
+      teamMembersList: formData.entryType === 'Team' ? teamMembersList : []
     }
 
     const result = await saveDay1Registration(payload)
@@ -265,10 +317,231 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                   <option value="4th Year">4th Year</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Section *
+                </label>
+                <input
+                  type="text"
+                  name="section"
+                  required
+                  value={formData.section}
+                  onChange={handleChange}
+                  placeholder="e.g. 801-A or Sec-A"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-rose-400"
+                />
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Group *
+                </label>
+                <select
+                  name="group"
+                  required
+                  value={formData.group}
+                  onChange={handleChange}
+                  className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-400"
+                >
+                  <option value="">Select Group...</option>
+                  <option value="Group A">Group A</option>
+                  <option value="Group B">Group B</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Block *
+                </label>
+                <input
+                  type="text"
+                  name="block"
+                  required
+                  value={formData.block}
+                  onChange={handleChange}
+                  placeholder="e.g. B1 Block"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-rose-400"
+                />
+              </div>
             </div>
 
-            {/* Day 1 Performance Category Fields */}
+            {/* Day 1 Performance Format & Category Fields */}
             <div className="space-y-5 pt-4 border-t border-white/10">
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Performance Format *
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <label
+                    className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                      formData.entryType === 'Solo'
+                        ? 'bg-rose-500/20 border-rose-400 text-rose-300 font-bold'
+                        : 'bg-white/5 border-white/15 text-gray-300 hover:bg-white/10'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="entryType"
+                      value="Solo"
+                      checked={formData.entryType === 'Solo'}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <span>Solo Act</span>
+                  </label>
+
+                  <label
+                    className={`flex items-center justify-center gap-2 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                      formData.entryType === 'Team'
+                        ? 'bg-rose-500/20 border-rose-400 text-rose-300 font-bold'
+                        : 'bg-white/5 border-white/15 text-gray-300 hover:bg-white/10'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="entryType"
+                      value="Team"
+                      checked={formData.entryType === 'Team'}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <span>Group / Team Act</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Group / Team Fields when Team is selected */}
+              {formData.entryType === 'Team' && (
+                <div className="space-y-4 p-4 rounded-2xl bg-white/5 border border-white/10 animate-in fade-in duration-300">
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Team / Group Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="teamName"
+                      required={formData.entryType === 'Team'}
+                      value={formData.teamName}
+                      onChange={handleChange}
+                      placeholder="e.g. Pulse Dance Crew or Acoustic Harmony"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-rose-400"
+                    />
+                  </div>
+
+                  {/* Added Team Member Cards */}
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center justify-between text-xs font-['Space_Grotesk'] font-bold text-gray-300">
+                      <span>Team Members ({teamMembersList.length + 1} Total Including Leader)</span>
+                      <span className="text-gray-400 text-[11px]">Max 10 Members</span>
+                    </div>
+
+                    {teamMembersList.map((member, idx) => (
+                      <div key={member.id} className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 relative group">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-['Space_Grotesk'] font-bold text-rose-300 uppercase tracking-wider">
+                            Team Member {idx + 1} Details *
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveTeamMember(member.id)}
+                            className="p-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 transition-colors cursor-pointer"
+                            title="Remove Member"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="block font-['Space_Grotesk'] text-[11px] font-semibold text-gray-300 mb-1">
+                              Full Name *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={member.fullName}
+                              onChange={(e) => handleTeamMemberChange(member.id, 'fullName', e.target.value)}
+                              placeholder="Member Name"
+                              className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-400"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-['Space_Grotesk'] text-[11px] font-semibold text-gray-300 mb-1">
+                              Student UID *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={member.uid}
+                              onChange={(e) => handleTeamMemberChange(member.id, 'uid', e.target.value)}
+                              placeholder="e.g. 22BCS1089"
+                              className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-400"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-['Space_Grotesk'] text-[11px] font-semibold text-gray-300 mb-1">
+                              Section *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={member.section}
+                              onChange={(e) => handleTeamMemberChange(member.id, 'section', e.target.value)}
+                              placeholder="e.g. 801-A"
+                              className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-400"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-['Space_Grotesk'] text-[11px] font-semibold text-gray-300 mb-1">
+                              Group *
+                            </label>
+                            <select
+                              required
+                              value={member.group}
+                              onChange={(e) => handleTeamMemberChange(member.id, 'group', e.target.value)}
+                              className="w-full bg-[#12121c] border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-400"
+                            >
+                              <option value="">Select Group...</option>
+                              <option value="Group A">Group A</option>
+                              <option value="Group B">Group B</option>
+                            </select>
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="block font-['Space_Grotesk'] text-[11px] font-semibold text-gray-300 mb-1">
+                              Block *
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={member.block}
+                              onChange={(e) => handleTeamMemberChange(member.id, 'block', e.target.value)}
+                              placeholder="e.g. B1 Block"
+                              className="w-full bg-white/5 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-400"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {teamMembersList.length < 9 && (
+                      <button
+                        type="button"
+                        onClick={handleAddTeamMember}
+                        className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-dashed border-rose-400/50 text-rose-300 text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>+ Add Team Member</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
                   Performance Category *
@@ -309,15 +582,15 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                 )}
               </div>
 
-              {/* Solo Performance Note Banner */}
+              {/* Performance Note Banner */}
               <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-['Space_Grotesk'] flex items-start gap-3">
                 <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-bold text-amber-300 block text-sm mb-0.5">
-                    Solo Performance Event Note
+                    Stage Performance Event Note
                   </span>
                   <p className="text-gray-300 text-xs leading-relaxed">
-                    Day 1 Stage Performances are strictly <strong>Solo-based acts (Individual Entries)</strong>. Each performance has a strict time limit of <strong>3 minutes maximum</strong>.
+                    Day 1 Stage Performances support both <strong>Solo &amp; Group/Team acts</strong> (up to 10 members max). Each performance has a strict time limit of <strong>3 minutes maximum</strong>.
                   </p>
                 </div>
               </div>
@@ -334,6 +607,75 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                   placeholder="Describe your performance, song titles, audio track requirements, or special stage props needed."
                   className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none resize-none"
                 ></textarea>
+              </div>
+
+              {/* Audio/Music Track Requirement */}
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Does your performance require an audio/music track? *
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <label
+                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${
+                      formData.requiresAudioTrack === 'Yes'
+                        ? 'bg-rose-500/20 border-rose-400 text-rose-300 font-bold'
+                        : 'bg-white/5 border-white/15 text-gray-300 hover:bg-white/10'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="requiresAudioTrack"
+                      value="Yes"
+                      required
+                      checked={formData.requiresAudioTrack === 'Yes'}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <span>Yes</span>
+                  </label>
+
+                  <label
+                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border cursor-pointer transition-all ${
+                      formData.requiresAudioTrack === 'No'
+                        ? 'bg-rose-500/20 border-rose-400 text-rose-300 font-bold'
+                        : 'bg-white/5 border-white/15 text-gray-300 hover:bg-white/10'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="requiresAudioTrack"
+                      value="No"
+                      required
+                      checked={formData.requiresAudioTrack === 'No'}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <span>No</span>
+                  </label>
+                </div>
+
+                {formData.requiresAudioTrack === 'Yes' && (
+                  <div className="mt-3 animate-in fade-in duration-300 space-y-2">
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300">
+                      Upload Performance Track / Audio Drive Link *
+                    </label>
+                    <input
+                      type="url"
+                      name="audioTrackUrl"
+                      required
+                      value={formData.audioTrackUrl}
+                      onChange={handleChange}
+                      placeholder="https://drive.google.com/... or MP3 audio link"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-rose-400"
+                    />
+                    <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-['Space_Grotesk'] flex items-start gap-2">
+                      <span className="font-bold text-amber-400 shrink-0">⚠️ IMPORTANT:</span>
+                      <span>
+                        Make sure to set file access to <strong>"Anyone with the link can view" (Public)</strong> in your Google Drive / Cloud file settings so event organizers can play & download your track!
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>

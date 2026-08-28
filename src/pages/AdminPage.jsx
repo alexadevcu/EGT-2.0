@@ -38,6 +38,39 @@ import {
   updateRegistrationSettings
 } from '../supabaseClient'
 
+export function parseDay1TeamMembers(row) {
+  if (!row) return []
+  if (Array.isArray(row.teamMembersList) && row.teamMembersList.length > 0) {
+    return row.teamMembersList
+  }
+  if (row.team_members_raw) {
+    try {
+      const parsed = JSON.parse(row.team_members_raw)
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed
+    } catch (e) {}
+  }
+  
+  const rawStr = row.team_members || ''
+  if (!rawStr) return []
+
+  const parts = rawStr.split(/\s*\|\s*/)
+  return parts.map(part => {
+    // e.g. "1. Vasu Gera (7056502148) [Sec: dfg, Group A, Blk: s2]"
+    const nameMatch = part.match(/(?:\d+\.\s*)?([^(]+)\s*\(([^)]+)\)/)
+    const secMatch = part.match(/\[Sec:\s*([^,\]]+)/i)
+    const grpMatch = part.match(/Sec:[^,]+,\s*([^,\]]+)/i) || part.match(/,\s*(Group\s+[AB]|[^,\]]+),\s*Blk:/i)
+    const blkMatch = part.match(/Blk:\s*([^\]]+)/i)
+
+    return {
+      fullName: nameMatch ? nameMatch[1].trim() : part.trim(),
+      uid: nameMatch ? nameMatch[2].trim() : '',
+      section: secMatch ? secMatch[1].trim() : '',
+      group: grpMatch ? grpMatch[1].trim() : '',
+      block: blkMatch ? blkMatch[1].trim() : ''
+    }
+  }).filter(m => m.fullName || m.uid)
+}
+
 export default function AdminPage({ setCurrentPage }) {
   // Supabase Auth State
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -67,6 +100,7 @@ export default function AdminPage({ setCurrentPage }) {
   const [viewMode, setViewMode] = useState('table') // 'table' | 'sheets'
   const [googleSheetUrl, setGoogleSheetUrl] = useState(import.meta.env.VITE_GOOGLE_SHEET_URL || '')
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [selectedItem, setSelectedItem] = useState(null)
 
   // Check active Supabase session on mount
@@ -150,42 +184,77 @@ export default function AdminPage({ setCurrentPage }) {
     let rows = []
 
     if (activeTab === 'day1') {
-      // Header matching Google Sheets layout from photo
-      rows.push([
+      // Dynamically calculate maximum teammates present across teams in current dataset
+      const maxTeammatesInDataset = Math.max(
+        0,
+        ...dataToExport.map(row => parseDay1TeamMembers(row).length)
+      )
+
+      const day1Headers = [
         'Timestamp',
         'Email Address',
-        'Name',
+        'Full Name (Leader / Solo)',
         'UID',
-        'Mail id (Personal)',
         'Phone No.',
         'Year',
         'Department',
+        'Section',
+        'Group',
+        'Block',
         'Performance Category',
+        'Requires Audio Track',
+        'Audio Track Link',
         'Entry Format',
-        'Team Name',
-        'Team Members',
-        'Previous Performance Link',
-        'Registration ID'
-      ].map(cleanField).join(','))
+        'Team Name'
+      ]
+
+      for (let i = 1; i <= maxTeammatesInDataset; i++) {
+        day1Headers.push(
+          `Teammate ${i} Name`,
+          `Teammate ${i} UID`,
+          `Teammate ${i} Section`,
+          `Teammate ${i} Group`,
+          `Teammate ${i} Block`
+        )
+      }
+      day1Headers.push('Registration ID')
+      rows.push(day1Headers.map(cleanField).join(','))
 
       dataToExport.forEach(row => {
         const timestamp = new Date(row.created_at || Date.now()).toLocaleString()
-        rows.push([
+        const parsedMembers = parseDay1TeamMembers(row)
+
+        const rowCells = [
           timestamp,
           row.email,
           row.full_name,
           row.uid,
-          row.email,
           row.phone,
           row.academic_year,
           row.department,
+          row.section || '',
+          row.group_name || row.group || '',
+          row.block || '',
           row.category,
-          row.entry_type,
-          row.team_name || '',
-          row.team_members || '',
-          row.previous_performance_link || '',
-          row.reg_id
-        ].map(cleanField).join(','))
+          row.requires_audio_track || 'No',
+          row.audio_track_url || '',
+          row.entry_type || 'Solo',
+          row.team_name || ''
+        ]
+
+        for (let i = 0; i < maxTeammatesInDataset; i++) {
+          const m = parsedMembers[i] || {}
+          rowCells.push(
+            m.fullName || '',
+            m.uid || '',
+            m.section || '',
+            m.group || '',
+            m.block || ''
+          )
+        }
+
+        rowCells.push(row.reg_id)
+        rows.push(rowCells.map(cleanField).join(','))
       })
     } else {
       // Day 2 Tech Squads layout
@@ -194,17 +263,28 @@ export default function AdminPage({ setCurrentPage }) {
         'Email Address',
         'Leader Name',
         'Leader UID',
-        'Mail id (Personal)',
         'Phone No.',
         'Year',
         'Department',
+        'Leader Section',
+        'Leader Group',
+        'Leader Block',
         'Squad Name',
         'Teammate 1 Name',
         'Teammate 1 UID',
+        'Teammate 1 Section',
+        'Teammate 1 Group',
+        'Teammate 1 Block',
         'Teammate 2 Name',
         'Teammate 2 UID',
+        'Teammate 2 Section',
+        'Teammate 2 Group',
+        'Teammate 2 Block',
         'Teammate 3 Name',
         'Teammate 3 UID',
+        'Teammate 3 Section',
+        'Teammate 3 Group',
+        'Teammate 3 Block',
         'Registration ID'
       ].map(cleanField).join(','))
 
@@ -213,32 +293,43 @@ export default function AdminPage({ setCurrentPage }) {
         
         // Parse teammate 1 name & UID
         const t1Name = row.teammate_1_name || (row.teammate_1 ? row.teammate_1.split('(')[0].trim() : '')
-        const t1Uid = row.teammate_1_uid || (row.teammate_1 && row.teammate_1.includes('(') ? row.teammate_1.split('(')[1].replace(')', '').trim() : '')
+        const t1Uid = row.teammate_1_uid || (row.teammate_1 && row.teammate_1.includes('(') ? row.teammate_1.split('(')[1].split(')')[0].trim() : '')
 
         // Parse teammate 2 name & UID
         const t2Name = row.teammate_2_name || (row.teammate_2 ? row.teammate_2.split('(')[0].trim() : '')
-        const t2Uid = row.teammate_2_uid || (row.teammate_2 && row.teammate_2.includes('(') ? row.teammate_2.split('(')[1].replace(')', '').trim() : '')
+        const t2Uid = row.teammate_2_uid || (row.teammate_2 && row.teammate_2.includes('(') ? row.teammate_2.split('(')[1].split(')')[0].trim() : '')
 
         // Parse teammate 3 name & UID
         const t3Name = row.teammate_3_name || (row.teammate_3 ? row.teammate_3.split('(')[0].trim() : '')
-        const t3Uid = row.teammate_3_uid || (row.teammate_3 && row.teammate_3.includes('(') ? row.teammate_3.split('(')[1].replace(')', '').trim() : '')
+        const t3Uid = row.teammate_3_uid || (row.teammate_3 && row.teammate_3.includes('(') ? row.teammate_3.split('(')[1].split(')')[0].trim() : '')
 
         rows.push([
           timestamp,
           row.email,
           row.leader_name,
           row.uid,
-          row.email,
           row.phone,
           row.academic_year,
           row.department,
+          row.section || '',
+          row.group_name || row.group || '',
+          row.block || '',
           row.squad_name,
           t1Name,
           t1Uid,
+          row.teammate_1_section || '',
+          row.teammate_1_group || '',
+          row.teammate_1_block || '',
           t2Name,
           t2Uid,
+          row.teammate_2_section || '',
+          row.teammate_2_group || '',
+          row.teammate_2_block || '',
           t3Name,
           t3Uid,
+          row.teammate_3_section || '',
+          row.teammate_3_group || '',
+          row.teammate_3_block || '',
           row.reg_id
         ].map(cleanField).join(','))
       })
@@ -368,7 +459,9 @@ export default function AdminPage({ setCurrentPage }) {
     if (!item) return false
     try {
       const searchString = JSON.stringify(item).toLowerCase()
-      return searchString.includes((searchTerm || '').toLowerCase())
+      const matchesSearch = searchString.includes((searchTerm || '').toLowerCase())
+      const matchesStatus = statusFilter === 'all' || (item.status && String(item.status).toLowerCase() === statusFilter.toLowerCase())
+      return matchesSearch && matchesStatus
     } catch (err) {
       return true
     }
@@ -680,18 +773,17 @@ export default function AdminPage({ setCurrentPage }) {
                   <td className="py-2 px-3 border border-gray-700">Student UID</td>
                   <td className="py-2 px-3 border border-gray-700">Email Address</td>
                   <td className="py-2 px-3 border border-gray-700">Phone No.</td>
-                  <td className="py-2 px-3 border border-gray-700">Department</td>
-                  <td className="py-2 px-3 border border-gray-700">Year</td>
+                  <td className="py-2 px-3 border border-gray-700">Department / Sec / Grp / Blk</td>
                   <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Performance Category' : 'Squad Name'}</td>
-                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Format' : 'GitHub Link'}</td>
-                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Team Details' : 'Squad Teammates'}</td>
+                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Audio Track' : 'Teammate 1'}</td>
+                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Previous Work' : 'Teammate 2'}</td>
                 </tr>
               </thead>
 
               <tbody className="bg-[#181824] text-gray-200 divide-y divide-gray-800">
                 {filteredDataset.length === 0 ? (
                   <tr>
-                    <td colSpan="12" className="text-center py-10 text-gray-500 italic border border-gray-800">
+                    <td colSpan="11" className="text-center py-10 text-gray-500 italic border border-gray-800">
                       No records found in {activeTab === 'day1' ? 'Day 1 Performers' : 'Day 2 Technical Squads'} sheet.
                     </td>
                   </tr>
@@ -720,22 +812,49 @@ export default function AdminPage({ setCurrentPage }) {
                       <td className="py-2 px-3 border border-gray-800 font-mono text-gray-300 whitespace-nowrap">
                         {row.phone}
                       </td>
-                      <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
-                        {row.department}
-                      </td>
-                      <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
-                        {row.academic_year}
+                      <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap text-[11px]">
+                        {row.department} &bull; {row.academic_year} [{row.section || '-'}, {row.group_name || row.group || '-'}, {row.block || '-'}]
                       </td>
                       <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
                         {activeTab === 'day1' ? row.category : row.squad_name}
                       </td>
                       <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
-                        {activeTab === 'day1' ? (row.entry_type || 'Solo') : (row.github_link || 'N/A')}
+                        {activeTab === 'day1' ? (
+                          row.audio_track_url ? (
+                            <a
+                              href={row.audio_track_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2.5 py-1 rounded-md bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[11px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                            >
+                              <Music className="w-3 h-3 text-rose-400" />
+                              <span>Open Track</span>
+                              <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+                            </a>
+                          ) : (
+                            <span className="text-gray-500 text-[11px] italic">No Track Required</span>
+                          )
+                        ) : (
+                          row.teammate_1 || 'N/A'
+                        )}
                       </td>
                       <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
-                        {activeTab === 'day1'
-                          ? (row.team_name ? `${row.team_name} (${row.team_members || 'Group'})` : 'Solo')
-                          : ([row.teammate_1, row.teammate_2, row.teammate_3].filter(Boolean).join(' | '))}
+                        {activeTab === 'day1' ? (
+                          row.previous_performance_link ? (
+                            <a
+                              href={row.previous_performance_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-cyan-400 underline font-mono text-[11px] hover:text-cyan-300"
+                            >
+                              View Link
+                            </a>
+                          ) : (
+                            <span className="text-gray-500 text-[11px]">None</span>
+                          )
+                        ) : (
+                          row.teammate_2 || 'N/A'
+                        )}
                       </td>
                     </tr>
                   ))
@@ -851,15 +970,105 @@ export default function AdminPage({ setCurrentPage }) {
               </div>
             </div>
 
-            <div className="glass-panel p-5 rounded-2xl border border-white/10 space-y-3 font-['Space_Grotesk'] text-xs">
-              {Object.entries(selectedItem).map(([key, value]) => (
-                <div key={key} className="flex justify-between border-b border-white/5 pb-2">
-                  <span className="text-gray-400 uppercase tracking-wider">{key.replace('_', ' ')}:</span>
-                  <span className="font-bold text-white text-right max-w-xs break-words">
-                    {value || 'N/A'}
-                  </span>
+            <div className="glass-panel p-5 rounded-2xl border border-white/10 space-y-4 font-['Space_Grotesk'] text-xs max-h-[60vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-3 border-b border-white/10 pb-4">
+                <div>
+                  <span className="text-gray-400 block text-[10px] uppercase">Name</span>
+                  <span className="font-bold text-white text-sm">{selectedItem.full_name || selectedItem.leader_name}</span>
                 </div>
-              ))}
+                <div>
+                  <span className="text-gray-400 block text-[10px] uppercase">Student UID</span>
+                  <span className="font-mono font-bold text-[#f7d978] text-sm">{selectedItem.uid}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block text-[10px] uppercase">Department / Year</span>
+                  <span className="text-gray-200">{selectedItem.department} &bull; {selectedItem.academic_year}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block text-[10px] uppercase">Sec / Group / Block</span>
+                  <span className="text-gray-200">{selectedItem.section || '-'}, {selectedItem.group_name || selectedItem.group || '-'}, {selectedItem.block || '-'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block text-[10px] uppercase">Phone / WhatsApp</span>
+                  <span className="text-gray-200 font-mono">{selectedItem.phone}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block text-[10px] uppercase">Email Address</span>
+                  <span className="text-gray-200">{selectedItem.email}</span>
+                </div>
+              </div>
+
+              {selectedItem.audio_track_url && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between">
+                  <span className="font-bold text-rose-300">Performance Audio Track:</span>
+                  <a
+                    href={selectedItem.audio_track_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1 rounded-lg bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <Music className="w-3.5 h-3.5" />
+                    <span>Open / Download Track</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+
+              {/* Day 1 Team Members Roster */}
+              {activeTab === 'day1' && parseDay1TeamMembers(selectedItem).length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <div className="text-xs font-bold text-[#f7d978] uppercase tracking-wider flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Team Members Roster ({parseDay1TeamMembers(selectedItem).length + 1} Total)</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {parseDay1TeamMembers(selectedItem).map((member, idx) => (
+                      <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                        <div className="flex items-center justify-between font-bold text-white">
+                          <span>{idx + 1}. {member.fullName}</span>
+                          <span className="font-mono text-xs text-[#f7d978]">{member.uid}</span>
+                        </div>
+                        <div className="text-[11px] text-gray-400 flex items-center gap-3 font-mono">
+                          <span>Section: <strong className="text-gray-200">{member.section || 'N/A'}</strong></span>
+                          <span>Group: <strong className="text-gray-200">{member.group || 'N/A'}</strong></span>
+                          <span>Block: <strong className="text-gray-200">{member.block || 'N/A'}</strong></span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Day 2 Squad Teammates Roster */}
+              {activeTab === 'day2' && (
+                <div className="space-y-3 pt-2">
+                  <div className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Squad Teammates ({selectedItem.squad_name})</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {[
+                      { name: selectedItem.teammate_1_name || selectedItem.teammate_1, uid: selectedItem.teammate_1_uid, sec: selectedItem.teammate_1_section, grp: selectedItem.teammate_1_group, blk: selectedItem.teammate_1_block },
+                      { name: selectedItem.teammate_2_name || selectedItem.teammate_2, uid: selectedItem.teammate_2_uid, sec: selectedItem.teammate_2_section, grp: selectedItem.teammate_2_group, blk: selectedItem.teammate_2_block },
+                      { name: selectedItem.teammate_3_name || selectedItem.teammate_3, uid: selectedItem.teammate_3_uid, sec: selectedItem.teammate_3_section, grp: selectedItem.teammate_3_group, blk: selectedItem.teammate_3_block }
+                    ].filter(t => t.name).map((t, idx) => (
+                      <div key={idx} className="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                        <div className="flex items-center justify-between font-bold text-white">
+                          <span>Teammate {idx + 1}: {t.name}</span>
+                          <span className="font-mono text-xs text-cyan-300">{t.uid || '-'}</span>
+                        </div>
+                        <div className="text-[11px] text-gray-400 flex items-center gap-3 font-mono">
+                          <span>Section: <strong className="text-gray-200">{t.sec || '-'}</strong></span>
+                          <span>Group: <strong className="text-gray-200">{t.grp || '-'}</strong></span>
+                          <span>Block: <strong className="text-gray-200">{t.blk || '-'}</strong></span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 pt-2">
