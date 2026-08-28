@@ -261,36 +261,35 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
           <div className="font-['Space_Grotesk'] text-xs font-bold text-gray-300 uppercase tracking-widest mb-6">
             PRESENTS
           </div>
-
           {/* 3D Metallic Gold Title Graphics */}
-          <div className="relative font-['Syne'] text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-tight leading-[0.9] text-transparent bg-clip-text bg-gradient-to-b from-[#FFFBEB] via-[#f7d978] to-[#b38515] drop-shadow-[0_12px_35px_rgba(0,0,0,0.95)]">
+          <div className="relative font-['Syne'] text-4xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-tight leading-[0.95] text-transparent bg-clip-text bg-gradient-to-b from-[#FFFBEB] via-[#f7d978] to-[#b38515] drop-shadow-[0_12px_35px_rgba(0,0,0,0.95)]">
             ENGINEER’S
-            <div className="text-3xl sm:text-5xl md:text-6xl text-[#f7d978] my-1 font-extrabold flex items-center justify-center gap-3">
-              <span className="h-[2px] w-12 sm:w-20 bg-gradient-to-r from-transparent to-[#f7d978]"></span>
+            <div className="text-2xl sm:text-5xl md:text-6xl text-[#f7d978] my-1 font-extrabold flex items-center justify-center gap-2 sm:gap-3">
+              <span className="h-[2px] w-8 sm:w-20 bg-gradient-to-r from-transparent to-[#f7d978]"></span>
               <span>GOT</span>
-              <span className="h-[2px] w-12 sm:w-20 bg-gradient-to-l from-transparent to-[#f7d978]"></span>
+              <span className="h-[2px] w-8 sm:w-20 bg-gradient-to-l from-transparent to-[#f7d978]"></span>
             </div>
             
             {/* TALENT 2.0 Title */}
-            <div className="flex items-center justify-center gap-2 sm:gap-4">
+            <div className="flex items-center justify-center gap-1.5 sm:gap-4">
               <span>TAL</span>
               <div className="relative inline-flex items-center justify-center text-[#f7d978]">
-                <Mic className="w-10 h-10 sm:w-16 sm:h-16 md:w-20 md:h-20 text-[#f7d978] drop-shadow-[0_0_15px_rgba(247,217,120,0.8)] animate-pulse" />
+                <Mic className="w-8 h-8 sm:w-16 sm:h-16 md:w-20 md:h-20 text-[#f7d978] drop-shadow-[0_0_15px_rgba(247,217,120,0.8)] animate-pulse" />
               </div>
               <span>ENT</span>
             </div>
 
-            <div className="font-['Space_Grotesk'] text-4xl sm:text-6xl md:text-7xl text-[#f7d978] tracking-widest mt-2">
+            <div className="font-['Space_Grotesk'] text-3xl sm:text-6xl md:text-7xl text-[#f7d978] tracking-widest mt-1 sm:mt-2">
               2.0
             </div>
           </div>
 
           {/* Subtitle with Student Clubs as Primary Organizers */}
-          <p className="font-['Outfit'] text-lg sm:text-2xl md:text-3xl text-white mt-8 max-w-3xl font-extrabold leading-relaxed drop-shadow-md">
+          <p className="font-['Outfit'] text-base sm:text-2xl md:text-3xl text-white mt-6 sm:mt-8 max-w-3xl font-extrabold leading-relaxed drop-shadow-md">
             Alexa Developers Community &amp; GFG Student Chapter
           </p>
 
-          <p className="font-['Space_Grotesk'] text-xs sm:text-sm md:text-base text-[#f7d978] mt-2 font-bold tracking-wider uppercase drop-shadow-sm">
+          <p className="font-['Space_Grotesk'] text-[11px] sm:text-sm md:text-base text-[#f7d978] mt-2 font-bold tracking-wider uppercase drop-shadow-sm">
             Under Department of CSE – Takshashila • Chandigarh University
           </p>
 
@@ -300,10 +299,10 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
           </p>
 
           {/* Action CTAs: Navigate directly to Day 1 / Day 2 pages */}
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 mt-6 sm:mt-8 w-full sm:w-auto">
             <button
               onClick={() => setCurrentPage('day1')}
-              className="bg-gradient-to-r from-[#e5b84c] via-[#f7d978] to-[#c9982e] text-[#1c0800] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-8 py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(247,217,120,0.5)] flex items-center gap-2 cursor-pointer border border-yellow-200/60"
+              className="w-full sm:w-auto justify-center bg-gradient-to-r from-[#e5b84c] via-[#f7d978] to-[#c9982e] text-[#1c0800] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(247,217,120,0.5)] flex items-center gap-2 cursor-pointer border border-yellow-200/60"
             >
               <Mic className="w-4 h-4" />
               <span>Register Day 1 Performer</span>
@@ -311,15 +310,15 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
 
             <button
               onClick={() => setCurrentPage('day2')}
-              className="bg-[#09090d]/90 text-[#00F2FF] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-8 py-3.5 rounded-full hover:bg-cyan-500/10 transition-all shadow-[0_0_25px_rgba(0,242,255,0.4)] flex items-center gap-2 cursor-pointer border-2 border-[#00F2FF]"
+              className="w-full sm:w-auto justify-center bg-gradient-to-r from-cyan-500 via-cyan-400 to-blue-600 text-black font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] flex items-center gap-2 cursor-pointer border border-cyan-200/60"
             >
               <Code className="w-4 h-4" />
-              <span>Register Day 2 Tech Wizard</span>
+              <span>Register Day 2 Tech Squad</span>
             </button>
 
             <button
               onClick={() => setCurrentPage('day1')}
-              className="glass-pill text-gray-200 hover:text-[#f7d978] font-['Space_Grotesk'] text-xs sm:text-sm font-semibold uppercase px-6 py-3.5 rounded-full flex items-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto justify-center glass-pill text-gray-200 hover:text-[#f7d978] font-['Space_Grotesk'] text-xs sm:text-sm font-semibold uppercase px-6 sm:px-3.5 rounded-full flex items-center gap-2 cursor-pointer"
             >
               <Ticket className="w-4 h-4 text-[#f7d978]" />
               <span>Audience Pass</span>
@@ -328,31 +327,31 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
         </div>
 
         {/* Live Countdown Pod */}
-        <div className="relative z-10 mt-8 bg-[#150404]/90 backdrop-blur-xl px-6 py-3.5 rounded-full border border-[#f7d978]/40 flex items-center gap-4 sm:gap-6 shadow-2xl">
-          <span className="font-['Space_Grotesk'] text-xs font-bold uppercase text-[#f7d978] flex items-center gap-1.5 hidden sm:flex">
+        <div className="relative z-10 mt-6 sm:mt-8 bg-[#150404]/90 backdrop-blur-xl px-4 sm:px-6 py-3 sm:py-3.5 rounded-2xl sm:rounded-full border border-[#f7d978]/40 flex flex-col sm:flex-row items-center gap-2 sm:gap-6 shadow-2xl">
+          <span className="font-['Space_Grotesk'] text-xs font-bold uppercase text-[#f7d978] flex items-center gap-1.5">
             <Clock className="w-4 h-4 animate-pulse" />
             <span>Event Countdown:</span>
           </span>
 
-          <div className="flex items-center gap-3 sm:gap-5 font-['Space_Grotesk'] text-sm sm:text-base font-bold">
+          <div className="flex items-center gap-2.5 sm:gap-5 font-['Space_Grotesk'] text-xs sm:text-base font-bold">
             <div>
-              <span className="text-[#f7d978] text-lg sm:text-xl">{timeLeft.days}</span>
-              <span className="text-gray-400 text-xs ml-1">Days</span>
+              <span className="text-[#f7d978] text-base sm:text-xl">{timeLeft.days}</span>
+              <span className="text-gray-400 text-[10px] sm:text-xs ml-1">Days</span>
             </div>
             <span className="text-gray-600">:</span>
             <div>
-              <span className="text-white text-lg sm:text-xl">{timeLeft.hours}</span>
-              <span className="text-gray-400 text-xs ml-1">Hours</span>
+              <span className="text-white text-base sm:text-xl">{timeLeft.hours}</span>
+              <span className="text-gray-400 text-[10px] sm:text-xs ml-1">Hours</span>
             </div>
             <span className="text-gray-600">:</span>
             <div>
-              <span className="text-white text-lg sm:text-xl">{timeLeft.minutes}</span>
-              <span className="text-gray-400 text-xs ml-1">Mins</span>
+              <span className="text-white text-base sm:text-xl">{timeLeft.minutes}</span>
+              <span className="text-gray-400 text-[10px] sm:text-xs ml-1">Mins</span>
             </div>
             <span className="text-gray-600">:</span>
             <div>
-              <span className="text-cyan-400 text-lg sm:text-xl">{timeLeft.seconds}</span>
-              <span className="text-cyan-400 text-xs ml-1">Secs</span>
+              <span className="text-cyan-400 text-base sm:text-xl">{timeLeft.seconds}</span>
+              <span className="text-cyan-400 text-[10px] sm:text-xs ml-1">Secs</span>
             </div>
           </div>
         </div>
