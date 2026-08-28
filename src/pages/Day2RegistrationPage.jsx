@@ -106,7 +106,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
       {/* Header Banner */}
       <div className="text-center max-w-3xl mx-auto space-y-3 mb-10">
         <span className="px-4 py-1.5 rounded-full bg-cyan-500/20 text-cyan-300 font-['Space_Grotesk'] text-xs font-bold border border-cyan-400/40 uppercase tracking-widest inline-block">
-          10 September 2026 • Wizarding Tech Arena
+          10 September 2026 • C1 Seminar Hall • Tech Arena
         </span>
         
         <h1 className="font-['Syne'] text-3xl sm:text-5xl font-extrabold text-white">
@@ -145,7 +145,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="border-b border-white/10 pb-4 flex justify-between items-center">
               <div>
-                <h2 className="font-['Syne'] text-xl font-bold text-white flex items-center gap-2">
+                <h2 className="font-[#Cinzel] text-xl font-bold text-white flex items-center gap-2">
                   <Code className="w-5 h-5 text-cyan-400" />
                   <span>Tech Wizard Squad Form</span>
                 </h2>
@@ -592,7 +592,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
             </div>
 
             {/* Guidelines Agreement Checkbox */}
-            <div className="pt-4 border-t border-white/10">
+            <div className="pt-4 border-t border-white/10 space-y-3">
               <label className="flex items-start gap-3 cursor-pointer group">
                 <input
                   type="checkbox"
@@ -609,6 +609,28 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                     Event Guidelines &amp; Code of Conduct
                   </button>
                   . *
+                </span>
+              </label>
+
+              {/* Mandatory WhatsApp Group Confirmation */}
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  required
+                  className="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-emerald-500 focus:ring-emerald-400 focus:ring-offset-0 cursor-pointer"
+                />
+                <span className="font-sans text-xs text-gray-300 group-hover:text-white transition-colors leading-relaxed">
+                  I confirm that I have joined (or will join) the official{' '}
+                  <a
+                    href="https://chat.whatsapp.com/GdWeagwwmqN9u7kY4XMaiK"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-emerald-400 hover:underline font-bold inline-flex items-center gap-1"
+                  >
+                    <span>Participant WhatsApp Group</span>
+                    <span className="text-[10px]">↗</span>
+                  </a>
+                  {' '}for mandatory slot timings &amp; venue updates. *
                 </span>
               </label>
             </div>
@@ -666,6 +688,24 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                   {submittedPass.tech_stack}
                 </span>
               </div>
+            </div>
+
+            {/* Mandatory WhatsApp Group Callout Banner */}
+            <div className="p-5 rounded-2xl bg-emerald-950/60 border-2 border-emerald-500 text-center space-y-3 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+              <p className="font-['Space_Grotesk'] text-sm font-extrabold text-emerald-300">
+                ⚠️ ACTION REQUIRED: Join Official WhatsApp Community
+              </p>
+              <p className="text-xs text-gray-300 font-sans">
+                Joining the WhatsApp Group is mandatory to receive your squad slot, venue updates &amp; live announcements!
+              </p>
+              <a
+                href="https://chat.whatsapp.com/GdWeagwwmqN9u7kY4XMaiK"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-['Space_Grotesk'] font-black text-xs uppercase tracking-wider transition-all shadow-lg hover:scale-105"
+              >
+                <span>Join Official WhatsApp Group Now ↗</span>
+              </a>
             </div>
 
             <div className="flex flex-wrap justify-center gap-4 pt-2">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import cuLogo from '../assets/Logo/CU Logo red &white.png'
 import alexaLogo from '../assets/Logo/Alexa Developers Community Logo.png'
 import gfgLogo from '../assets/Logo/GfG Horizontal Combination Mark (Dark Mode)@2x.png'
@@ -6,6 +6,22 @@ import { Menu, X, Mail } from 'lucide-react'
 
 export default function Header({ currentPage, setCurrentPage, onOpenRegister }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Prevent background body scrolling when mobile drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+      document.body.style.touchAction = 'none'
+    } else {
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
+    }
+  }, [mobileMenuOpen])
 
   const handleContactClick = () => {
     const el = document.getElementById('contact-section')
@@ -24,26 +40,26 @@ export default function Header({ currentPage, setCurrentPage, onOpenRegister }) 
         {/* Left: Logos (CU | Alexa | GFG) Floating Directly on Glass */}
         <div
           onClick={() => setCurrentPage('home')}
-          className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-95 transition-opacity"
+          className="flex items-center gap-1 sm:gap-3 cursor-pointer hover:opacity-95 transition-opacity shrink min-w-0"
         >
           <img
             src={cuLogo}
             alt="Chandigarh University"
-            className="h-5 sm:h-7 object-contain max-w-[75px] sm:max-w-[120px]"
+            className="h-4 sm:h-7 object-contain max-w-[40px] xs:max-w-[65px] sm:max-w-[120px] shrink-0"
           />
-          <div className="h-4 sm:h-5 w-[1px] bg-white/20"></div>
+          <div className="h-3.5 sm:h-5 w-[1px] bg-white/20 shrink-0"></div>
 
           <img
             src={alexaLogo}
             alt="Alexa Developers Community"
-            className="h-6 sm:h-8 object-contain max-w-[105px] sm:max-w-[150px]"
+            className="h-4.5 xs:h-5 sm:h-8 object-contain max-w-[65px] xs:max-w-[100px] sm:max-w-[150px] shrink-0"
           />
-          <div className="h-4 sm:h-5 w-[1px] bg-white/20"></div>
+          <div className="h-3.5 sm:h-5 w-[1px] bg-white/20 shrink-0"></div>
 
           <img
             src={gfgLogo}
             alt="GeeksforGeeks"
-            className="h-5 sm:h-6 object-contain max-w-[55px] sm:max-w-[75px]"
+            className="h-4 sm:h-6 object-contain max-w-[40px] xs:max-w-[55px] sm:max-w-[75px] shrink-0"
           />
         </div>
 

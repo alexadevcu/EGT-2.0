@@ -251,106 +251,107 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
         <div className="h-10"></div>
 
         {/* Main Stage Title Emblem */}
-        <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center my-auto px-4">
+        <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center my-auto px-2 sm:px-4 w-full">
           
           {/* TALENT HUNT ARENA PRESENTS Emblem */}
-          <div className="flex items-center gap-2 mb-4 font-['Space_Grotesk'] text-xs sm:text-sm md:text-base font-bold text-[#f7d978] tracking-[0.25em] uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+          <div className="flex items-center justify-center gap-1.5 mb-2 sm:mb-4 font-['Space_Grotesk'] text-[10px] sm:text-sm md:text-base font-bold text-[#f7d978] tracking-[0.2em] uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
             <span>TALENT HUNT ARENA</span>
           </div>
 
-          <div className="font-['Space_Grotesk'] text-xs font-bold text-gray-300 uppercase tracking-widest mb-6">
+          <div className="font-['Space_Grotesk'] text-[10px] sm:text-xs font-bold text-gray-300 uppercase tracking-widest mb-4 sm:mb-6">
             PRESENTS
           </div>
+
           {/* 3D Metallic Gold Title Graphics */}
-          <div className="relative font-['Syne'] text-4xl sm:text-7xl md:text-8xl lg:text-9xl font-black uppercase tracking-tight leading-[0.95] text-transparent bg-clip-text bg-gradient-to-b from-[#FFFBEB] via-[#f7d978] to-[#b38515] drop-shadow-[0_12px_35px_rgba(0,0,0,0.95)]">
-            ENGINEER’S
-            <div className="text-2xl sm:text-5xl md:text-6xl text-[#f7d978] my-1 font-extrabold flex items-center justify-center gap-2 sm:gap-3">
-              <span className="h-[2px] w-8 sm:w-20 bg-gradient-to-r from-transparent to-[#f7d978]"></span>
+          <div className="relative font-['Syne'] text-xl xs:text-2xl sm:text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight leading-[0.95] text-transparent bg-clip-text bg-gradient-to-b from-[#FFFBEB] via-[#f7d978] to-[#b38515] drop-shadow-[0_12px_35px_rgba(0,0,0,0.95)] w-full">
+            <span className="inline-block whitespace-nowrap px-1">ENGINEER’S</span>
+            <div className="text-base xs:text-lg sm:text-3xl md:text-5xl text-[#f7d978] my-1 font-extrabold flex items-center justify-center gap-1.5 sm:gap-3">
+              <span className="h-[1.5px] sm:h-[2px] w-6 sm:w-20 bg-gradient-to-r from-transparent to-[#f7d978]"></span>
               <span>GOT</span>
-              <span className="h-[2px] w-8 sm:w-20 bg-gradient-to-l from-transparent to-[#f7d978]"></span>
+              <span className="h-[1.5px] sm:h-[2px] w-6 sm:w-20 bg-gradient-to-l from-transparent to-[#f7d978]"></span>
             </div>
             
             {/* TALENT 2.0 Title */}
-            <div className="flex items-center justify-center gap-1.5 sm:gap-4">
+            <div className="flex items-center justify-center gap-1 sm:gap-4">
               <span>TAL</span>
               <div className="relative inline-flex items-center justify-center text-[#f7d978]">
-                <Mic className="w-8 h-8 sm:w-16 sm:h-16 md:w-20 md:h-20 text-[#f7d978] drop-shadow-[0_0_15px_rgba(247,217,120,0.8)] animate-pulse" />
+                <Mic className="w-5 h-5 xs:w-6 xs:h-6 sm:w-14 sm:h-14 md:w-20 md:h-20 text-[#f7d978] drop-shadow-[0_0_15px_rgba(247,217,120,0.8)] animate-pulse" />
               </div>
               <span>ENT</span>
             </div>
 
-            <div className="font-['Space_Grotesk'] text-3xl sm:text-6xl md:text-7xl text-[#f7d978] tracking-widest mt-1 sm:mt-2">
+            <div className="font-['Space_Grotesk'] text-xl xs:text-2xl sm:text-5xl md:text-7xl text-[#f7d978] tracking-widest mt-1 sm:mt-2">
               2.0
             </div>
           </div>
 
           {/* Subtitle with Student Clubs as Primary Organizers */}
-          <p className="font-['Outfit'] text-base sm:text-2xl md:text-3xl text-white mt-6 sm:mt-8 max-w-3xl font-extrabold leading-relaxed drop-shadow-md">
+          <p className="font-['Outfit'] text-sm xs:text-base sm:text-2xl md:text-3xl text-white mt-4 sm:mt-8 max-w-3xl font-extrabold leading-tight sm:leading-relaxed drop-shadow-md break-words text-center px-2">
             Alexa Developers Community &amp; GFG Student Chapter
           </p>
 
-          <p className="font-['Space_Grotesk'] text-[11px] sm:text-sm md:text-base text-[#f7d978] mt-2 font-bold tracking-wider uppercase drop-shadow-sm">
+          <p className="font-['Space_Grotesk'] text-[9px] xs:text-[11px] sm:text-sm md:text-base text-[#f7d978] mt-1.5 sm:mt-2 font-bold tracking-wider uppercase drop-shadow-sm px-2 text-center">
             Under Department of CSE – Takshashila • Chandigarh University
           </p>
 
-          <p className="font-sans text-xs sm:text-sm text-gray-300 mt-3 font-normal">
+          <p className="font-sans text-[11px] sm:text-sm text-gray-300 mt-2 sm:mt-3 font-normal text-center">
             <span className="text-[#f7d978] font-bold">9 Sept:</span> Non-Tech Stage &bull;{' '}
             <span className="text-cyan-400 font-bold">10 Sept:</span> Wizarding Tech Arena
           </p>
 
           {/* Action CTAs: Navigate directly to Day 1 / Day 2 pages */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-4 mt-6 sm:mt-8 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 sm:gap-4 mt-5 sm:mt-8 w-full max-w-xs sm:max-w-none mx-auto">
             <button
               onClick={() => setCurrentPage('day1')}
-              className="w-full sm:w-auto justify-center bg-gradient-to-r from-[#e5b84c] via-[#f7d978] to-[#c9982e] text-[#1c0800] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(247,217,120,0.5)] flex items-center gap-2 cursor-pointer border border-yellow-200/60"
+              className="w-full sm:w-auto justify-center bg-gradient-to-r from-[#e5b84c] via-[#f7d978] to-[#c9982e] text-[#1c0800] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-4 sm:px-8 py-3 sm:py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(247,217,120,0.5)] flex items-center gap-2 cursor-pointer border border-yellow-200/60"
             >
-              <Mic className="w-4 h-4" />
+              <Mic className="w-4 h-4 shrink-0" />
               <span>Register Day 1 Performer</span>
             </button>
 
             <button
               onClick={() => setCurrentPage('day2')}
-              className="w-full sm:w-auto justify-center bg-gradient-to-r from-cyan-500 via-cyan-400 to-blue-600 text-black font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] flex items-center gap-2 cursor-pointer border border-cyan-200/60"
+              className="w-full sm:w-auto justify-center bg-gradient-to-r from-cyan-500 via-cyan-400 to-blue-600 text-black font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-4 sm:px-8 py-3 sm:py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] flex items-center gap-2 cursor-pointer border border-cyan-200/60"
             >
-              <Code className="w-4 h-4" />
+              <Code className="w-4 h-4 shrink-0" />
               <span>Register Day 2 Tech Squad</span>
             </button>
 
             <button
               onClick={() => setCurrentPage('day1')}
-              className="w-full sm:w-auto justify-center glass-pill text-gray-200 hover:text-[#f7d978] font-['Space_Grotesk'] text-xs sm:text-sm font-semibold uppercase px-6 sm:px-3.5 rounded-full flex items-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto justify-center glass-pill text-gray-200 hover:text-[#f7d978] font-['Space_Grotesk'] text-xs sm:text-sm font-semibold uppercase px-4 sm:px-6 py-3 sm:py-3.5 rounded-full flex items-center gap-2 cursor-pointer"
             >
-              <Ticket className="w-4 h-4 text-[#f7d978]" />
+              <Ticket className="w-4 h-4 text-[#f7d978] shrink-0" />
               <span>Audience Pass</span>
             </button>
           </div>
         </div>
 
         {/* Live Countdown Pod */}
-        <div className="relative z-10 mt-6 sm:mt-8 bg-[#150404]/90 backdrop-blur-xl px-4 sm:px-6 py-3 sm:py-3.5 rounded-2xl sm:rounded-full border border-[#f7d978]/40 flex flex-col sm:flex-row items-center gap-2 sm:gap-6 shadow-2xl">
-          <span className="font-['Space_Grotesk'] text-xs font-bold uppercase text-[#f7d978] flex items-center gap-1.5">
-            <Clock className="w-4 h-4 animate-pulse" />
+        <div className="relative z-10 mt-5 sm:mt-8 bg-[#150404]/90 backdrop-blur-xl px-3 sm:px-6 py-2.5 sm:py-3.5 rounded-2xl sm:rounded-full border border-[#f7d978]/40 flex flex-col sm:flex-row items-center gap-1.5 sm:gap-6 shadow-2xl w-full max-w-xs sm:max-w-none mx-auto">
+          <span className="font-['Space_Grotesk'] text-[11px] sm:text-xs font-bold uppercase text-[#f7d978] flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 animate-pulse" />
             <span>Event Countdown:</span>
           </span>
 
-          <div className="flex items-center gap-2.5 sm:gap-5 font-['Space_Grotesk'] text-xs sm:text-base font-bold">
-            <div>
-              <span className="text-[#f7d978] text-base sm:text-xl">{timeLeft.days}</span>
+          <div className="flex items-center gap-2 sm:gap-5 font-['Space_Grotesk'] text-xs sm:text-base font-bold">
+            <div className="text-center">
+              <span className="text-[#f7d978] text-sm sm:text-xl font-bold">{timeLeft.days}</span>
               <span className="text-gray-400 text-[10px] sm:text-xs ml-1">Days</span>
             </div>
             <span className="text-gray-600">:</span>
-            <div>
-              <span className="text-white text-base sm:text-xl">{timeLeft.hours}</span>
+            <div className="text-center">
+              <span className="text-white text-sm sm:text-xl font-bold">{timeLeft.hours}</span>
               <span className="text-gray-400 text-[10px] sm:text-xs ml-1">Hours</span>
             </div>
             <span className="text-gray-600">:</span>
-            <div>
-              <span className="text-white text-base sm:text-xl">{timeLeft.minutes}</span>
+            <div className="text-center">
+              <span className="text-white text-sm sm:text-xl font-bold">{timeLeft.minutes}</span>
               <span className="text-gray-400 text-[10px] sm:text-xs ml-1">Mins</span>
             </div>
             <span className="text-gray-600">:</span>
-            <div>
-              <span className="text-cyan-400 text-base sm:text-xl">{timeLeft.seconds}</span>
+            <div className="text-center">
+              <span className="text-cyan-400 text-sm sm:text-xl font-bold">{timeLeft.seconds}</span>
               <span className="text-cyan-400 text-[10px] sm:text-xs ml-1">Secs</span>
             </div>
           </div>
@@ -404,88 +405,88 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Day 1 Card */}
-          <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-rose-500/30 flex flex-col justify-between relative overflow-hidden group">
+          <div className="glass-panel p-5 sm:p-10 rounded-3xl border border-rose-500/30 flex flex-col justify-between relative overflow-hidden group">
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-['Space_Grotesk'] text-xs font-semibold">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+                <span className="px-3.5 py-1.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-['Space_Grotesk'] text-[11px] sm:text-xs font-semibold self-start">
                   9 September 2026 • A1 Auditorium
                 </span>
-                <span className="text-rose-400 font-['Space_Grotesk'] text-xs font-bold">Day 1 Stage</span>
+                <span className="text-rose-400 font-['Space_Grotesk'] text-xs font-bold self-start sm:self-auto">Day 1 Stage</span>
               </div>
 
-              <h3 className="font-['Syne'] text-3xl sm:text-4xl font-extrabold text-white">THE STAGE</h3>
-              <p className="font-['Outfit'] text-base text-[#f7d978] italic my-2">"Show the talent beyond the engineer."</p>
-              <p className="font-sans text-sm text-gray-300 leading-relaxed mb-6 font-normal">
+              <h3 className="font-['Syne'] text-2xl sm:text-4xl font-extrabold text-white">THE STAGE</h3>
+              <p className="font-['Outfit'] text-sm sm:text-base text-[#f7d978] italic my-2">"Show the talent beyond the engineer."</p>
+              <p className="font-sans text-xs sm:text-sm text-gray-300 leading-relaxed mb-4 sm:mb-6 font-normal">
                 Step away from code into the golden spotlight. A 3-minute stage showcase for vocalists, instrumentalists, stand-up comedians, mono-actors, and dance crews.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-6">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 my-4 sm:my-6">
                 {['Vocals & Jamming', 'Dance & Choreography', 'Stand-up Comedy', 'Magic & Illusions'].map((item, idx) => (
-                  <div key={idx} className="bg-white/5 px-3 py-2.5 rounded-xl text-xs font-['Space_Grotesk'] border border-white/10 text-gray-200 flex items-center justify-center text-center">
+                  <div key={idx} className="bg-white/5 px-2.5 py-2 rounded-xl text-[11px] sm:text-xs font-['Space_Grotesk'] border border-white/10 text-gray-200 flex items-center justify-center text-center leading-tight">
                     {item}
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 pt-6 border-t border-white/10">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-4 sm:pt-6 border-t border-white/10">
               <button
                 onClick={() => setCurrentPage('day1')}
-                className="flex-1 btn-secondary-glass"
+                className="w-full sm:flex-1 btn-secondary-glass justify-center text-xs py-3"
               >
                 <span>Explore Day 1 Details</span>
-                <ArrowUpRight className="w-4 h-4 text-[#f7d978]" />
+                <ArrowUpRight className="w-3.5 h-3.5 text-[#f7d978]" />
               </button>
               <button
                 onClick={() => setCurrentPage('day1')}
-                className="btn-primary-gold"
+                className="w-full sm:w-auto btn-primary-gold justify-center text-xs py-3"
               >
-                <Mic className="w-4 h-4" />
+                <Mic className="w-3.5 h-3.5" />
                 <span>Register Act</span>
               </button>
             </div>
           </div>
 
           {/* Day 2 Card */}
-          <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-cyan-400/30 flex flex-col justify-between relative overflow-hidden group">
+          <div className="glass-panel p-5 sm:p-10 rounded-3xl border border-cyan-400/30 flex flex-col justify-between relative overflow-hidden group">
             <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="px-4 py-1.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-['Space_Grotesk'] text-xs font-semibold">
-                  10 September 2026 • The Wizarding Arena
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+                <span className="px-3.5 py-1.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-['Space_Grotesk'] text-[11px] sm:text-xs font-semibold self-start">
+                  10 September 2026 • C1 Seminar Hall &amp; Campus Wide
                 </span>
-                <span className="text-cyan-400 font-['Space_Grotesk'] text-xs font-bold">Day 2 Arena</span>
+                <span className="text-cyan-400 font-['Space_Grotesk'] text-xs font-bold self-start sm:self-auto">Day 2 Arena</span>
               </div>
 
-              <h3 className="font-['Syne'] text-3xl sm:text-4xl font-extrabold text-white">THE ARENA</h3>
-              <p className="font-['Outfit'] text-base text-cyan-300 italic my-2">"Harry Potter — The Wizarding World of Technology"</p>
-              <p className="font-sans text-sm text-gray-300 leading-relaxed mb-6 font-normal">
+              <h3 className="font-['Syne'] text-2xl sm:text-4xl font-extrabold text-white">THE ARENA</h3>
+              <p className="font-['Outfit'] text-sm sm:text-base text-cyan-300 italic my-2">"Harry Potter — The Wizarding World of Technology"</p>
+              <p className="font-sans text-xs sm:text-sm text-gray-300 leading-relaxed mb-4 sm:mb-6 font-normal">
                 Enter an enchanted technological arena where code is your magic and logic is your wand. Crack cryptic chambers, hunt QR horcruxes across campus, and seize the Champion’s Flag.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-6">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 my-4 sm:my-6">
                 {['Chamber of Logic (10+1)', 'Campus QR Horcrux Hunt', 'Top 20 Live Cut-off', 'Champion’s Flag Sprint'].map((item, idx) => (
-                  <div key={idx} className="bg-white/5 px-3 py-2.5 rounded-xl text-xs font-['Space_Grotesk'] border border-cyan-400/20 text-cyan-200 flex items-center justify-center text-center">
+                  <div key={idx} className="bg-white/5 px-2.5 py-2 rounded-xl text-[11px] sm:text-xs font-['Space_Grotesk'] border border-cyan-400/20 text-cyan-200 flex items-center justify-center text-center leading-tight">
                     {item}
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 pt-6 border-t border-cyan-400/20">
+            <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 pt-4 sm:pt-6 border-t border-cyan-400/20">
               <button
                 onClick={() => setCurrentPage('day2')}
-                className="flex-1 btn-secondary-glass"
+                className="w-full sm:flex-1 btn-secondary-glass justify-center text-xs py-3"
               >
                 <span>Explore Day 2 Details</span>
-                <ArrowUpRight className="w-4 h-4 text-cyan-400" />
+                <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
               </button>
               <button
                 onClick={() => setCurrentPage('day2')}
-                className="btn-primary-cyan"
+                className="w-full sm:w-auto btn-primary-cyan justify-center text-xs py-3"
               >
-                <Code className="w-4 h-4" />
+                <Code className="w-3.5 h-3.5" />
                 <span>Register Squad</span>
               </button>
             </div>
