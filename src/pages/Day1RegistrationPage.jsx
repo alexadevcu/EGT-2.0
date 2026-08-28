@@ -1,0 +1,432 @@
+import React, { useState, useEffect } from 'react'
+import confetti from 'canvas-confetti'
+import {
+  Mic,
+  CheckCircle2,
+  ShieldCheck,
+  ArrowLeft,
+  Calendar,
+  MapPin,
+  Clock,
+  Sparkles
+} from 'lucide-react'
+import { saveDay1Registration, isSupabaseConfigured } from '../supabaseClient'
+
+export default function Day1RegistrationPage({ setCurrentPage }) {
+  const [submittedPass, setSubmittedPass] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  const [formData, setFormData] = useState({
+    fullName: '',
+    uid: '',
+    email: '',
+    phone: '',
+    department: 'CSE',
+    academicYear: '3rd Year',
+    category: 'Vocals & Jamming',
+    otherCategory: '',
+    entryType: 'Solo',
+    teamName: '',
+    teamMembers: '',
+    performanceDesc: '',
+    previousPerformanceLink: '',
+    instagram: ''
+  })
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setErrorMessage('')
+
+    const finalCategory = formData.category === 'Other Talent' && formData.otherCategory
+      ? `Other (${formData.otherCategory.trim()})`
+      : formData.category
+
+    const payload = {
+      ...formData,
+      category: finalCategory
+    }
+
+    const result = await saveDay1Registration(payload)
+    setIsSubmitting(false)
+
+    if (result && result.success) {
+      try {
+        confetti({
+          particleCount: 140,
+          spread: 85,
+          origin: { y: 0.5 }
+        })
+      } catch (err) {
+        console.log('Confetti active')
+      }
+
+      setSubmittedPass(result.data)
+    } else {
+      setErrorMessage(result?.error || 'Registration failed. Please check your details.')
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-[#070709] text-[#f1f1f6] pt-28 pb-20 px-4 sm:px-6 md:px-12 max-w-4xl mx-auto">
+      
+      {/* Top Return Button */}
+      <button
+        onClick={() => setCurrentPage('day1')}
+        className="inline-flex items-center gap-2 glass-pill px-4 py-2 rounded-full text-xs font-['Space_Grotesk'] text-gray-300 hover:text-rose-400 transition-all mb-8 cursor-pointer"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>Back to Day 1 Stage Page</span>
+      </button>
+
+      {/* Header Banner */}
+      <div className="text-center max-w-3xl mx-auto space-y-3 mb-10">
+        <span className="px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-300 font-['Space_Grotesk'] text-xs font-bold border border-rose-500/40 uppercase tracking-widest inline-block">
+          9 September 2026 • A1 Auditorium
+        </span>
+        
+        <h1 className="font-['Syne'] text-3xl sm:text-5xl font-extrabold text-white">
+          Day 1 Performer Registration
+        </h1>
+
+        <p className="font-sans text-sm sm:text-base text-gray-300 font-light">
+          Show the talent beyond the engineer &bull; Organized by Alexa Developers Community &amp; GFG Student Chapter
+        </p>
+      </div>
+
+      {/* REGISTRATION FORM CONTAINER */}
+      <div className="glass-panel p-6 sm:p-10 rounded-3xl border border-rose-500/30 shadow-2xl">
+        
+        {!submittedPass ? (
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="border-b border-white/10 pb-4 flex justify-between items-center">
+              <div>
+                <h2 className="font-['Syne'] text-xl font-bold text-white flex items-center gap-2">
+                  <Mic className="w-5 h-5 text-rose-400" />
+                  <span>Stage Performer Form</span>
+                </h2>
+                <p className="font-sans text-xs text-gray-400 mt-1">
+                  Strictly 3 minutes maximum per act
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-['Space_Grotesk'] font-bold">
+                Non-Tech Stage
+              </span>
+            </div>
+
+            {errorMessage && (
+              <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-['Space_Grotesk'] space-y-1 animate-in fade-in duration-300">
+                <div className="font-bold text-rose-400 text-sm flex items-center gap-1.5">
+                  <span>Registration Warning</span>
+                </div>
+                <p>{errorMessage}</p>
+              </div>
+            )}
+
+            {/* Personal Information */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Full Name *
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  required
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="e.g. Rahul Sharma"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-rose-400 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Student UID / Roll No *
+                </label>
+                <input
+                  type="text"
+                  name="uid"
+                  required
+                  value={formData.uid}
+                  onChange={handleChange}
+                  placeholder="e.g. 22BCS10192"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-rose-400 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Email Address *
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="e.g. rahul@cuchd.in"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-rose-400 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Phone / WhatsApp *
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  required
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="e.g. 9876543210"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-rose-400 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Department
+                </label>
+                <select
+                  name="department"
+                  value={formData.department}
+                  onChange={handleChange}
+                  className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-400"
+                >
+                  <option value="CSE">CSE / IT</option>
+                  <option value="ECE">ECE / EE</option>
+                  <option value="ME">Mechanical</option>
+                  <option value="CIVIL">Civil</option>
+                  <option value="OTHER">Other Department</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Academic Year
+                </label>
+                <select
+                  name="academicYear"
+                  value={formData.academicYear}
+                  onChange={handleChange}
+                  className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-400"
+                >
+                  <option value="1st Year">1st Year</option>
+                  <option value="2nd Year">2nd Year</option>
+                  <option value="3rd Year">3rd Year</option>
+                  <option value="4th Year">4th Year</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Day 1 Performance Category Fields */}
+            <div className="space-y-5 pt-4 border-t border-white/10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                    Performance Category *
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-400"
+                  >
+                    <option value="Vocals & Jamming">Vocals &amp; Acoustic Jamming</option>
+                    <option value="Dance & Choreography">Dance &amp; Choreography</option>
+                    <option value="Stand-up Comedy">Stand-up Comedy</option>
+                    <option value="Mono-Acts & Drama">Mono-Acts &amp; Drama Skits</option>
+                    <option value="Magic & Illusions">Magic &amp; Illusions</option>
+                    <option value="Beatboxing & Rap">Beatboxing &amp; Rap</option>
+                    <option value="Instrumental">Instrumental Performance</option>
+                    <option value="Other Talent">Other Creative Talent</option>
+                  </select>
+
+                  {formData.category === 'Other Talent' && (
+                    <div className="mt-3 animate-in fade-in duration-300">
+                      <label className="block font-['Space_Grotesk'] text-xs font-semibold text-rose-300 mb-1.5">
+                        Specify Your Creative Talent / Act *
+                      </label>
+                      <input
+                        type="text"
+                        name="otherCategory"
+                        required
+                        value={formData.otherCategory}
+                        onChange={handleChange}
+                        placeholder="e.g. Mime, Shadow Art, Fire Juggling, Poetry Recital"
+                        className="w-full bg-rose-500/10 border border-rose-400/40 rounded-xl px-4 py-3 text-sm text-white placeholder-rose-200/50 focus:outline-none focus:border-rose-400"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                    Entry Format
+                  </label>
+                  <select
+                    name="entryType"
+                    value={formData.entryType}
+                    onChange={handleChange}
+                    className="w-full bg-[#12121c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-rose-400"
+                  >
+                    <option value="Solo">Solo Performance</option>
+                    <option value="Duo">Duo (2 Members)</option>
+                    <option value="Squad">Squad / Group Performance</option>
+                  </select>
+                </div>
+              </div>
+
+              {formData.entryType !== 'Solo' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Team / Squad Name
+                    </label>
+                    <input
+                      type="text"
+                      name="teamName"
+                      value={formData.teamName}
+                      onChange={handleChange}
+                      placeholder="e.g. Rhythm Beats Crew"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                      Team Members (Names &amp; UIDs)
+                    </label>
+                    <input
+                      type="text"
+                      name="teamMembers"
+                      value={formData.teamMembers}
+                      onChange={handleChange}
+                      placeholder="e.g. Aman (22BCS102), Priya (22BCS103)"
+                      className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Performance Details (Max 3 Minutes Duration)
+                </label>
+                <textarea
+                  name="performanceDesc"
+                  rows="3"
+                  value={formData.performanceDesc}
+                  onChange={handleChange}
+                  placeholder="Describe your performance, song titles, audio track requirements, or special stage props needed."
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none resize-none"
+                ></textarea>
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1.5">
+                  Link to Previous Performance / Video / Drive / Reel <span className="text-gray-500 font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="url"
+                  name="previousPerformanceLink"
+                  value={formData.previousPerformanceLink}
+                  onChange={handleChange}
+                  placeholder="https://youtube.com/... or https://drive.google.com/... or Instagram Reel link"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-rose-400"
+                />
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-6 border-t border-white/10">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-4 px-8 rounded-full font-['Space_Grotesk'] text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white border border-rose-400/40 hover:scale-[1.02]"
+              >
+                {isSubmitting ? (
+                  <span>Submitting Registration...</span>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-5 h-5" />
+                    <span>Confirm &amp; Register Day 1 Act</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        ) : (
+          /* SUCCESS PASS CARD */
+          <div className="text-center py-8 px-4 space-y-6 max-w-xl mx-auto">
+            <div className="w-20 h-20 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center mx-auto text-rose-400 shadow-[0_0_40px_rgba(244,63,94,0.5)]">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+
+            <div>
+              <span className="text-rose-400 font-['Space_Grotesk'] text-xs font-bold uppercase tracking-widest block">
+                Registration Confirmed!
+              </span>
+              <h2 className="font-['Syne'] text-3xl font-extrabold text-white mt-1">
+                Day 1 Performer Pass Issued
+              </h2>
+            </div>
+
+            <div className="glass-panel p-6 rounded-2xl border border-rose-500/40 text-left space-y-3 font-['Space_Grotesk']">
+              <div className="flex justify-between items-center border-b border-white/10 pb-3">
+                <span className="text-xs text-gray-400">Pass Registration ID:</span>
+                <span className="text-sm font-bold text-rose-400">{submittedPass.reg_id}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-gray-400">Participant:</span>
+                <span className="font-bold text-white">{submittedPass.full_name}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-gray-400">Student UID:</span>
+                <span className="font-bold text-gray-200">{submittedPass.uid}</span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-gray-400">Category:</span>
+                <span className="font-bold text-rose-300 uppercase">
+                  {submittedPass.category}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-4 pt-2">
+              <button
+                type="button"
+                onClick={() => setSubmittedPass(null)}
+                className="btn-secondary-glass text-xs px-6 py-3"
+              >
+                Register Another Act
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage('home')}
+                className="btn-primary-gold text-xs px-8 py-3"
+              >
+                Return to Home
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

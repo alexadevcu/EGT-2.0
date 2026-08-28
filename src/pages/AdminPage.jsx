@@ -1,0 +1,841 @@
+import React, { useState, useEffect } from 'react'
+import {
+  ShieldCheck,
+  Search,
+  Download,
+  Trash2,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Users,
+  Mic,
+  Code,
+  Lock,
+  ArrowLeft,
+  FileSpreadsheet,
+  XCircle,
+  AlertCircle,
+  KeyRound,
+  Database,
+  Table,
+  ExternalLink,
+  Grid,
+  Printer,
+  Link2
+} from 'lucide-react'
+import {
+  getDay1Registrations,
+  getDay2Registrations,
+  updateRegistrationStatus,
+  deleteRegistration,
+  isSupabaseConfigured,
+  signInAdmin,
+  signOutAdmin,
+  getAdminSession
+} from '../supabaseClient'
+
+export default function AdminPage({ setCurrentPage }) {
+  // Supabase Auth State
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const [isAuthenticating, setIsAuthenticating] = useState(false)
+
+  // Data & Tabs State
+  const [activeTab, setActiveTab] = useState('day1')
+  const [day1Data, setDay1Data] = useState([])
+  const [day2Data, setDay2Data] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  // Filters, Search & View Mode
+  const [viewMode, setViewMode] = useState('table') // 'table' | 'sheets'
+  const [googleSheetUrl, setGoogleSheetUrl] = useState(import.meta.env.VITE_GOOGLE_SHEET_URL || '')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [selectedItem, setSelectedItem] = useState(null)
+
+  // Check active Supabase session on mount
+  useEffect(() => {
+    async function checkSession() {
+      const session = await getAdminSession()
+      if (session) {
+        setIsAuthenticated(true)
+      }
+    }
+    checkSession()
+  }, [])
+
+  // Load Data
+  const loadAllData = async () => {
+    setLoading(true)
+    const d1 = await getDay1Registrations()
+    const d2 = await getDay2Registrations()
+    setDay1Data(d1)
+    setDay2Data(d2)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadAllData()
+    }
+  }, [isAuthenticated])
+
+  // Admin Auth Handler (Sign In or Master Passcode)
+  const handleSupabaseLogin = async (e) => {
+    e.preventDefault()
+    setIsAuthenticating(true)
+    setAuthError('')
+
+    // Master passcode fallback check
+    if (password === 'admin123' || password === 'takshashila') {
+      setIsAuthenticating(false)
+      setIsAuthenticated(true)
+      return
+    }
+
+    const res = await signInAdmin(email, password)
+    setIsAuthenticating(false)
+
+    if (res.success) {
+      setIsAuthenticated(true)
+      setAuthError('')
+    } else {
+      setAuthError(res.error || 'Authentication failed. Incorrect email/password.')
+    }
+  }
+
+  const handleLogout = async () => {
+    await signOutAdmin()
+    setIsAuthenticated(false)
+  }
+
+  const handleStatusChange = async (table, regId, newStatus) => {
+    await updateRegistrationStatus(table, regId, newStatus)
+    loadAllData()
+  }
+
+  const handleDelete = async (table, regId) => {
+    if (window.confirm('Are you sure you want to delete this registration entry?')) {
+      await deleteRegistration(table, regId)
+      loadAllData()
+      if (selectedItem?.reg_id === regId) {
+        setSelectedItem(null)
+      }
+    }
+  }
+
+  // Export to CSV Functionality (Formats perfectly into Google Sheets / Excel Table)
+  const exportToCSV = () => {
+    const dataToExport = activeTab === 'day1' ? day1Data : day2Data
+    if (!dataToExport || dataToExport.length === 0) {
+      alert('No data available to export!')
+      return
+    }
+
+    const cleanField = (val) => {
+      if (val === null || val === undefined) return '""'
+      const str = String(val).replace(/"/g, '""')
+      return `"${str}"`
+    }
+
+    let rows = []
+
+    if (activeTab === 'day1') {
+      // Header matching Google Sheets layout from photo
+      rows.push([
+        'Timestamp',
+        'Email Address',
+        'Name',
+        'UID',
+        'Mail id (Personal)',
+        'Phone No.',
+        'Year',
+        'Department',
+        'Performance Category',
+        'Entry Format',
+        'Team Name',
+        'Team Members',
+        'Previous Performance Link',
+        'Registration ID',
+        'Status'
+      ].map(cleanField).join(','))
+
+      dataToExport.forEach(row => {
+        const timestamp = new Date(row.created_at || Date.now()).toLocaleString()
+        rows.push([
+          timestamp,
+          row.email,
+          row.full_name,
+          row.uid,
+          row.email,
+          row.phone,
+          row.academic_year,
+          row.department,
+          row.category,
+          row.entry_type,
+          row.team_name || '',
+          row.team_members || '',
+          row.previous_performance_link || '',
+          row.reg_id,
+          row.status
+        ].map(cleanField).join(','))
+      })
+    } else {
+      // Day 2 Tech Squads layout
+      rows.push([
+        'Timestamp',
+        'Email Address',
+        'Leader Name',
+        'UID',
+        'Mail id (Personal)',
+        'Phone No.',
+        'Year',
+        'Department',
+        'Squad Name',
+        'Tech Stack',
+        'Teammate 1',
+        'Teammate 2',
+        'GitHub Profile Link',
+        'Registration ID',
+        'Status'
+      ].map(cleanField).join(','))
+
+      dataToExport.forEach(row => {
+        const timestamp = new Date(row.created_at || Date.now()).toLocaleString()
+        rows.push([
+          timestamp,
+          row.email,
+          row.leader_name,
+          row.uid,
+          row.email,
+          row.phone,
+          row.academic_year,
+          row.department,
+          row.squad_name,
+          row.tech_stack,
+          row.teammate_1 || '',
+          row.teammate_2 || '',
+          row.github_link || '',
+          row.reg_id,
+          row.status
+        ].map(cleanField).join(','))
+      })
+    }
+
+    // Include UTF-8 BOM (\uFEFF) so Excel & Google Sheets format columns automatically
+    const csvString = '\uFEFF' + rows.join('\r\n')
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    
+    const filename = `EGT2_${activeTab === 'day1' ? 'Day1_Performers' : 'Day2_TechSquads'}_Form_Responses.csv`
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', filename)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  // SUPABASE AUTH LOGIN SCREEN
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-[85vh] text-white flex items-center justify-center pt-28 pb-16 px-4">
+        <div className="w-full max-w-md bg-[#09090d] border border-[#f7d978]/30 rounded-3xl p-8 shadow-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <div className="w-16 h-16 rounded-full bg-[#f7d978]/10 border border-[#f7d978]/40 flex items-center justify-center mx-auto text-[#f7d978]">
+              <KeyRound className="w-8 h-8" />
+            </div>
+
+            <h1 className="font-['Syne'] text-2xl font-extrabold text-white">
+              Admin Portal Login
+            </h1>
+            <p className="font-sans text-xs text-gray-400">
+              Department of CSE – Takshashila • Administrator Portal
+            </p>
+          </div>
+
+          {!isSupabaseConfigured ? (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs font-['Space_Grotesk'] text-amber-300 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-amber-400">
+                <Database className="w-4 h-4" />
+                <span>Database Connection Required</span>
+              </div>
+              <p className="text-gray-300 font-sans text-[11px] leading-relaxed">
+                Add <code className="text-[#f7d978]">VITE_SUPABASE_URL</code> &amp; <code className="text-[#f7d978]">VITE_SUPABASE_ANON_KEY</code> to your environment file!
+              </p>
+            </div>
+          ) : (
+            <form onSubmit={handleSupabaseLogin} className="space-y-4">
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1">
+                  Admin Email
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@takshashila.cumail.in"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#f7d978]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-['Space_Grotesk'] text-xs font-semibold text-gray-300 mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full bg-white/5 border border-white/15 rounded-xl pl-4 pr-10 py-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#f7d978]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-[#f7d978] transition-colors cursor-pointer"
+                    title={showPassword ? 'Hide Password' : 'Show Password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {authError && (
+                <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-['Space_Grotesk'] space-y-1">
+                  <div className="font-bold text-rose-400">Authentication Error</div>
+                  <p className="text-[11px] leading-relaxed">{authError}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isAuthenticating}
+                className="w-full btn-primary-gold py-3.5 text-xs font-bold uppercase tracking-wider cursor-pointer"
+              >
+                {isAuthenticating ? 'Authenticating...' : 'Log In to Admin Portal'}
+              </button>
+            </form>
+          )}
+
+          <div className="pt-2 border-t border-white/10 text-center">
+            <button
+              onClick={() => setCurrentPage('home')}
+              className="text-xs text-gray-400 hover:text-white flex items-center justify-center gap-1 mx-auto font-['Space_Grotesk']"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Return to Main Website</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Filter Logic (Authenticated only)
+  const currentDataset = (activeTab === 'day1' ? day1Data : day2Data) || []
+  const filteredDataset = currentDataset.filter(item => {
+    if (!item) return false
+    const searchString = JSON.stringify(item).toLowerCase()
+    const matchesSearch = searchString.includes(searchTerm.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || item.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
+  return (
+    <div className="min-h-screen bg-[#070709] text-[#f1f1f6] pt-24 pb-16 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto">
+      
+      {/* Header Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-white/10 pb-6">
+        <div>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-6 h-6 text-[#f7d978]" />
+            <h1 className="font-['Syne'] text-3xl font-extrabold text-white">
+              Admin Registration Portal
+            </h1>
+          </div>
+          <p className="font-sans text-xs text-gray-400 mt-1">
+            Department of CSE – Takshashila • Organizer Dashboard
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {/* View Mode Toggle */}
+          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 text-xs font-['Space_Grotesk'] font-bold">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                viewMode === 'table' ? 'bg-[#f7d978] text-black shadow' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Table className="w-3.5 h-3.5" />
+              <span>Cards</span>
+            </button>
+
+            <button
+              onClick={() => setViewMode('sheets')}
+              className={`px-3.5 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                viewMode === 'sheets' ? 'bg-emerald-400 text-black shadow' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <Grid className="w-3.5 h-3.5" />
+              <span>Google Sheets View</span>
+            </button>
+          </div>
+
+          <button
+            onClick={loadAllData}
+            className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+            title="Refresh Data"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+
+          {googleSheetUrl ? (
+            <a
+              href={googleSheetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-['Space_Grotesk'] font-bold flex items-center gap-2 cursor-pointer transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Open in Google Sheets</span>
+            </a>
+          ) : (
+            <button
+              onClick={exportToCSV}
+              className="btn-primary-gold text-xs px-4 py-2 flex items-center gap-2"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Export CSV</span>
+            </button>
+          )}
+
+          <button
+            onClick={handleLogout}
+            className="btn-secondary-glass text-xs py-2 px-4"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+
+      {/* Metrics Bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="glass-panel p-5 rounded-2xl border border-white/10">
+          <div className="flex items-center justify-between">
+            <span className="font-['Space_Grotesk'] text-xs font-bold text-gray-400 uppercase">
+              Total Registrations
+            </span>
+            <Users className="w-5 h-5 text-[#f7d978]" />
+          </div>
+          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2">
+            {day1Data.length + day2Data.length}
+          </p>
+        </div>
+
+        <div className="glass-panel p-5 rounded-2xl border border-rose-500/30">
+          <div className="flex items-center justify-between">
+            <span className="font-['Space_Grotesk'] text-xs font-bold text-rose-400 uppercase">
+              Day 1 Performers
+            </span>
+            <Mic className="w-5 h-5 text-rose-400" />
+          </div>
+          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2">
+            {day1Data.length}
+          </p>
+        </div>
+
+        <div className="glass-panel p-5 rounded-2xl border border-cyan-400/30">
+          <div className="flex items-center justify-between">
+            <span className="font-['Space_Grotesk'] text-xs font-bold text-cyan-400 uppercase">
+              Day 2 Tech Wizards
+            </span>
+            <Code className="w-5 h-5 text-cyan-400" />
+          </div>
+          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2">
+            {day2Data.length}
+          </p>
+        </div>
+      </div>
+
+      {/* Controls: Tabs, Search & Filters */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        
+        {/* Tab Buttons */}
+        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 font-['Space_Grotesk'] text-xs font-bold w-full sm:w-auto">
+          <button
+            onClick={() => setActiveTab('day1')}
+            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              activeTab === 'day1' ? 'bg-[#f7d978] text-black shadow-md' : 'text-gray-300 hover:text-white'
+            }`}
+          >
+            <Mic className="w-4 h-4" />
+            <span>Day 1 Performers ({day1Data.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('day2')}
+            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              activeTab === 'day2' ? 'bg-cyan-400 text-black shadow-md' : 'text-gray-300 hover:text-white'
+            }`}
+          >
+            <Code className="w-4 h-4" />
+            <span>Day 2 Tech Squads ({day2Data.length})</span>
+          </button>
+        </div>
+
+        {/* Search & Status Filter */}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative w-full sm:w-64">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search Name, UID, Email..."
+              className="w-full bg-white/5 border border-white/15 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#f7d978]"
+            />
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full sm:w-auto bg-[#12121c] border border-white/15 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none"
+          >
+            <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="waitlist">Waitlist</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Main Roster Content (Table or Google Sheets View) */}
+      {viewMode === 'sheets' ? (
+        /* GOOGLE SHEETS INTERFACE VIEW (Matches User Photo) */
+        <div className="bg-[#181824] rounded-2xl border border-gray-700 shadow-2xl overflow-hidden font-sans text-xs">
+          
+          {/* Top Google Sheets Menu & Action Bar */}
+          <div className="bg-[#212130] border-b border-gray-700 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-gray-300">
+            <div className="flex items-center gap-3">
+              {/* Tab Badge matching user photo */}
+              <div className="flex items-center gap-1.5 bg-[#4c3575] text-white px-3 py-1 rounded-md text-xs font-bold shadow">
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Form_Responses</span>
+              </div>
+              <span className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-0.5 rounded-full text-[11px] font-semibold flex items-center gap-1">
+                <Eye className="w-3 h-3" />
+                <span>View only</span>
+              </span>
+              <span className="text-gray-400 text-xs hidden sm:inline">
+                {activeTab === 'day1' ? 'Day 1 Stage Performers Sheet' : 'Day 2 Technical Squads Sheet'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={exportToCSV}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download (.csv)</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Formula Bar & Cell Reference */}
+          <div className="bg-[#1e1e2d] border-b border-gray-700 px-4 py-1.5 flex items-center gap-3 font-mono text-[11px] text-gray-400">
+            <div className="bg-black/30 border border-gray-700 px-3 py-0.5 rounded text-gray-300 w-16 text-center font-bold">
+              A1
+            </div>
+            <div className="text-gray-500 font-serif italic">fx</div>
+            <div className="text-gray-200 truncate flex-1">
+              Timestamp &bull; Live Supabase Synchronization Active
+            </div>
+          </div>
+
+          {/* Google Sheets Grid Table */}
+          <div className="overflow-x-auto max-h-[650px] overflow-y-auto">
+            <table className="w-full border-collapse text-left font-sans text-xs">
+              {/* Alphabetical Column Header Row (A, B, C, D, E...) */}
+              <thead className="bg-[#29293d] sticky top-0 z-10 text-gray-400 text-[11px] font-mono">
+                <tr>
+                  <th className="w-12 py-1 px-2 text-center border border-gray-700 bg-[#212130]"></th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">A</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">B</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">C</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">D</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">E</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">F</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">G</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">H</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">I</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">J</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">K</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">L</th>
+                </tr>
+
+                {/* Purple Table Column Header Row (Matching Day 1 vs Day 2 Layout) */}
+                <tr className="bg-[#4a3073] text-white font-bold text-xs">
+                  <td className="py-2 px-2 text-center border border-gray-700 bg-[#322350] text-gray-300 font-mono text-[10px]">1</td>
+                  <td className="py-2 px-3 border border-gray-700">Timestamp</td>
+                  <td className="py-2 px-3 border border-gray-700">Reg ID</td>
+                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Performer Name' : 'Squad Leader'}</td>
+                  <td className="py-2 px-3 border border-gray-700">Student UID</td>
+                  <td className="py-2 px-3 border border-gray-700">Email Address</td>
+                  <td className="py-2 px-3 border border-gray-700">Phone No.</td>
+                  <td className="py-2 px-3 border border-gray-700">Department</td>
+                  <td className="py-2 px-3 border border-gray-700">Year</td>
+                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Performance Category' : 'Squad Name'}</td>
+                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Entry Format' : 'Tech Stack'}</td>
+                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Team Details' : 'Teammates'}</td>
+                  <td className="py-2 px-3 border border-gray-700">Status</td>
+                </tr>
+              </thead>
+
+              <tbody className="bg-[#181824] text-gray-200 divide-y divide-gray-800">
+                {filteredDataset.length === 0 ? (
+                  <tr>
+                    <td colSpan="13" className="text-center py-10 text-gray-500 italic border border-gray-800">
+                      No records found in {activeTab === 'day1' ? 'Day 1 Performers' : 'Day 2 Technical Squads'} sheet.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredDataset.map((row, idx) => (
+                    <tr key={row.reg_id} className="hover:bg-emerald-950/20 transition-colors">
+                      {/* Row Index (2, 3, 4...) */}
+                      <td className="py-2 px-2 text-center border border-gray-800 bg-[#212130] text-gray-400 font-mono text-[11px]">
+                        {idx + 2}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 font-mono text-[11px] text-gray-400 whitespace-nowrap">
+                        {new Date(row.created_at || Date.now()).toLocaleString()}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 font-mono text-emerald-400 font-semibold whitespace-nowrap">
+                        {row.reg_id}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 font-semibold text-white whitespace-nowrap">
+                        {row.full_name || row.leader_name}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 font-mono text-gray-300 whitespace-nowrap">
+                        {row.uid}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
+                        {row.email}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 font-mono text-gray-300 whitespace-nowrap">
+                        {row.phone}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
+                        {row.department}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
+                        {row.academic_year}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
+                        {activeTab === 'day1' ? row.category : row.squad_name}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
+                        {activeTab === 'day1' ? row.entry_type : row.tech_stack}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
+                        {activeTab === 'day1'
+                          ? (row.team_name ? `${row.team_name} (${row.team_members || 'Group'})` : 'Solo')
+                          : ([row.teammate_1, row.teammate_2].filter(Boolean).join(', ') || 'Solo Leader')}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 font-semibold uppercase text-[11px] whitespace-nowrap">
+                        <span className={`px-2 py-0.5 rounded ${
+                          row.status === 'approved' ? 'bg-emerald-500/20 text-emerald-300' :
+                          row.status === 'rejected' ? 'bg-rose-500/20 text-rose-300' :
+                          row.status === 'waitlist' ? 'bg-purple-500/20 text-purple-300' :
+                          'bg-amber-500/20 text-amber-300'
+                        }`}>
+                          {row.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        /* Main Roster Table */
+        <div className="glass-panel rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-['Space_Grotesk'] text-xs">
+            <thead className="bg-white/5 border-b border-white/10 uppercase text-gray-400 text-[11px] tracking-wider">
+              <tr>
+                <th className="py-4 px-6">Reg ID</th>
+                <th className="py-4 px-6">Participant / Leader</th>
+                <th className="py-4 px-6">UID</th>
+                <th className="py-4 px-6">{activeTab === 'day1' ? 'Category' : 'Squad Name'}</th>
+                <th className="py-4 px-6">{activeTab === 'day1' ? 'Format' : 'Tech Stack'}</th>
+                <th className="py-4 px-6">Contact</th>
+                <th className="py-4 px-6">Status</th>
+                <th className="py-4 px-6 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 font-sans">
+              {filteredDataset.length === 0 ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-12 text-gray-400 text-sm font-light">
+                    No registrations found in Supabase database.
+                  </td>
+                </tr>
+              ) : (
+                filteredDataset.map((row) => (
+                  <tr key={row.reg_id} className="hover:bg-white/5 transition-colors">
+                    <td className="py-4 px-6 font-mono text-[#f7d978] font-bold">
+                      {row.reg_id}
+                    </td>
+
+                    <td className="py-4 px-6 font-bold text-white">
+                      {row.full_name || row.leader_name}
+                      <span className="block text-[11px] font-normal text-gray-400">
+                        {row.department} • {row.academic_year}
+                      </span>
+                    </td>
+
+                    <td className="py-4 px-6 font-mono text-gray-300">
+                      {row.uid}
+                    </td>
+
+                    <td className="py-4 px-6">
+                      <span className="px-3 py-1 rounded-full bg-white/10 text-gray-200 text-[11px]">
+                        {row.category || row.squad_name || 'N/A'}
+                      </span>
+                    </td>
+
+                    <td className="py-4 px-6 text-gray-300">
+                      {row.entry_type || row.tech_stack || 'N/A'}
+                    </td>
+
+                    <td className="py-4 px-6 text-gray-300 text-[11px]">
+                      <div>{row.phone}</div>
+                      <div className="text-gray-500">{row.email}</div>
+                    </td>
+
+                    <td className="py-4 px-6">
+                      <select
+                        value={row.status || 'pending'}
+                        onChange={(e) => handleStatusChange(
+                          activeTab === 'day1' ? 'day1_registrations' : 'day2_registrations',
+                          row.reg_id,
+                          e.target.value
+                        )}
+                        className={`px-3 py-1 rounded-full text-[11px] font-['Space_Grotesk'] font-bold uppercase cursor-pointer outline-none ${
+                          row.status === 'approved'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                            : row.status === 'rejected'
+                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
+                            : row.status === 'waitlist'
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
+                        }`}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="waitlist">Waitlist</option>
+                      </select>
+                    </td>
+
+                    <td className="py-4 px-6 text-right space-x-2">
+                      <button
+                        onClick={() => setSelectedItem(row)}
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors"
+                        title="View Full Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(
+                          activeTab === 'day1' ? 'day1_registrations' : 'day2_registrations',
+                          row.reg_id
+                        )}
+                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors"
+                        title="Delete Entry"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      )}
+
+      {/* FULL DETAILS MODAL */}
+      {selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+          <div className="relative w-full max-w-xl bg-[#09090d] border border-[#f7d978]/40 rounded-3xl p-6 sm:p-8 text-[#f1f1f6] shadow-2xl space-y-6">
+            <button
+              onClick={() => setSelectedItem(null)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
+            >
+              <XCircle className="w-6 h-6" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-[#f7d978]/10 border border-[#f7d978]/40 flex items-center justify-center text-[#f7d978]">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-['Syne'] text-xl font-bold text-white">
+                  Registration Details
+                </h3>
+                <p className="font-mono text-xs text-[#f7d978]">ID: {selectedItem.reg_id}</p>
+              </div>
+            </div>
+
+            <div className="glass-panel p-5 rounded-2xl border border-white/10 space-y-3 font-['Space_Grotesk'] text-xs">
+              {Object.entries(selectedItem).map(([key, value]) => (
+                <div key={key} className="flex justify-between border-b border-white/5 pb-2">
+                  <span className="text-gray-400 uppercase tracking-wider">{key.replace('_', ' ')}:</span>
+                  <span className="font-bold text-white text-right max-w-xs break-words">
+                    {value || 'N/A'}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => handleDelete(
+                  activeTab === 'day1' ? 'day1_registrations' : 'day2_registrations',
+                  selectedItem.reg_id
+                )}
+                className="flex-1 py-3 px-4 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs font-['Space_Grotesk'] font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Registration</span>
+              </button>
+
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="flex-1 btn-primary-gold text-xs py-3 rounded-full"
+              >
+                Close Window
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

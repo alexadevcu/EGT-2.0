@@ -1,19 +1,63 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
 import Day1Page from './pages/Day1Page'
 import Day2Page from './pages/Day2Page'
-import RegistrationModal from './components/RegistrationModal'
+import Day1RegistrationPage from './pages/Day1RegistrationPage'
+import Day2RegistrationPage from './pages/Day2RegistrationPage'
+import AdminPage from './pages/AdminPage'
+import NotFoundPage from './pages/NotFoundPage'
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('home')
-  const [isRegisterOpen, setIsRegisterOpen] = useState(false)
-  const [initialRegTab, setInitialRegTab] = useState('day1-performer')
+  const [currentPage, setCurrentPageState] = useState('home')
 
-  const handleOpenRegister = (tab = 'day1-performer') => {
-    setInitialRegTab(tab)
-    setIsRegisterOpen(true)
+  // Support URL path navigation & 404 catch-all
+  useEffect(() => {
+    const handleLocation = () => {
+      const path = window.location.pathname.toLowerCase().replace(/\/$/, '')
+      
+      if (path === '' || path === '/') {
+        setCurrentPageState('home')
+      } else if (path === '/day1') {
+        setCurrentPageState('day1')
+      } else if (path === '/day2') {
+        setCurrentPageState('day2')
+      } else if (path === '/register-day1') {
+        setCurrentPageState('register-day1')
+      } else if (path === '/register-day2') {
+        setCurrentPageState('register-day2')
+      } else if (path === '/admin') {
+        setCurrentPageState('admin')
+      } else {
+        // Unknown path -> Render 404 page
+        setCurrentPageState('404')
+      }
+    }
+
+    handleLocation()
+    window.addEventListener('popstate', handleLocation)
+    return () => window.removeEventListener('popstate', handleLocation)
+  }, [])
+
+  const setCurrentPage = (page) => {
+    setCurrentPageState(page)
+    const newPath = page === 'home' ? '/' : `/${page}`
+    try {
+      window.history.pushState({}, '', newPath)
+    } catch (e) {
+      // Fallback
+    }
+  }
+
+  const handleOpenRegister = (track = 'day1-performer') => {
+    if (track === 'day2-wizard' || track === 'day2') {
+      setCurrentPage('register-day2')
+    } else if (track === 'day1-audience') {
+      window.open('https://luma.com/j4pp1jbv', '_blank', 'noopener,noreferrer')
+    } else {
+      setCurrentPage('register-day1')
+    }
   }
 
   return (
@@ -30,19 +74,43 @@ export default function App() {
         {currentPage === 'home' && (
           <HomePage
             setCurrentPage={setCurrentPage}
-            onOpenRegister={() => handleOpenRegister('day1-performer')}
+            onOpenRegister={(track) => handleOpenRegister(track)}
           />
         )}
 
         {currentPage === 'day1' && (
           <Day1Page
-            onOpenRegister={() => handleOpenRegister('day1-performer')}
+            onOpenRegister={(track) => handleOpenRegister(track || 'day1-performer')}
           />
         )}
 
         {currentPage === 'day2' && (
           <Day2Page
-            onOpenRegister={() => handleOpenRegister('day2-wizard')}
+            onOpenRegister={(track) => handleOpenRegister(track || 'day2-wizard')}
+          />
+        )}
+
+        {currentPage === 'register-day1' && (
+          <Day1RegistrationPage
+            setCurrentPage={setCurrentPage}
+          />
+        )}
+
+        {currentPage === 'register-day2' && (
+          <Day2RegistrationPage
+            setCurrentPage={setCurrentPage}
+          />
+        )}
+
+        {currentPage === 'admin' && (
+          <AdminPage
+            setCurrentPage={setCurrentPage}
+          />
+        )}
+
+        {currentPage === '404' && (
+          <NotFoundPage
+            setCurrentPage={setCurrentPage}
           />
         )}
       </main>
@@ -51,13 +119,6 @@ export default function App() {
       <Footer
         setCurrentPage={setCurrentPage}
         onOpenRegister={() => handleOpenRegister('day1-performer')}
-      />
-
-      {/* Registration Modal */}
-      <RegistrationModal
-        isOpen={isRegisterOpen}
-        onClose={() => setIsRegisterOpen(false)}
-        initialTab={initialRegTab}
       />
     </div>
   )
