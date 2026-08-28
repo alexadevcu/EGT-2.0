@@ -17,7 +17,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#16130b] text-[#eae1d4] flex flex-col font-['Work_Sans'] antialiased selection:bg-[#f2ca50] selection:text-[#16130b]">
+    <div className="min-h-screen bg-[#070709] text-[#f1f1f6] flex flex-col font-['Plus_Jakarta_Sans'] antialiased selection:bg-[#f7d978] selection:text-black">
       {/* Top Header */}
       <Header
         currentPage={currentPage}
@@ -26,7 +26,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-grow pt-20">
+      <main className="flex-grow">
         {currentPage === 'home' && (
           <HomePage
             setCurrentPage={setCurrentPage}

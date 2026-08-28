@@ -9,7 +9,7 @@ export default function Day1Page({ onOpenRegister }) {
 
       <div className="relative z-10">
         {/* Hero Section */}
-        <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-5 md:px-[80px] text-center pt-16">
+        <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-5 md:px-[80px] text-center pt-28 sm:pt-32">
           <div className="absolute inset-0 w-full h-full z-[-1]">
             <img
               alt="Cinematic theater stage"

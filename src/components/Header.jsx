@@ -19,7 +19,7 @@ export default function Header({ currentPage, setCurrentPage, onOpenRegister }) 
   return (
     <header className="fixed top-4 left-0 right-0 z-50 flex justify-center px-4">
       {/* Seamless Translucent Floating Glass Navigation Capsule */}
-      <div className="w-full max-w-5xl bg-[#090708]/80 backdrop-blur-xl border border-[#f7d978]/25 rounded-full px-5 sm:px-7 py-2.5 flex justify-between items-center shadow-[0_15px_40px_rgba(0,0,0,0.8)]">
+      <div className="w-full max-w-5xl bg-[#090708]/85 backdrop-blur-xl border border-white/10 rounded-full px-5 sm:px-7 py-2.5 flex justify-between items-center shadow-[0_15px_40px_rgba(0,0,0,0.85)]">
         
         {/* Left: Logos (CU | Alexa | GFG) Floating Directly on Glass */}
         <div
@@ -101,7 +101,7 @@ export default function Header({ currentPage, setCurrentPage, onOpenRegister }) 
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="fixed inset-x-4 top-20 bg-[#09090d]/98 backdrop-blur-2xl rounded-3xl p-6 flex flex-col gap-3 md:hidden shadow-2xl border border-[#f7d978]/30 animate-in fade-in slide-in-from-top-4 duration-300 z-50 text-center font-['Space_Grotesk']">
+        <div className="fixed inset-x-4 top-20 bg-[#09090d]/98 backdrop-blur-2xl rounded-3xl p-6 flex flex-col gap-3 md:hidden shadow-2xl border border-white/10 animate-in fade-in slide-in-from-top-4 duration-300 z-50 text-center font-['Space_Grotesk']">
           <button
             onClick={() => {
               setCurrentPage('home')

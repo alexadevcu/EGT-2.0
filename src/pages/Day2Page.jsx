@@ -22,7 +22,7 @@ export default function Day2Page({ onOpenRegister }) {
 
       <div className="relative z-10">
         {/* Hero Section */}
-        <section className="relative min-h-[720px] flex flex-col items-center justify-center text-center px-5 md:px-[80px] pt-16">
+        <section className="relative min-h-[720px] flex flex-col items-center justify-center text-center px-5 md:px-[80px] pt-28 sm:pt-32">
           <div
             className="absolute inset-0 z-0 opacity-20 bg-cover bg-center mix-blend-screen"
             style={{
