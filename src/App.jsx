@@ -10,8 +10,12 @@ import GuidelinesPage from './pages/GuidelinesPage'
 import AdminPage from './pages/AdminPage'
 import NotFoundPage from './pages/NotFoundPage'
 
+import PageTransitionOverlay from './components/PageTransitionOverlay'
+import CurtainOverlay from './components/CurtainOverlay'
+
 export default function App() {
   const [currentPage, setCurrentPageState] = useState('home')
+  const [transitionType, setTransitionType] = useState('idle')
 
   // Support URL path navigation & 404 catch-all
   useEffect(() => {
@@ -49,13 +53,33 @@ export default function App() {
   }, [currentPage])
 
   const setCurrentPage = (page) => {
-    setCurrentPageState(page)
-    window.scrollTo(0, 0)
-    const newPath = page === 'home' ? '/' : `/${page}`
-    try {
-      window.history.pushState({}, '', newPath)
-    } catch (e) {
-      // Fallback
+    if (page === 'day1' || page === 'register-day1') {
+      setTransitionType('day1-spotlight')
+      setTimeout(() => {
+        setCurrentPageState(page)
+        window.scrollTo(0, 0)
+        const newPath = page === 'home' ? '/' : `/${page}`
+        try { window.history.pushState({}, '', newPath) } catch (e) {}
+      }, 200)
+      setTimeout(() => {
+        setTransitionType('idle')
+      }, 450)
+    } else if (page === 'day2' || page === 'register-day2') {
+      setTransitionType('day2-magic')
+      setTimeout(() => {
+        setCurrentPageState(page)
+        window.scrollTo(0, 0)
+        const newPath = page === 'home' ? '/' : `/${page}`
+        try { window.history.pushState({}, '', newPath) } catch (e) {}
+      }, 220)
+      setTimeout(() => {
+        setTransitionType('idle')
+      }, 480)
+    } else {
+      setCurrentPageState(page)
+      window.scrollTo(0, 0)
+      const newPath = page === 'home' ? '/' : `/${page}`
+      try { window.history.pushState({}, '', newPath) } catch (e) {}
     }
   }
 
@@ -70,7 +94,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070709] text-[#f1f1f6] flex flex-col font-['Plus_Jakarta_Sans'] antialiased selection:bg-[#f7d978] selection:text-black">
+    <div className="min-h-screen bg-[#070709] text-[#f1f1f6] flex flex-col font-['Plus_Jakarta_Sans'] antialiased selection:bg-[#f7d978] selection:text-black relative">
+      {/* Real Grand Theatre Curtain Opening Overlay (Highest Z-Index) */}
+      <CurtainOverlay />
+
+      {/* Cinematic Transition Overlay */}
+      <PageTransitionOverlay transitionType={transitionType} />
+
       {/* Top Header */}
       <Header
         currentPage={currentPage}
@@ -80,54 +110,56 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-grow">
-        {currentPage === 'home' && (
-          <HomePage
-            setCurrentPage={setCurrentPage}
-            onOpenRegister={(track) => handleOpenRegister(track)}
-          />
-        )}
+        <div key={currentPage} className="page-transition">
+          {currentPage === 'home' && (
+            <HomePage
+              setCurrentPage={setCurrentPage}
+              onOpenRegister={(track) => handleOpenRegister(track)}
+            />
+          )}
 
-        {currentPage === 'day1' && (
-          <Day1Page
-            onOpenRegister={(track) => handleOpenRegister(track || 'day1-performer')}
-          />
-        )}
+          {currentPage === 'day1' && (
+            <Day1Page
+              onOpenRegister={(track) => handleOpenRegister(track || 'day1-performer')}
+            />
+          )}
 
-        {currentPage === 'day2' && (
-          <Day2Page
-            onOpenRegister={(track) => handleOpenRegister(track || 'day2-wizard')}
-          />
-        )}
+          {currentPage === 'day2' && (
+            <Day2Page
+              onOpenRegister={(track) => handleOpenRegister(track || 'day2-wizard')}
+            />
+          )}
 
-        {currentPage === 'register-day1' && (
-          <Day1RegistrationPage
-            setCurrentPage={setCurrentPage}
-          />
-        )}
+          {currentPage === 'register-day1' && (
+            <Day1RegistrationPage
+              setCurrentPage={setCurrentPage}
+            />
+          )}
 
-        {currentPage === 'register-day2' && (
-          <Day2RegistrationPage
-            setCurrentPage={setCurrentPage}
-          />
-        )}
+          {currentPage === 'register-day2' && (
+            <Day2RegistrationPage
+              setCurrentPage={setCurrentPage}
+            />
+          )}
 
-        {currentPage === 'guidelines' && (
-          <GuidelinesPage
-            setCurrentPage={setCurrentPage}
-          />
-        )}
+          {currentPage === 'guidelines' && (
+            <GuidelinesPage
+              setCurrentPage={setCurrentPage}
+            />
+          )}
 
-        {currentPage === 'admin' && (
-          <AdminPage
-            setCurrentPage={setCurrentPage}
-          />
-        )}
+          {currentPage === 'admin' && (
+            <AdminPage
+              setCurrentPage={setCurrentPage}
+            />
+          )}
 
-        {currentPage === '404' && (
-          <NotFoundPage
-            setCurrentPage={setCurrentPage}
-          />
-        )}
+          {currentPage === '404' && (
+            <NotFoundPage
+              setCurrentPage={setCurrentPage}
+            />
+          )}
+        </div>
       </main>
 
       {/* Footer */}

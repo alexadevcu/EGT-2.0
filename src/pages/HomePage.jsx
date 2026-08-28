@@ -232,15 +232,6 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
 
   return (
     <div className="w-full bg-[#070709] text-[#f1f1f6] overflow-hidden relative">
-      {/* ========================================================================= */}
-      {/* REAL THEATRE CURTAIN ANIMATION OVERLAY */}
-      {/* ========================================================================= */}
-      {curtainAnimating && (
-        <div className={`real-curtain-container ${curtainsOpen ? 'curtains-real-open' : 'curtains-real-closed'}`}>
-          <div className="real-curtain-left"></div>
-          <div className="real-curtain-right"></div>
-        </div>
-      )}
 
       {/* ========================================================================= */}
       {/* 1. HERO SECTION: THEATRICAL RED STAGE & 3D METALLIC GOLD TITLE */}
