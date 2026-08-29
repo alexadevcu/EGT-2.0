@@ -12,10 +12,12 @@ import NotFoundPage from './pages/NotFoundPage'
 
 import PageTransitionOverlay from './components/PageTransitionOverlay'
 import CurtainOverlay from './components/CurtainOverlay'
+import ContactModal from './components/ContactModal'
 
 export default function App() {
   const [currentPage, setCurrentPageState] = useState('home')
   const [transitionType, setTransitionType] = useState('idle')
+  const [isContactOpen, setIsContactOpen] = useState(false)
 
   // Support URL path navigation & 404 catch-all
   useEffect(() => {
@@ -45,6 +47,21 @@ export default function App() {
     handleLocation()
     window.addEventListener('popstate', handleLocation)
     return () => window.removeEventListener('popstate', handleLocation)
+  }, [])
+
+  // Ensure browser scroll restoration is set to manual and page reloads always reset to top (0, 0)
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
+    window.scrollTo(0, 0)
+
+    const handleUnload = () => {
+      window.scrollTo(0, 0)
+    }
+
+    window.addEventListener('beforeunload', handleUnload)
+    return () => window.removeEventListener('beforeunload', handleUnload)
   }, [])
 
   // Scroll to top of window whenever currentPage state changes
@@ -113,6 +130,7 @@ export default function App() {
         currentPage={currentPage}
         setCurrentPage={navigate}
         onOpenRegister={() => handleOpenRegister(currentPage === 'day2' ? 'day2-wizard' : 'day1-performer')}
+        onOpenContact={() => setIsContactOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -139,25 +157,25 @@ export default function App() {
 
           {currentPage === 'register-day1' && (
             <Day1RegistrationPage
-              setCurrentPage={setCurrentPage}
+              setCurrentPage={navigate}
             />
           )}
 
           {currentPage === 'register-day2' && (
             <Day2RegistrationPage
-              setCurrentPage={setCurrentPage}
+              setCurrentPage={navigate}
             />
           )}
 
           {currentPage === 'guidelines' && (
             <GuidelinesPage
-              setCurrentPage={setCurrentPage}
+              setCurrentPage={navigate}
             />
           )}
 
           {currentPage === 'admin' && (
             <AdminPage
-              setCurrentPage={setCurrentPage}
+              setCurrentPage={navigate}
             />
           )}
 
@@ -173,6 +191,13 @@ export default function App() {
       <Footer
         setCurrentPage={navigate}
         onOpenRegister={() => handleOpenRegister('day1-performer')}
+        onOpenContact={() => setIsContactOpen(true)}
+      />
+
+      {/* Contact Us Modal Popup */}
+      <ContactModal
+        isOpen={isContactOpen}
+        onClose={() => setIsContactOpen(false)}
       />
     </div>
   )

@@ -4,7 +4,7 @@ import alexaLogo from '../assets/Logo/Alexa Developers Community Logo.png'
 import gfgLogo from '../assets/Logo/GfG Horizontal Combination Mark (Dark Mode)@2x.png'
 import { Menu, X, Mail } from 'lucide-react'
 
-export default function Header({ currentPage, setCurrentPage, onOpenRegister }) {
+export default function Header({ currentPage, setCurrentPage, onOpenRegister, onOpenContact }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Prevent background body scrolling when mobile drawer is open
@@ -24,43 +24,46 @@ export default function Header({ currentPage, setCurrentPage, onOpenRegister }) 
   }, [mobileMenuOpen])
 
   const handleContactClick = () => {
-    const el = document.getElementById('contact-section')
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' })
+    if (onOpenContact) {
+      onOpenContact()
     } else {
-      window.location.href = 'mailto:adc.cu@cumail.in'
+      const el = document.getElementById('contact-section')
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' })
+      } else {
+        window.location.href = 'mailto:adc.cu@cumail.in'
+      }
     }
   }
 
   return (
     <header className="fixed top-3 sm:top-4 left-0 right-0 z-50 flex justify-center px-2 sm:px-4">
       {/* Seamless Translucent Floating Glass Navigation Capsule */}
-      <div className="w-full max-w-5xl bg-[#090708]/85 backdrop-blur-xl border border-white/10 rounded-full px-3.5 sm:px-7 py-2 sm:py-2.5 flex justify-between items-center shadow-[0_15px_40px_rgba(0,0,0,0.85)]">
+      <div className="w-full max-w-5xl bg-[#090708]/90 backdrop-blur-xl border border-white/15 rounded-full px-4 sm:px-7 py-2.5 sm:py-3 flex justify-between items-center shadow-[0_15px_40px_rgba(0,0,0,0.85)]">
         
-        {/* Left: Logos (CU | Alexa | GFG) Floating Directly on Glass */}
-        <div
-          onClick={() => setCurrentPage('home')}
-          className="flex items-center gap-1 sm:gap-3 cursor-pointer hover:opacity-95 transition-opacity shrink min-w-0"
-        >
+        {/* Left: Logos (CU | Alexa) Floating Directly on Glass */}
+        <div className="flex items-center gap-2.5 sm:gap-3.5 shrink min-w-0">
           <img
             src={cuLogo}
             alt="Chandigarh University"
-            className="h-4 sm:h-7 object-contain max-w-[40px] xs:max-w-[65px] sm:max-w-[120px] shrink-0"
+            onClick={() => setCurrentPage('home')}
+            className="h-7 xs:h-8.5 sm:h-9.5 object-contain max-w-[95px] xs:max-w-[125px] sm:max-w-[150px] shrink-0 cursor-pointer hover:opacity-85 transition-opacity"
           />
-          <div className="h-3.5 sm:h-5 w-[1px] bg-white/20 shrink-0"></div>
+          <div className="h-6 sm:h-7 w-[1px] bg-white/25 shrink-0"></div>
 
-          <img
-            src={alexaLogo}
-            alt="Alexa Developers Community"
-            className="h-4.5 xs:h-5 sm:h-8 object-contain max-w-[65px] xs:max-w-[100px] sm:max-w-[150px] shrink-0"
-          />
-          <div className="h-3.5 sm:h-5 w-[1px] bg-white/20 shrink-0"></div>
-
-          <img
-            src={gfgLogo}
-            alt="GeeksforGeeks"
-            className="h-4 sm:h-6 object-contain max-w-[40px] xs:max-w-[55px] sm:max-w-[75px] shrink-0"
-          />
+          <a
+            href="https://alexa-developers-at-cu.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Visit Official Alexa Developers Community Website"
+            className="flex items-center hover:opacity-85 transition-opacity shrink-0"
+          >
+            <img
+              src={alexaLogo}
+              alt="Alexa Developers Community"
+              className="h-7.5 xs:h-9 sm:h-10.5 object-contain max-w-[115px] xs:max-w-[145px] sm:max-w-[185px] shrink-0"
+            />
+          </a>
         </div>
 
         {/* Center: Clean Navigation Links (HOME | DAY 1 STAGE | DAY 2 TECH) */}
@@ -142,7 +145,7 @@ export default function Header({ currentPage, setCurrentPage, onOpenRegister }) 
               setCurrentPage('day1')
               setMobileMenuOpen(false)
             }}
-            className={`p-3 rounded-xl font-bold uppercase ${currentPage === 'day1' ? 'bg-rose-500 text-white' : 'text-[#gray-300] hover:bg-white/5'
+            className={`p-3 rounded-xl font-bold uppercase ${currentPage === 'day1' ? 'bg-rose-500 text-white' : 'text-gray-300 hover:bg-white/5'
               }`}
           >
             DAY 1 STAGE (9 SEPT)

@@ -163,7 +163,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
         </h1>
 
         <p className="font-sans text-sm sm:text-base text-gray-300 font-light">
-          Show the talent beyond the engineer &bull; Organized by Alexa Developers Community &amp; GFG Student Chapter
+          Show the talent beyond the engineer &bull; Organized by Alexa Developers Community
         </p>
       </div>
 
@@ -724,7 +724,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                 <span className="font-sans text-xs text-gray-300 group-hover:text-white transition-colors leading-relaxed">
                   I confirm that I have joined (or will join) the official{' '}
                   <a
-                    href="https://chat.whatsapp.com/GdWeagwwmqN9u7kY4XMaiK"
+                    href="https://chat.whatsapp.com/Gnpw4LEeSEE9NuDkKKZKaj?s=cl&p=a&ilr=1"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-emerald-400 hover:underline font-bold inline-flex items-center gap-1"
@@ -742,7 +742,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 px-8 rounded-full font-['Space_Grotesk'] text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white border border-rose-400/40 hover:scale-[1.02]"
+                className="w-full py-4 px-8 rounded-full font-['Space_Grotesk'] text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white border border-rose-400/40 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
               >
                 {isSubmitting ? (
                   <span>Submitting Registration...</span>
@@ -801,7 +801,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                 Joining the WhatsApp Group is mandatory to receive your performance slot, venue updates &amp; live announcements!
               </p>
               <a
-                href="https://chat.whatsapp.com/GdWeagwwmqN9u7kY4XMaiK"
+                href="https://chat.whatsapp.com/Gnpw4LEeSEE9NuDkKKZKaj?s=cl&p=a&ilr=1"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-['Space_Grotesk'] font-black text-xs uppercase tracking-wider transition-all shadow-lg hover:scale-105"

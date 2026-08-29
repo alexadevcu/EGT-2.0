@@ -131,13 +131,11 @@ export default function Day2Page({ onOpenRegister }) {
           {/* Main Stage Title Emblem */}
           <div className="relative z-10 max-w-5xl mx-auto flex flex-col items-center my-auto px-2 sm:px-4 w-full max-w-full overflow-x-hidden">
             
-            {/* Pure Unboxed Theatrical Header */}
-            <div className="font-['Space_Grotesk'] text-[10px] sm:text-sm font-extrabold text-[#f2ca50] tracking-[0.2em] sm:tracking-[0.3em] uppercase drop-shadow-[0_2px_12px_rgba(0,0,0,0.95)] mb-1 break-words max-w-full px-2">
-              TALENT HUNT ARENA PRESENTS
-            </div>
-
-            <div className="font-['Space_Grotesk'] text-[9px] sm:text-xs font-bold text-[#00F2FF] uppercase tracking-[0.15em] sm:tracking-[0.25em] mb-4 sm:mb-6 drop-shadow-md break-words max-w-full px-2">
-              ALEXA DEVELOPERS COMMUNITY &amp; GFG STUDENT CHAPTER
+            {/* Date & Location Pill Kicker */}
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <span className="px-4 py-2 rounded-full bg-[#0b1a21] border border-[#1d778a]/50 text-[#5ed3e6] font-extrabold text-xs sm:text-sm tracking-wider inline-flex items-center gap-2 shadow-lg">
+                10 SEPTEMBER 2026 • C1 SEMINAR HALL
+              </span>
             </div>
 
             {/* Handcrafted Cinematic Title */}
@@ -157,10 +155,12 @@ export default function Day2Page({ onOpenRegister }) {
               The Ultimate Tech &amp; Treasure Hunt
             </p>
 
-            {/* Clean Meta Details */}
-            <p className="font-['Space_Grotesk'] text-[11px] sm:text-sm text-gray-300 mt-3 sm:mt-4 font-semibold text-center tracking-wider px-3 break-words">
-              <span className="text-[#f2ca50] font-bold">10 September 2026</span> &bull;{' '}
-              <span className="text-[#00F2FF] font-bold">Dept of CSE – Takshashila</span> &bull; C1 Seminar Hall &amp; Campus Wide
+            {/* Organizing Body & Venue Info */}
+            <p className="font-['Space_Grotesk'] text-xs sm:text-sm text-[#00F2FF] mt-2.5 font-bold text-center tracking-widest uppercase px-3 break-words">
+              Organized by Alexa Developers Community
+            </p>
+            <p className="font-['Space_Grotesk'] text-[10px] sm:text-xs text-gray-300 mt-1 font-semibold text-center tracking-wider px-3 break-words">
+              Department of CSE – Takshashila &bull; Chandigarh University
             </p>
 
             {/* Single Registration CTA Button */}

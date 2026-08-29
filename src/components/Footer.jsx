@@ -1,12 +1,13 @@
 import React from 'react'
 import alexaCircularLogo from '../assets/Logo/Alexa Circular logo.png'
-import { ArrowUp } from 'lucide-react'
+import { ArrowUp, Globe } from 'lucide-react'
 
-export default function Footer({ setCurrentPage, onOpenRegister }) {
+export default function Footer({ setCurrentPage, onOpenRegister, onOpenContact }) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const WEBSITE_LINK = 'https://alexa-developers-at-cu.vercel.app/'
   const INSTAGRAM_LINK = 'https://www.instagram.com/alexadev.cu'
   const LINKEDIN_LINK = 'https://www.linkedin.com/company/alexadevscu/'
   const WHATSAPP_CHANNEL_LINK = 'https://chat.whatsapp.com/GQScMwZ7X6EKAjfqAFkz4q'
@@ -29,7 +30,7 @@ export default function Footer({ setCurrentPage, onOpenRegister }) {
                 ENGINEER’S GOT TALENT 2.0
               </span>
               <span className="font-['Space_Grotesk'] text-xs font-bold text-[#f2ca50] tracking-widest uppercase">
-                Alexa Developers Community &amp; GFG Student Chapter
+                Alexa Developers Community
               </span>
             </div>
           </div>
@@ -104,6 +105,20 @@ export default function Footer({ setCurrentPage, onOpenRegister }) {
             </p>
             
             <div className="flex items-center gap-3 pt-2">
+              {/* Official Website Logo Button */}
+              <a
+                href={WEBSITE_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Official Website: Alexa Developers Community"
+                aria-label="Official Website"
+                className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#00F2FF] to-blue-600 p-0.5 shadow-lg hover:scale-110 transition-all duration-300 group flex items-center justify-center cursor-pointer"
+              >
+                <div className="w-full h-full bg-[#050508] rounded-[14px] flex items-center justify-center group-hover:bg-transparent transition-colors">
+                  <Globe className="w-5 h-5 text-[#00F2FF] group-hover:text-white transition-colors" />
+                </div>
+              </a>
+
               {/* Instagram Logo Button */}
               <a
                 href={INSTAGRAM_LINK}

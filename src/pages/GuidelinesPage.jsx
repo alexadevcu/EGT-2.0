@@ -823,7 +823,7 @@ export default function GuidelinesPage({ setCurrentPage }) {
             <p className="sub">Event Guidelines &amp; Rules</p>
             <div className="meta">
               <span>Department of CSE – Takshashila</span>
-              <span>Organized by Alexa Developers Community &amp; GFG Student Chapter</span>
+              <span>Organized by Alexa Developers Community</span>
             </div>
             <p className="notice-line">
               Please read all rules carefully prior to participation.

@@ -114,7 +114,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
         </h1>
 
         <p className="font-sans text-sm sm:text-base text-gray-300 font-light">
-          Harry Potter — The Wizarding World of Technology &bull; Organized by Alexa Developers Community &amp; GFG Student Chapter
+          Harry Potter — The Wizarding World of Technology &bull; Organized by Alexa Developers Community
         </p>
       </div>
 
@@ -145,7 +145,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="border-b border-white/10 pb-4 flex justify-between items-center">
               <div>
-                <h2 className="font-[#Cinzel] text-xl font-bold text-white flex items-center gap-2">
+                <h2 className="font-['Space_Grotesk'] text-xl font-bold text-white flex items-center gap-2">
                   <Code className="w-5 h-5 text-cyan-400" />
                   <span>Tech Wizard Squad Form</span>
                 </h2>
@@ -622,7 +622,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                 <span className="font-sans text-xs text-gray-300 group-hover:text-white transition-colors leading-relaxed">
                   I confirm that I have joined (or will join) the official{' '}
                   <a
-                    href="https://chat.whatsapp.com/GdWeagwwmqN9u7kY4XMaiK"
+                    href="https://chat.whatsapp.com/GlHcZHgODCF3ZqK2vsGZzr?s=cl&p=a&ilr=1"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-emerald-400 hover:underline font-bold inline-flex items-center gap-1"
@@ -640,7 +640,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 px-8 rounded-full font-['Space_Grotesk'] text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xl bg-gradient-to-r from-[#22D3EE] to-[#06B6D4] text-black border border-cyan-200/50 hover:scale-[1.02]"
+                className="w-full py-4 px-8 rounded-full font-['Space_Grotesk'] text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xl bg-gradient-to-r from-[#22D3EE] to-[#06B6D4] text-black border border-cyan-200/50 hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
               >
                 {isSubmitting ? (
                   <span>Submitting Registration...</span>
@@ -682,12 +682,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                 <span className="text-gray-400">Squad Leader:</span>
                 <span className="font-bold text-gray-200">{submittedPass.leader_name} ({submittedPass.uid})</span>
               </div>
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-gray-400">Tech Stack:</span>
-                <span className="font-bold text-yellow-400 uppercase">
-                  {submittedPass.tech_stack}
-                </span>
-              </div>
+
             </div>
 
             {/* Mandatory WhatsApp Group Callout Banner */}
@@ -699,7 +694,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                 Joining the WhatsApp Group is mandatory to receive your squad slot, venue updates &amp; live announcements!
               </p>
               <a
-                href="https://chat.whatsapp.com/GdWeagwwmqN9u7kY4XMaiK"
+                href="https://chat.whatsapp.com/GlHcZHgODCF3ZqK2vsGZzr?s=cl&p=a&ilr=1"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-['Space_Grotesk'] font-black text-xs uppercase tracking-wider transition-all shadow-lg hover:scale-105"

@@ -35,7 +35,8 @@ import {
   signOutAdmin,
   getAdminSession,
   getRegistrationSettings,
-  updateRegistrationSettings
+  updateRegistrationSettings,
+  updateRegistrationStatus
 } from '../supabaseClient'
 
 export function parseDay1TeamMembers(row) {

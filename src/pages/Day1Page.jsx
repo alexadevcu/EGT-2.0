@@ -39,11 +39,14 @@ export default function Day1Page({ onOpenRegister }) {
     window.scrollTo(0, 0)
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (!page.current) return
 
+    let ctx = null
     const timer = setTimeout(() => {
+      if (!page.current) return
       const isMobile = window.innerWidth <= 700
 
-      const ctx = gsap.context(() => {
+      ctx = gsap.context(() => {
         // 1. HERO TITLE REVEAL & SCRUB SCALING
         gsap.timeline({ defaults: { ease: 'power3.out' } })
           .from('.day1-hero__beam', { opacity: 0, scale: 0.55, duration: 1.5 })
@@ -198,12 +201,13 @@ export default function Day1Page({ onOpenRegister }) {
           .to('.day1-final__beam', { opacity: 1, scale: 1.15 }, 0)
 
         ScrollTrigger.refresh()
-      }, page)
-
-      return () => ctx.revert()
+      }, page.current)
     }, 120)
 
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(timer)
+      if (ctx) ctx.revert()
+    }
   }, [])
 
   return (
@@ -212,13 +216,16 @@ export default function Day1Page({ onOpenRegister }) {
       <section className="day1-hero" style={{ '--stage-image': `url(${stageHero})` }}>
         <div className="day1-hero__beam" />
         <div className="day1-hero__content">
-          <p className="day1-kicker day1-hero__date">09 SEPTEMBER 2026</p>
+          <div className="mb-4">
+            <span className="day1-hero__date px-4 py-2 rounded-full bg-[#1e170d] border border-[#a68437]/50 text-[#e0b968] font-extrabold text-xs sm:text-sm tracking-wider inline-flex items-center gap-2 shadow-lg">
+              09 SEPTEMBER 2026 • A1 AUDITORIUM
+            </span>
+          </div>
           <h1 className="day1-hero__title">
             <span>THE</span>
             <span>STAGE</span>
           </h1>
           <p className="day1-hero__detail">NON-TECH TALENT SHOWCASE</p>
-          <p className="day1-hero__detail day1-hero__venue">A1 AUDITORIUM</p>
           <div className="day1-hero__actions">
             <button className="btn-hero-primary-gold" onClick={() => onOpenRegister('day1-performer')}>
               REGISTER AS PERFORMER <span>→</span>
@@ -368,9 +375,11 @@ export default function Day1Page({ onOpenRegister }) {
           <button className="day1-final__cta" onClick={() => onOpenRegister('day1-performer')}>
             REGISTER AS PERFORMER <span>→</span>
           </button>
-          <p className="day1-final__meta">
-            9 SEPTEMBER 2026 <i /> A1 AUDITORIUM
-          </p>
+          <div className="mt-4">
+            <span className="px-4 py-2 rounded-full bg-[#1e170d] border border-[#a68437]/50 text-[#e0b968] font-extrabold text-xs sm:text-sm tracking-wider inline-flex items-center gap-2 shadow-lg">
+              09 SEPTEMBER 2026 • A1 AUDITORIUM
+            </span>
+          </div>
         </div>
       </section>
     </div>

@@ -11,9 +11,15 @@ export const isSupabaseConfigured = Boolean(
   !supabaseUrl.includes('your-supabase-project-id')
 )
 
-// Initialize Supabase client
+// Initialize Supabase client with sessionStorage (session clears on browser/tab close)
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
+        autoRefreshToken: true,
+        persistSession: true
+      }
+    })
   : null
 
 // SUPABASE AUTHENTICATION HELPERS
@@ -341,6 +347,13 @@ export async function saveDay2Registration(data) {
   if (!cleanT2Name || !cleanT2Uid) {
     return { success: false, error: 'Teammate 2 Full Name and Student UID are both minimum requirements.' }
   }
+  // Teammate 3 cross-field validation: if name filled, UID must also be filled
+  if (cleanT3Name && !cleanT3Uid) {
+    return { success: false, error: 'Please enter the Student UID for Teammate 3 (or leave both fields blank).' }
+  }
+  if (!cleanT3Name && cleanT3Uid) {
+    return { success: false, error: 'Please enter the Full Name for Teammate 3 (or leave both fields blank).' }
+  }
 
   const formattedT1 = cleanT1Uid ? `${cleanT1Name} (${cleanT1Uid}) [Sec: ${cleanT1Section}, ${cleanT1Group}, Blk: ${cleanT1Block}]` : cleanT1Name
   const formattedT2 = cleanT2Uid ? `${cleanT2Name} (${cleanT2Uid}) [Sec: ${cleanT2Section}, ${cleanT2Group}, Blk: ${cleanT2Block}]` : cleanT2Name
@@ -477,6 +490,25 @@ export async function getDay2Registrations() {
     }
   }
   return getFromLocalStorage('egt_day2_registrations')
+}
+
+// Update Registration Status
+export async function updateRegistrationStatus(table, regId, status) {
+  if (supabase) {
+    try {
+      await supabase
+        .from(table)
+        .update({ status })
+        .eq('reg_id', regId)
+    } catch (err) {
+      console.warn('Supabase status update failed:', err)
+    }
+  }
+
+  const localKey = table === 'day1_registrations' ? 'egt_day1_registrations' : 'egt_day2_registrations'
+  const items = getFromLocalStorage(localKey)
+  const updated = items.map(item => item.reg_id === regId ? { ...item, status } : item)
+  localStorage.setItem(localKey, JSON.stringify(updated))
 }
 
 // Delete Registration
