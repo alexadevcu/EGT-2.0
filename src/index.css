@@ -166,8 +166,13 @@ body {
 
 .real-curtain-container {
   position: fixed;
-  inset: 0;
-  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999999 !important;
   pointer-events: none;
   overflow: hidden;
 }
@@ -228,4 +233,67 @@ body {
 .curtains-real-open .real-curtain-right {
   transform: scaleX(0.18) translateX(100%);
   opacity: 0;
+}
+
+/* Smooth Page Transition Animation */
+@keyframes pageFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition {
+  animation: pageFadeInUp 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: opacity, transform;
+}
+
+/* ========================================================================= */
+/* 🎭 DAY 1: SILKY VELVET STAGE SHUTTER ANIMATIONS (450ms) */
+/* ========================================================================= */
+@keyframes shutterTopDay1 {
+  0% { transform: translateY(-100%); }
+  45% { transform: translateY(0%); }
+  60% { transform: translateY(0%); }
+  100% { transform: translateY(-100%); }
+}
+.animate-shutter-top-day1 {
+  animation: shutterTopDay1 0.45s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+@keyframes shutterBottomDay1 {
+  0% { transform: translateY(100%); }
+  45% { transform: translateY(0%); }
+  60% { transform: translateY(0%); }
+  100% { transform: translateY(100%); }
+}
+.animate-shutter-bottom-day1 {
+  animation: shutterBottomDay1 0.45s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+/* ========================================================================= */
+/* 🧙‍♂️ DAY 2: CYBER OBSIDIAN MAGIC PORTAL SHUTTER ANIMATIONS (480ms) */
+/* ========================================================================= */
+@keyframes shutterLeftDay2 {
+  0% { transform: translateX(-100%); }
+  45% { transform: translateX(0%); }
+  60% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+.animate-shutter-left-day2 {
+  animation: shutterLeftDay2 0.48s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+}
+
+@keyframes shutterRightDay2 {
+  0% { transform: translateX(100%); }
+  45% { transform: translateX(0%); }
+  60% { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+.animate-shutter-right-day2 {
+  animation: shutterRightDay2 0.48s cubic-bezier(0.77, 0, 0.175, 1) forwards;
 }
