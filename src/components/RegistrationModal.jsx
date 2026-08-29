@@ -1,9 +1,16 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import confetti from 'canvas-confetti'
 
 export default function RegistrationModal({ isOpen, onClose, initialTab = 'day1-performer' }) {
   const [activeTab, setActiveTab] = useState(initialTab)
   const [submittedPass, setSubmittedPass] = useState(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab)
+      setSubmittedPass(null)
+    }
+  }, [isOpen, initialTab])
 
   // Form states
   const [formData, setFormData] = useState({

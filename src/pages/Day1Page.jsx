@@ -1,253 +1,46 @@
-import React from 'react'
+import { useLayoutEffect, useRef } from 'react'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import stageHero from '../assets/stage_hero.jpg'
+import './Day1Page.css'
+
+gsap.registerPlugin(ScrollTrigger)
+
+const moments = ['ARRIVE', 'LIGHTS DOWN', 'SPOTLIGHT', 'FIRST ACT', 'THE STAGE COMES ALIVE', 'THE PERFORMANCE', 'THE FINAL MOMENT', "SHOW'S OVER"]
+// This is the Day 1 visual showcase only. The full performer-category data remains in RegistrationModal.
+const talentActs = ['SINGING', 'DANCE', 'INSTRUMENTAL', 'STAND-UP COMEDY', 'DRAMA & THEATRE', 'OTHERS']
+const formats = [['SOLO', 1, 'One light. One voice.'], ['DUO', 2, 'Two paths meet centre stage.'], ['GROUP', 5, 'A shared moment, made larger together.']]
 
 export default function Day1Page({ onOpenRegister }) {
-  return (
-    <div className="w-full relative bg-[#1A0A0A] text-[#eae1d4] min-h-screen">
-      {/* Ambient background layers */}
-      <div className="fixed inset-0 pointer-events-none radial-spotlight z-0"></div>
-      <div className="fixed inset-0 pointer-events-none curtain-overlay z-0 mix-blend-overlay"></div>
-
-      <div className="relative z-10">
-        {/* Hero Section */}
-        <section className="relative min-h-[90vh] flex flex-col items-center justify-center px-5 md:px-[80px] text-center pt-28 sm:pt-32">
-          <div className="absolute inset-0 w-full h-full z-[-1]">
-            <img
-              alt="Cinematic theater stage"
-              className="w-full h-full object-cover"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCng2Ae-afsdBBBha0vcZv2rmoC1bdkSKQh-1Hrie1SLBcwQvaNqEvorsBKTZlGHxsLy6toWBh-Pn057U9VnLbIuJzcSRyoYqIosbjgolJhoX5KZ8c4Bp6vE5gqZj6XgnKsVohdPD1cUAgS6aRaQFJRV27TB9mzABdBVm_4a3Xe7fPBv3OdYYR6Knx3Zo0F96hyOoIixxNCU-XqdHQ-6eSn0m5GXXKYo4xPMJYyZgxSZqe8vRMQX9tl"
-            />
-            <div className="absolute inset-0 bg-black/40"></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1A0A0A] via-transparent to-transparent"></div>
-          </div>
-
-          <div className="max-w-4xl mx-auto space-y-6 mt-12 md:mt-0">
-            <span className="text-[#f2ca50] font-['Space_Grotesk'] text-xs font-bold tracking-[0.2em] uppercase block mb-4 animate-pulse">
-              Day 1: Non-Tech Showcase
-            </span>
-            <h1 className="font-['Cinzel'] text-3xl sm:text-5xl md:text-7xl font-bold text-[#FFF9E5] drop-shadow-[0_0_30px_rgba(242,202,80,0.6)] uppercase tracking-[0.15em] leading-tight">
-              The Stage: <br /> Unleash Your Talent
-            </h1>
-            <p className="font-['Work_Sans'] text-base md:text-lg text-[#d0c5af] max-w-2xl mx-auto mt-6 border-l-2 border-[#f2ca50]/50 pl-4 py-2 text-left sm:text-center">
-              9 September 2026 • A1 Auditorium<br />
-              Step into the spotlight and let your artistry shine on the grandest stage of the year.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12 pt-8" id="register">
-              <button
-                onClick={() => onOpenRegister('day1-performer')}
-                className="w-full sm:w-auto bg-[#f2ca50] text-[#1A0A0A] font-['Space_Grotesk'] text-xs font-bold uppercase px-8 py-4 rounded-full hover:scale-105 hover:shadow-[0_0_40px_rgba(242,202,80,0.6)] transition-all duration-500 flex items-center justify-center gap-2 group border border-white/20 shadow-lg cursor-pointer"
-              >
-                <span className="material-symbols-outlined group-hover:scale-110 transition-transform">mic</span>
-                REGISTER AS PERFORMER
-              </button>
-
-              <button
-                onClick={() => onOpenRegister('day1-audience')}
-                className="w-full sm:w-auto bg-white/5 backdrop-blur-md border-2 border-[#f2ca50] text-[#f2ca50] font-['Space_Grotesk'] text-xs font-bold uppercase px-8 py-4 rounded-full hover:bg-[#f2ca50]/20 hover:scale-105 hover:shadow-[0_0_30px_rgba(242,202,80,0.3)] transition-all duration-500 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span className="material-symbols-outlined">theater_comedy</span>
-                BOOK AUDIENCE SEAT
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-16 animate-bounce text-[#f2ca50]/50">
-            <span className="material-symbols-outlined text-3xl">keyboard_arrow_down</span>
-          </div>
-        </section>
-
-        {/* Categories Section (Bento Grid) */}
-        <section className="py-20 md:py-28 px-5 md:px-[80px] max-w-[1440px] mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-['Cinzel'] text-2xl md:text-4xl font-semibold text-[#FFF9E5] uppercase relative inline-block">
-              <span className="absolute -left-12 top-1/2 -translate-y-1/2 w-8 h-1 bg-[#f2ca50]/50"></span>
-              The Talent Showcase
-              <span className="absolute -right-12 top-1/2 -translate-y-1/2 w-8 h-1 bg-[#f2ca50]/50"></span>
-            </h2>
-            <p className="font-['Work_Sans'] text-sm text-[#d0c5af] mt-4 max-w-xl mx-auto">
-              Discover the diverse categories where you can showcase your unique skills.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {/* Category Card: Singing (Span 2) */}
-            <div className="col-span-1 md:col-span-2 row-span-2 bg-[#1A0A0A] border border-[#f2ca50]/20 rounded-xl p-8 relative overflow-hidden group hover:border-[#f2ca50]/60 transition-all duration-500 shadow-lg hover:shadow-[0_0_40px_rgba(178,34,34,0.3)] flex flex-col justify-between">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#f2ca50]/5 rounded-bl-full group-hover:scale-150 transition-transform duration-700"></div>
-              <div>
-                <span className="material-symbols-outlined text-6xl text-[#f2ca50] mb-6 drop-shadow-[0_0_10px_rgba(212,175,55,0.5)] block">
-                  mic_external_on
-                </span>
-                <h3 className="font-['Cinzel'] text-xl md:text-2xl font-medium text-[#FFF9E5] mb-3">
-                  Vocal Performance
-                </h3>
-                <p className="font-['Work_Sans'] text-sm text-[#d0c5af] z-10 relative leading-relaxed">
-                  Mesmerize the audience with your voice. Open to classical, contemporary, pop, beatboxing, spoken word, and original compositions.
-                </p>
-              </div>
-              <button
-                onClick={() => onOpenRegister('day1-performer')}
-                className="mt-6 inline-flex items-center gap-2 text-xs font-['Space_Grotesk'] font-bold text-[#f2ca50] hover:underline uppercase"
-              >
-                Register Act <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </button>
-            </div>
-
-            {/* Category Card: Dance */}
-            <div className="bg-[#231f17] border border-[#f2ca50]/10 rounded-xl p-6 relative overflow-hidden group hover:border-[#f2ca50]/40 transition-all">
-              <span className="material-symbols-outlined text-4xl text-[#f2ca50]/80 mb-4 block group-hover:text-[#f2ca50] transition-colors">
-                directions_run
-              </span>
-              <h3 className="font-['Space_Grotesk'] text-sm font-bold text-[#eae1d4] uppercase mb-2">
-                Dance
-              </h3>
-              <p className="font-['Work_Sans'] text-xs text-[#d0c5af]/80">
-                Express through movement. Solo, duo, or squad routines.
-              </p>
-            </div>
-
-            {/* Category Card: Instrumental */}
-            <div className="bg-[#231f17] border border-[#f2ca50]/10 rounded-xl p-6 relative overflow-hidden group hover:border-[#f2ca50]/40 transition-all">
-              <span className="material-symbols-outlined text-4xl text-[#f2ca50]/80 mb-4 block group-hover:text-[#f2ca50] transition-colors">
-                piano
-              </span>
-              <h3 className="font-['Space_Grotesk'] text-sm font-bold text-[#eae1d4] uppercase mb-2">
-                Instrumental
-              </h3>
-              <p className="font-['Work_Sans'] text-xs text-[#d0c5af]/80">
-                Let the strings, keys, drums, or beats do the talking.
-              </p>
-            </div>
-
-            {/* Category Card: Drama */}
-            <div className="bg-[#231f17] border border-[#f2ca50]/10 rounded-xl p-6 relative overflow-hidden group hover:border-[#f2ca50]/40 transition-all">
-              <span className="material-symbols-outlined text-4xl text-[#f2ca50]/80 mb-4 block group-hover:text-[#f2ca50] transition-colors">
-                masks
-              </span>
-              <h3 className="font-['Space_Grotesk'] text-sm font-bold text-[#eae1d4] uppercase mb-2">
-                Drama & Skit
-              </h3>
-              <p className="font-['Work_Sans'] text-xs text-[#d0c5af]/80">
-                Captivating theatrical performances, monologues & short plays.
-              </p>
-            </div>
-
-            {/* Category Card: Standup */}
-            <div className="bg-[#231f17] border border-[#f2ca50]/10 rounded-xl p-6 relative overflow-hidden group hover:border-[#f2ca50]/40 transition-all">
-              <span className="material-symbols-outlined text-4xl text-[#f2ca50]/80 mb-4 block group-hover:text-[#f2ca50] transition-colors">
-                sentiment_very_satisfied
-              </span>
-              <h3 className="font-['Space_Grotesk'] text-sm font-bold text-[#eae1d4] uppercase mb-2">
-                Stand-up Comedy
-              </h3>
-              <p className="font-['Work_Sans'] text-xs text-[#d0c5af]/80">
-                Bring the house down with your humor and crowd banter.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Performance Format Section */}
-        <section className="py-20 md:py-28 px-5 md:px-[80px] relative">
-          <div className="absolute inset-0 bg-[#B22222]/5 skew-y-3 z-[-1]"></div>
-          
-          <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-12 items-center">
-            <div className="w-full md:w-1/2 space-y-6">
-              <h2 className="font-['Cinzel'] text-3xl md:text-5xl font-semibold text-[#FFF9E5] uppercase leading-tight">
-                The Rules <br /> <span className="text-[#f2ca50]">of Engagement</span>
-              </h2>
-              <p className="font-['Work_Sans'] text-base md:text-lg text-[#d0c5af]">
-                Every great performance requires structure. Review the formats to ensure your act fits the spotlight.
-              </p>
-              
-              <ul className="space-y-6 mt-8">
-                <li className="flex items-start gap-4">
-                  <span className="material-symbols-outlined text-[#f2ca50] mt-1 text-2xl">
-                    timer
-                  </span>
-                  <div>
-                    <h4 className="font-['Cinzel'] text-lg font-medium text-[#eae1d4] mb-1">
-                      3-Minute Time Limit
-                    </h4>
-                    <p className="font-['Work_Sans'] text-sm text-[#d0c5af]/70">
-                      Strict adherence required for each performance to keep the show rolling.
-                    </p>
-                  </div>
-                </li>
-
-                <li className="flex items-start gap-4">
-                  <span className="material-symbols-outlined text-[#f2ca50] mt-1 text-2xl">
-                    groups
-                  </span>
-                  <div>
-                    <h4 className="font-['Cinzel'] text-lg font-medium text-[#eae1d4] mb-1">
-                      Flexible Lineups
-                    </h4>
-                    <p className="font-['Work_Sans'] text-sm text-[#d0c5af]/70">
-                      Participate as a Soloist, dynamic Duo, or a full Group performance.
-                    </p>
-                  </div>
-                </li>
-
-                <li className="flex items-start gap-4">
-                  <span className="material-symbols-outlined text-[#f2ca50] mt-1 text-2xl">
-                    gavel
-                  </span>
-                  <div>
-                    <h4 className="font-['Cinzel'] text-lg font-medium text-[#eae1d4] mb-1">
-                      University Guidelines
-                    </h4>
-                    <p className="font-['Work_Sans'] text-sm text-[#d0c5af]/70">
-                      All acts must maintain professional decorum suitable for a university audience. No profanity or offensive material.
-                    </p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <div className="w-full md:w-1/2">
-              <div className="bg-[#16130b]/80 backdrop-blur-md border border-[#f2ca50]/30 rounded-2xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.5)] relative">
-                {/* Corner Accents */}
-                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#f2ca50] rounded-tl-lg m-4"></div>
-                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#f2ca50] rounded-tr-lg m-4"></div>
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#f2ca50] rounded-bl-lg m-4"></div>
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#f2ca50] rounded-br-lg m-4"></div>
-
-                <div className="text-center mb-8">
-                  <span className="material-symbols-outlined text-5xl text-[#FFF9E5]/50 mb-2">
-                    confirmation_number
-                  </span>
-                  <h3 className="font-['Cinzel'] text-2xl font-medium text-[#f2ca50] uppercase">
-                    Audience Info
-                  </h3>
-                </div>
-
-                <p className="font-['Work_Sans'] text-base text-center text-[#eae1d4] mb-8 leading-relaxed">
-                  Experience the magic live. Be part of the energy that fuels the performers.
-                </p>
-
-                <div className="bg-[#1A0A0A]/80 rounded-lg p-4 flex justify-between items-center border-l-4 border-[#f2ca50] mb-6">
-                  <div>
-                    <p className="font-['Space_Grotesk'] text-[10px] font-bold text-[#d0c5af] uppercase">
-                      Venue
-                    </p>
-                    <p className="font-['Cinzel'] text-sm font-medium text-[#FFF9E5]">
-                      A1 Auditorium
-                    </p>
-                  </div>
-                  <span className="material-symbols-outlined text-[#f2ca50]">location_on</span>
-                </div>
-
-                <button
-                  onClick={() => onOpenRegister('day1-audience')}
-                  className="w-full bg-transparent border-2 border-[#f2ca50] text-[#f2ca50] font-['Space_Grotesk'] text-xs font-bold uppercase px-6 py-3 rounded-full hover:bg-[#f2ca50] hover:text-[#1A0A0A] transition-all duration-300 cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.2)]"
-                >
-                  RESERVE AUDIENCE SEAT
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-    </div>
-  )
+  const page = useRef(null)
+  useLayoutEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+    const ctx = gsap.context(() => {
+      gsap.timeline({ defaults: { ease: 'power3.out' } }).from('.day1-hero__beam', { opacity: 0, scale: .55, duration: 1.5 }).from('.day1-hero__date', { y: 20, opacity: 0, duration: .55 }, '-=.75').from('.day1-hero__title span', { yPercent: 110, rotate: 3, opacity: 0, stagger: .14, duration: .9 }, '-=.2').from('.day1-hero__detail', { y: 18, opacity: 0, stagger: .12, duration: .5 }, '-=.4')
+      gsap.timeline({ scrollTrigger: { trigger: '.day1-intro', start: 'top top', end: '+=105%', scrub: .8, pin: true } }).from('.day1-intro__title', { yPercent: 70, opacity: 0 }).from('.day1-intro__copy > *', { y: 34, opacity: 0, stagger: .18 }, '-=.4').to('.day1-intro__spot', { xPercent: 130, yPercent: -20, scale: 1.25 }, 0)
+      const momentItems = gsap.utils.toArray('.day1-moment')
+      const story = gsap.timeline({ scrollTrigger: { trigger: '.day1-timeline', start: 'top top', end: '+=220%', scrub: .5, pin: true } }).from('.day1-timeline__line-fill', { scaleY: 0, transformOrigin: 'top', duration: 8 })
+      momentItems.forEach((item, index) => { story.to(item, { opacity: 1, x: 0, duration: .75 }, index).to(item, { '--moment-glow': 1, duration: .25 }, index + .15); if (index) story.to(momentItems[index - 1], { '--moment-glow': 0, opacity: .32, duration: .35 }, index + .2) })
+      const track = document.querySelector('.day1-talent__track'); const travel = Math.max(0, track.scrollWidth - window.innerWidth)
+      const talentScroll = gsap.to(track, { x: -travel, ease: 'none', scrollTrigger: { trigger: '.day1-talent', start: 'top top', end: () => window.innerWidth > 700 ? `+=${Math.round(window.innerHeight * 4.13)}` : `+=${Math.max(1800, travel * 1.55)}`, scrub: .8, pin: true, invalidateOnRefresh: true } })
+      gsap.utils.toArray('.day1-talent__name').forEach((act) => {
+        gsap.fromTo(act, { opacity: .28, scale: .9 }, { opacity: 1, scale: 1.06, color: '#f6d789', textShadow: '0 0 32px rgba(229,189,104,.38)', ease: 'none', scrollTrigger: { trigger: act, containerAnimation: talentScroll, start: 'left 64%', end: 'right 36%', scrub: true } })
+      })
+      gsap.timeline({ scrollTrigger: { trigger: '.day1-minutes', start: 'top 72%', end: 'bottom 40%', scrub: .7 } }).from('.day1-minutes__number', { scale: .35, opacity: 0 }).from('.day1-minutes__copy', { y: 30, opacity: 0, stagger: .15 }, '-=.3').to('.day1-minutes__light', { opacity: 1, scale: 1.2 }, 0)
+      const formatItems = gsap.utils.toArray('.day1-format'); const formatStory = gsap.timeline({ scrollTrigger: { trigger: '.day1-formats', start: 'top top', end: '+=90%', scrub: .7, pin: true } }); formatItems.forEach((item, index) => formatStory.to(formatItems, { opacity: .18, duration: .35 }, index).to(item, { opacity: 1, scale: 1.04, duration: .35 }, index))
+      gsap.from('.day1-backstage__panel', { y: 40, opacity: 0, stagger: .14, duration: .75, scrollTrigger: { trigger: '.day1-backstage', start: 'top 75%' } })
+      gsap.timeline({ scrollTrigger: { trigger: '.day1-final', start: 'top 60%', end: 'bottom bottom', scrub: .7 } }).from('.day1-final__lights-out', { opacity: 0, y: 40 }).from('.day1-final__title span', { opacity: 0, yPercent: 100, stagger: .16 }).from('.day1-final__cta', { opacity: 0, y: 25 }).to('.day1-final__beam', { opacity: 1, scale: 1.15 }, 0)
+    }, page)
+    return () => ctx.revert()
+  }, [])
+  return <div ref={page} className="day1-page">
+    <section className="day1-hero" style={{ '--stage-image': `url(${stageHero})` }}><div className="day1-hero__beam" /><div className="day1-hero__content"><p className="day1-kicker day1-hero__date">09 SEPTEMBER 2026</p><h1 className="day1-hero__title"><span>THE</span><span>STAGE</span></h1><p className="day1-hero__detail">NON-TECH TALENT SHOWCASE</p><p className="day1-hero__detail day1-hero__venue">A1 AUDITORIUM</p><div className="day1-scroll-cue"><i /> SCROLL TO ENTER</div></div></section>
+    <section className="day1-intro"><div className="day1-intro__spot" /><div className="day1-section-wrap day1-intro__inner"><p className="day1-kicker">SCENE ONE</p><h2 className="day1-display day1-intro__title">THE<br /><em>STAGE</em></h2><div className="day1-intro__copy"><p>Step away from code and into the spotlight.</p><span>One auditorium. One shared hush before the first note, movement, laugh, or line.</span></div></div></section>
+    <section className="day1-timeline"><div className="day1-section-wrap day1-timeline__inner"><header><p className="day1-kicker">THE DAY</p><h2 className="day1-display">MINUTE<br /><em>TO MINUTE</em></h2><p className="day1-timeline__note">A journey through the show — not an official schedule.</p></header><div className="day1-timeline__rail"><i className="day1-timeline__line-fill" />{moments.map((moment, index) => <div className="day1-moment" key={moment}><span>{String(index + 1).padStart(2, '0')}</span><strong>{moment}</strong></div>)}</div></div></section>
+    <section className="day1-talent"><div className="day1-talent__heading"><p className="day1-kicker">YOUR TALENT.</p><h2 className="day1-display">YOUR <em>STAGE.</em></h2></div><div className="day1-talent__track">{talentActs.map((act, index) => <div className={`day1-talent__name ${act === 'OTHERS' ? 'day1-talent__name--final' : ''}`} key={act}><span>{index + 1}</span>{act}</div>)}</div><p className="day1-talent__hint">FOLLOW THE GOLD LIGHT</p></section>
+    <section className="day1-minutes"><div className="day1-minutes__light" /><div className="day1-minutes__inner"><p className="day1-kicker day1-minutes__copy">YOU GET</p><div className="day1-minutes__number">3</div><p className="day1-minutes__copy day1-minutes__label">MINUTES</p><p className="day1-minutes__copy day1-minutes__small">TO OWN THE STAGE</p></div></section>
+    <section className="day1-formats"><div className="day1-section-wrap"><p className="day1-kicker">CHOOSE YOUR ENTRANCE</p><h2 className="day1-display day1-formats__heading">SOLO / DUO / <em>GROUP</em></h2><div className="day1-formats__list">{formats.map(([name, lights, description]) => <article className="day1-format" key={name}><div className="day1-format__lights">{Array.from({ length: lights }).map((_, i) => <i key={i} />)}</div><h3>{name}</h3><p>{description}</p></article>)}</div></div></section>
+    <section className="day1-backstage"><div className="day1-section-wrap"><p className="day1-kicker">BACKSTAGE</p><h2 className="day1-display">THE DETAILS<br /><em>BEFORE THE CURTAIN</em></h2><p className="day1-backstage__intro">Bring your act into focus with the same details requested in performer registration.</p><div className="day1-backstage__grid">{['PERFORMANCE TITLE', 'PERFORMANCE DESCRIPTION', 'OTHER PERFORMER DETAILS', 'EQUIPMENT / AUDIO REQUIREMENTS'].map((detail, i) => <div className="day1-backstage__panel" key={detail}><span>0{i + 1}</span><h3>{detail}</h3><i /></div>)}</div></div></section>
+    <section className="day1-final"><div className="day1-final__beam" /><div className="day1-final__content"><p className="day1-kicker day1-final__lights-out">LIGHTS OUT</p><p className="day1-final__ready">READY?</p><h2 className="day1-display day1-final__title"><span>THE STAGE</span><span><em>IS YOURS.</em></span></h2><button className="day1-final__cta" onClick={() => onOpenRegister('day1-performer')}>REGISTER AS PERFORMER <span>→</span></button><p className="day1-final__meta">9 SEPTEMBER 2026 <i /> A1 AUDITORIUM</p></div></section>
+  </div>
 }

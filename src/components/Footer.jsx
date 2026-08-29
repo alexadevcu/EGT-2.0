@@ -23,7 +23,7 @@ export default function Footer({ setCurrentPage, onOpenRegister }) {
         </div>
 
         {/* Links */}
-        <div className="flex flex-wrap justify-center gap-4 text-xs font-mono font-semibold uppercase text-gray-300">
+        <div className="flex flex-wrap justify-center gap-4 text-xs font-sans font-semibold uppercase text-gray-300">
           <button
             onClick={() => setCurrentPage('home')}
             className="hover:text-yellow-400 transition-colors cursor-pointer"

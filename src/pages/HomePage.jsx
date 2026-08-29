@@ -370,30 +370,32 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       {/* ========================================================================= */}
       {/* 2. IMPACT METRICS GRID */}
       {/* ========================================================================= */}
-      <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 border-y border-white/10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-          <div className="glass-panel p-6 rounded-2xl text-center border border-white/10">
-            <Calendar className="w-7 h-7 text-[#f7d978] mx-auto mb-2" />
-            <p className="font-['Syne'] text-2xl sm:text-3xl font-extrabold text-white">2 Days</p>
-            <p className="font-['Space_Grotesk'] text-xs text-gray-300 tracking-wide mt-1">Grand Mega Festival</p>
-          </div>
+      <section className="w-full bg-[#070709] border-y border-white/10 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <div className="glass-panel p-6 rounded-2xl text-center border border-white/10">
+              <Calendar className="w-7 h-7 text-[#f7d978] mx-auto mb-2" />
+              <p className="font-sans text-2xl sm:text-3xl font-extrabold text-white">2 Days</p>
+              <p className="font-sans text-xs text-gray-300 tracking-wide mt-1">Grand Mega Festival</p>
+            </div>
 
-          <div className="glass-panel p-6 rounded-2xl text-center border border-white/10">
-            <Users className="w-7 h-7 text-[#f7d978] mx-auto mb-2" />
-            <p className="font-['Syne'] text-2xl sm:text-3xl font-extrabold text-white">2,500+</p>
-            <p className="font-['Space_Grotesk'] text-xs text-gray-300 tracking-wide mt-1">Expected Footfall</p>
-          </div>
+            <div className="glass-panel p-6 rounded-2xl text-center border border-white/10">
+              <Users className="w-7 h-7 text-[#f7d978] mx-auto mb-2" />
+              <p className="font-sans text-2xl sm:text-3xl font-extrabold text-white">2,500+</p>
+              <p className="font-sans text-xs text-gray-300 tracking-wide mt-1">Expected Footfall</p>
+            </div>
 
-          <div className="glass-panel p-6 rounded-2xl text-center border border-white/10">
-            <Flame className="w-7 h-7 text-rose-400 mx-auto mb-2" />
-            <p className="font-['Syne'] text-2xl sm:text-3xl font-extrabold text-white">12+ Acts</p>
-            <p className="font-['Space_Grotesk'] text-xs text-gray-300 tracking-wide mt-1">Creative Categories</p>
-          </div>
+            <div className="glass-panel p-6 rounded-2xl text-center border border-white/10">
+              <Flame className="w-7 h-7 text-rose-400 mx-auto mb-2" />
+              <p className="font-sans text-2xl sm:text-3xl font-extrabold text-white">12+ Acts</p>
+              <p className="font-sans text-xs text-gray-300 tracking-wide mt-1">Creative Categories</p>
+            </div>
 
-          <div className="glass-panel p-6 rounded-2xl text-center border border-cyan-400/20">
-            <Zap className="w-7 h-7 text-cyan-400 mx-auto mb-2" />
-            <p className="font-['Syne'] text-2xl sm:text-3xl font-extrabold text-cyan-400">5 Rounds</p>
-            <p className="font-['Space_Grotesk'] text-xs text-cyan-300 tracking-wide mt-1 font-semibold">Wizarding Tech Battles</p>
+            <div className="glass-panel p-6 rounded-2xl text-center border border-cyan-400/20">
+              <Zap className="w-7 h-7 text-cyan-400 mx-auto mb-2" />
+              <p className="font-sans text-2xl sm:text-3xl font-extrabold text-cyan-400">5 Rounds</p>
+              <p className="font-sans text-xs text-cyan-300 tracking-wide mt-1 font-semibold">Wizarding Tech Battles</p>
+            </div>
           </div>
         </div>
       </section>
@@ -401,103 +403,117 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       {/* ========================================================================= */}
       {/* 3. DUAL ARENAS SHOWCASE SECTION */}
       {/* ========================================================================= */}
-      <section id="about-section" className="py-20 md:py-28 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <span className="font-['Space_Grotesk'] text-xs font-bold text-[#f7d978] tracking-[0.2em] block mb-2 uppercase">
-            Choose Your Arena
-          </span>
-          <h2 className="font-['Syne'] text-3xl sm:text-5xl font-extrabold text-white">
-            Two Arenas. Infinite Possibilities.
-          </h2>
-          <p className="font-sans text-sm sm:text-base text-gray-400 max-w-xl mx-auto mt-3">
-            Whether you rule the stage with raw performance or dominate the wizarding tech arena, your legacy starts here.
-          </p>
-        </div>
+      {/* ========================================================================= */}
+      {/* 3. DUAL ARENAS SHOWCASE SECTION */}
+      {/* ========================================================================= */}
+      <section id="about-section" className="w-full bg-[#0b0b10] py-20 md:py-28 relative overflow-hidden">
+        {/* Ambient atmosphere depth glows */}
+        <div className="absolute inset-0 pointer-events-none z-0 opacity-40 bg-[radial-gradient(circle_at_20%_35%,rgba(247,217,120,0.05),transparent_50%),radial-gradient(circle_at_80%_65%,rgba(34,211,238,0.05),transparent_50%)]"></div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Day 1 Card */}
-          <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-rose-500/30 flex flex-col justify-between relative overflow-hidden group">
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 font-['Space_Grotesk'] text-xs font-semibold">
-                  9 September 2026 • A1 Auditorium
-                </span>
-                <span className="text-rose-400 font-['Space_Grotesk'] text-xs font-bold">Day 1 Stage</span>
-              </div>
-
-              <h3 className="font-['Syne'] text-3xl sm:text-4xl font-extrabold text-white">THE STAGE</h3>
-              <p className="font-['Outfit'] text-base text-[#f7d978] italic my-2">"Show the talent beyond the engineer."</p>
-              <p className="font-sans text-sm text-gray-300 leading-relaxed mb-6 font-normal">
-                Step away from code into the golden spotlight. A 3-minute stage showcase for vocalists, instrumentalists, stand-up comedians, mono-actors, and dance crews.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-6">
-                {['Vocals & Jamming', 'Dance & Choreography', 'Stand-up Comedy', 'Magic & Illusions'].map((item, idx) => (
-                  <div key={idx} className="bg-white/5 px-3 py-2.5 rounded-xl text-xs font-['Space_Grotesk'] border border-white/10 text-gray-200 flex items-center justify-center text-center">
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-3 pt-6 border-t border-white/10">
-              <button
-                onClick={() => setCurrentPage('day1')}
-                className="flex-1 btn-secondary-glass"
-              >
-                <span>Explore Day 1 Details</span>
-                <ArrowUpRight className="w-4 h-4 text-[#f7d978]" />
-              </button>
-              <button
-                onClick={() => setCurrentPage('day1')}
-                className="btn-primary-gold"
-              >
-                <Mic className="w-4 h-4" />
-                <span>Register Act</span>
-              </button>
-            </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 relative z-10">
+          <div className="text-center mb-16">
+            <span className="font-sans text-xs font-bold text-[#f7d978] tracking-[0.2em] block mb-2 uppercase">
+              Choose Your Arena
+            </span>
+            <h2 className="font-['Syne'] text-3xl sm:text-5xl font-extrabold text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]">
+              Two Arenas. Infinite Possibilities.
+            </h2>
+            <p className="font-sans text-sm sm:text-base text-gray-400 max-w-xl mx-auto mt-3">
+              Whether you rule the stage with raw performance or dominate the wizarding tech arena, your legacy starts here.
+            </p>
           </div>
 
-          {/* Day 2 Card */}
-          <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-cyan-400/30 flex flex-col justify-between relative overflow-hidden group">
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="px-4 py-1.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 font-['Space_Grotesk'] text-xs font-semibold">
-                  10 September 2026 • The Wizarding Arena
-                </span>
-                <span className="text-cyan-400 font-['Space_Grotesk'] text-xs font-bold">Day 2 Arena</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Day 1 Card — THE STAGE */}
+            <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-[#f7d978]/20 hover:border-[#f7d978]/45 flex flex-col justify-between relative overflow-hidden group bg-gradient-to-br from-[#141009]/95 via-[#0c0c11]/98 to-[#070709]/95 hover:scale-[1.015] hover:shadow-[0_20px_50px_rgba(247,217,120,0.05)] transition-all duration-500 ease-out">
+              {/* Internal Spotlight Light Leak Overlay */}
+              <div className="absolute top-0 right-0 w-48 h-48 bg-radial from-[#f7d978]/6 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+              
+              <div>
+                <div className="flex items-center justify-between mb-6 relative z-10">
+                  <span className="px-4 py-1.5 rounded-full bg-[#f7d978]/10 text-[#f7d978] border border-[#f7d978]/25 font-sans text-xs font-semibold">
+                    9 September 2026 • A1 Auditorium
+                  </span>
+                  <span className="text-[#f7d978] font-sans text-xs font-bold tracking-wide uppercase">Day 1 Stage</span>
+                </div>
+
+                <h3 className="font-['Syne'] text-3xl sm:text-4xl font-extrabold text-white tracking-wide relative z-10">THE STAGE</h3>
+                <p className="font-sans text-sm sm:text-base font-semibold text-amber-200/80 italic my-2 relative z-10">"Show the talent beyond the engineer."</p>
+                <p className="font-sans text-sm text-gray-300 leading-relaxed mb-6 font-normal relative z-10">
+                  Step away from code into the golden spotlight. A 3-minute stage showcase for vocalists, instrumentalists, stand-up comedians, mono-actors, and dance crews.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-6 relative z-10">
+                  {['Vocals & Jamming', 'Dance & Choreography', 'Stand-up Comedy', 'Magic & Illusions'].map((item, idx) => (
+                    <div key={idx} className="bg-[#f7d978]/5 px-3 py-2.5 rounded-xl text-xs font-sans border border-[#f7d978]/15 hover:border-[#f7d978]/35 text-amber-100/90 transition-colors flex items-center justify-center text-center font-medium">
+                      {item}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <h3 className="font-['Syne'] text-3xl sm:text-4xl font-extrabold text-white">THE ARENA</h3>
-              <p className="font-['Outfit'] text-base text-cyan-300 italic my-2">"Harry Potter — The Wizarding World of Technology"</p>
-              <p className="font-sans text-sm text-gray-300 leading-relaxed mb-6 font-normal">
-                Enter an enchanted technological arena where code is your magic and logic is your wand. Crack cryptic chambers, hunt QR horcruxes across campus, and seize the Champion’s Flag.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-6">
-                {['Chamber of Logic (10+1)', 'Campus QR Horcrux Hunt', 'Top 20 Live Cut-off', 'Champion’s Flag Sprint'].map((item, idx) => (
-                  <div key={idx} className="bg-white/5 px-3 py-2.5 rounded-xl text-xs font-['Space_Grotesk'] border border-cyan-400/20 text-cyan-200 flex items-center justify-center text-center">
-                    {item}
-                  </div>
-                ))}
+              <div className="flex flex-wrap gap-3 pt-6 border-t border-[#f7d978]/15 relative z-10">
+                <button
+                  onClick={() => setCurrentPage('day1')}
+                  className="flex-1 btn-secondary-glass hover:bg-white/10"
+                >
+                  <span>Explore Day 1 Details</span>
+                  <ArrowUpRight className="w-4 h-4 text-[#f7d978]" />
+                </button>
+                <button
+                  onClick={() => setCurrentPage('day1')}
+                  className="btn-primary-gold"
+                >
+                  <Mic className="w-4 h-4" />
+                  <span>Register Act</span>
+                </button>
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 pt-6 border-t border-cyan-400/20">
-              <button
-                onClick={() => setCurrentPage('day2')}
-                className="flex-1 btn-secondary-glass"
-              >
-                <span>Explore Day 2 Details</span>
-                <ArrowUpRight className="w-4 h-4 text-cyan-400" />
-              </button>
-              <button
-                onClick={() => setCurrentPage('day2')}
-                className="btn-primary-cyan"
-              >
-                <Code className="w-4 h-4" />
-                <span>Register Squad</span>
-              </button>
+            {/* Day 2 Card — THE ARENA */}
+            <div className="glass-panel p-8 sm:p-10 rounded-3xl border border-[#22d3ee]/20 hover:border-[#22d3ee]/45 flex flex-col justify-between relative overflow-hidden group bg-gradient-to-br from-[#081317]/95 via-[#0c0c11]/98 to-[#070709]/95 hover:scale-[1.015] hover:shadow-[0_20px_50px_rgba(34,211,238,0.05)] transition-all duration-500 ease-out">
+              {/* Internal Tech Glow Overlay */}
+              <div className="absolute top-0 right-0 w-48 h-48 bg-radial from-[#22d3ee]/6 to-transparent rounded-full blur-2xl pointer-events-none"></div>
+
+              <div>
+                <div className="flex items-center justify-between mb-6 relative z-10">
+                  <span className="px-4 py-1.5 rounded-full bg-[#22d3ee]/10 text-cyan-300 border border-[#22d3ee]/25 font-sans text-xs font-semibold">
+                    10 September 2026 • The Wizarding Arena
+                  </span>
+                  <span className="text-cyan-400 font-sans text-xs font-bold tracking-wide uppercase">Day 2 Arena</span>
+                </div>
+
+                <h3 className="font-['Syne'] text-3xl sm:text-4xl font-extrabold text-white tracking-wide relative z-10">THE ARENA</h3>
+                <p className="font-sans text-sm sm:text-base font-semibold text-cyan-200/80 italic my-2 relative z-10">"Harry Potter — The Wizarding World of Technology"</p>
+                <p className="font-sans text-sm text-gray-300 leading-relaxed mb-6 font-normal relative z-10">
+                  Enter an enchanted technological arena where code is your magic and logic is your wand. Crack cryptic chambers, hunt QR horcruxes across campus, and seize the Champion’s Flag.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-6 relative z-10">
+                  {['Chamber of Logic (10+1)', 'Campus QR Horcrux Hunt', 'Top 20 Live Leaderboard', 'Champion’s Flag Sprint'].map((item, idx) => (
+                    <div key={idx} className="bg-[#22d3ee]/5 px-3 py-2.5 rounded-xl text-xs font-sans border border-[#22d3ee]/15 hover:border-[#22d3ee]/35 text-cyan-100/90 transition-colors flex items-center justify-center text-center font-medium">
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-6 border-t border-[#22d3ee]/15 relative z-10">
+                <button
+                  onClick={() => setCurrentPage('day2')}
+                  className="flex-1 btn-secondary-glass hover:bg-white/10"
+                >
+                  <span>Explore Day 2 Details</span>
+                  <ArrowUpRight className="w-4 h-4 text-cyan-400" />
+                </button>
+                <button
+                  onClick={() => setCurrentPage('day2')}
+                  className="btn-primary-cyan"
+                >
+                  <Code className="w-4 h-4" />
+                  <span>Register Squad</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -506,11 +522,11 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       {/* ========================================================================= */}
       {/* 4. CAROUSEL SHOWCASE WITH ACCESSIBLE ARROWS */}
       {/* ========================================================================= */}
-      <section className="py-20 px-4 sm:px-6 md:px-12 border-t border-white/10 bg-[#09090d]">
+      <section className="py-20 px-4 sm:px-6 md:px-12 border-t border-white/10 bg-[#070709]">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
-              <span className="font-['Space_Grotesk'] text-xs font-bold text-[#f7d978] tracking-[0.2em] block mb-2 uppercase">
+              <span className="font-sans text-xs font-bold text-[#f7d978] tracking-[0.2em] block mb-2 uppercase">
                 Event Highlights
               </span>
               <h2 className="font-['Syne'] text-3xl sm:text-4xl font-extrabold text-white">
@@ -552,15 +568,15 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
                     alt={card.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#09090d] via-transparent to-transparent"></div>
-                  <span className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-['Space_Grotesk'] font-semibold border ${card.badgeClass}`}>
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#070709] via-transparent to-transparent"></div>
+                  <span className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-sans font-semibold border ${card.badgeClass}`}>
                     {card.tag}
                   </span>
                 </div>
 
                 <div className="p-6 flex flex-col justify-between flex-1">
                   <div>
-                    <h3 className="font-['Outfit'] text-xl font-bold text-white group-hover:text-[#f7d978] transition-colors">
+                    <h3 className="font-sans text-xl font-bold text-white group-hover:text-[#f7d978] transition-colors">
                       {card.title}
                     </h3>
                     <p className="font-sans text-xs text-gray-300 mt-2 leading-relaxed">
@@ -569,7 +585,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
                   </div>
 
                   <div className="mt-6 pt-4 border-t border-white/10">
-                    <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 font-['Space_Grotesk'] text-xs font-bold group-hover:bg-[#f7d978] group-hover:text-black transition-all">
+                    <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-300 font-sans text-xs font-bold group-hover:bg-[#f7d978] group-hover:text-black transition-all">
                       <span>View Category</span>
                       <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </span>
@@ -584,74 +600,76 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       {/* ========================================================================= */}
       {/* 5. HALL OF FAME GALLERY */}
       {/* ========================================================================= */}
-      <section className="py-20 md:py-28 px-4 sm:px-6 md:px-12 max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <span className="font-['Space_Grotesk'] text-xs font-bold text-[#f7d978] tracking-[0.2em] block mb-2 uppercase">
-            The Legacy
-          </span>
-          <h2 className="font-['Syne'] text-3xl sm:text-5xl font-extrabold text-white">
-            Hall of Fame &amp; Past Season Highlights
-          </h2>
+      <section className="w-full bg-[#0c0c12] py-20 md:py-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="text-center mb-12">
+            <span className="font-sans text-xs font-bold text-[#f7d978] tracking-[0.2em] block mb-2 uppercase">
+              The Legacy
+            </span>
+            <h2 className="font-['Syne'] text-3xl sm:text-5xl font-extrabold text-white">
+              Hall of Fame &amp; Past Season Highlights
+            </h2>
 
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-8">
-            {[
-              { id: 'all', label: 'All Highlights' },
-              { id: 'stage', label: 'Stage Battles' },
-              { id: 'tech', label: 'Tech Arenas' },
-              { id: 'awards', label: 'Trophies & Victories' },
-              { id: 'crowd', label: 'Crowd Energy' }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveGalleryTab(tab.id)}
-                className={`btn-tab ${
-                  activeGalleryTab === tab.id
-                    ? 'bg-[#f7d978] text-[#1c0800] shadow-[0_0_15px_rgba(247,217,120,0.4)] font-bold'
-                    : 'bg-white/5 text-gray-300 border border-white/10 hover:text-white'
-                }`}
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-8">
+              {[
+                { id: 'all', label: 'All Highlights' },
+                { id: 'stage', label: 'Stage Battles' },
+                { id: 'tech', label: 'Tech Arenas' },
+                { id: 'awards', label: 'Trophies & Victories' },
+                { id: 'crowd', label: 'Crowd Energy' }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveGalleryTab(tab.id)}
+                  className={`btn-tab ${
+                    activeGalleryTab === tab.id
+                      ? 'bg-[#f7d978] text-[#1c0800] shadow-[0_0_15px_rgba(247,217,120,0.4)] font-bold'
+                      : 'bg-white/5 text-gray-300 border border-white/10 hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredGallery.map((item) => (
+              <div
+                key={item.id}
+                className="group relative h-[320px] rounded-3xl overflow-hidden glass-panel border border-white/10 hover:border-[#f7d978]/50 transition-all duration-300 cursor-pointer"
               >
-                {tab.label}
-              </button>
+                <img
+                  src={item.img}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-85 group-hover:opacity-100"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c12] via-[#0c0c12]/50 to-transparent flex flex-col justify-end p-6 z-10">
+                  <span className="inline-block self-start px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 text-[#f7d978] font-sans text-xs font-semibold rounded-full mb-2">
+                    {item.tag}
+                  </span>
+                  <h3 className="font-sans text-lg font-bold text-white group-hover:text-[#f7d978] transition-colors">
+                    {item.title}
+                  </h3>
+                  <p className="font-sans text-xs text-gray-400 mt-1 font-light">
+                    {item.sub}
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGallery.map((item) => (
-            <div
-              key={item.id}
-              className="group relative h-[320px] rounded-3xl overflow-hidden glass-panel border border-white/10 hover:border-[#f7d978]/50 transition-all duration-300 cursor-pointer"
-            >
-              <img
-                src={item.img}
-                alt={item.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 opacity-85 group-hover:opacity-100"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#070709] via-[#070709]/50 to-transparent flex flex-col justify-end p-6 z-10">
-                <span className="inline-block self-start px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 text-[#f7d978] font-['Space_Grotesk'] text-xs font-semibold rounded-full mb-2">
-                  {item.tag}
-                </span>
-                <h3 className="font-['Outfit'] text-lg font-bold text-white group-hover:text-[#f7d978] transition-colors">
-                  {item.title}
-                </h3>
-                <p className="font-sans text-xs text-gray-400 mt-1 font-light">
-                  {item.sub}
-                </p>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 
       {/* ========================================================================= */}
       {/* 6. ORGANIZERS & CONTACT US SECTION */}
       {/* ========================================================================= */}
-      <section id="contact-section" className="py-20 px-4 sm:px-6 md:px-12 text-center border-t border-white/10 bg-[#09090d]">
+      <section id="contact-section" className="py-20 px-4 sm:px-6 md:px-12 text-center border-t border-white/10 bg-[#070709]">
         <div className="max-w-4xl mx-auto">
-          <span className="font-['Space_Grotesk'] text-xs font-bold text-[#f7d978] tracking-[0.2em] block mb-2 uppercase">
+          <span className="font-sans text-xs font-bold text-[#f7d978] tracking-[0.2em] block mb-2 uppercase">
             Organized By
           </span>
-          <h2 className="font-['Syne'] text-3xl sm:text-4xl font-extrabold text-white">
+          <h2 className="font-sans text-3xl sm:text-4xl font-bold text-white">
             Alexa Developers Community &amp; GFG Student Chapter
           </h2>
           <p className="font-sans text-sm text-gray-300 mt-2 font-medium">
@@ -676,7 +694,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
               </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-left font-['Space_Grotesk'] text-xs text-gray-300">
+            <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-left font-sans text-xs text-gray-300">
               <div>
                 <p className="font-bold text-[#f7d978] uppercase">Official Event Inquiries</p>
                 <p>Email: adc.cu@cumail.in</p>
@@ -696,10 +714,10 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       {/* ========================================================================= */}
       {/* 7. FAQ ACCORDION */}
       {/* ========================================================================= */}
-      <section className="py-20 px-4 sm:px-6 md:px-12 border-t border-white/10">
-        <div className="max-w-4xl mx-auto">
+      <section className="w-full bg-[#0a0a0f] py-20 border-t border-white/10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="text-center mb-12">
-            <span className="font-['Space_Grotesk'] text-xs font-bold text-[#f7d978] tracking-[0.2em] block mb-2 uppercase">
+            <span className="font-sans text-xs font-bold text-[#f7d978] tracking-[0.2em] block mb-2 uppercase">
               Got Questions?
             </span>
             <h2 className="font-['Syne'] text-3xl sm:text-5xl font-extrabold text-white">
@@ -719,7 +737,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
                     onClick={() => setOpenFaq(isOpen ? null : index)}
                     className="w-full p-5 text-left flex items-center justify-between gap-4 text-white hover:text-[#f7d978] cursor-pointer"
                   >
-                    <span className="font-['Outfit'] text-base sm:text-lg font-semibold flex items-center gap-3">
+                    <span className="font-sans text-base sm:text-lg font-semibold flex items-center gap-3">
                       <HelpCircle className="w-5 h-5 text-[#f7d978] shrink-0" />
                       {faq.q}
                     </span>
@@ -745,13 +763,13 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       {/* ========================================================================= */}
       {/* 8. BOTTOM CTA */}
       {/* ========================================================================= */}
-      <section className="py-20 px-4 sm:px-6 md:px-12 text-center border-t border-white/10 bg-gradient-to-b from-[#070709] to-[#0d0d14]">
+      <section className="py-20 px-4 sm:px-6 md:px-12 text-center border-t border-white/10 bg-gradient-to-b from-[#070709] to-[#0c0c12]">
         <div className="max-w-3xl mx-auto space-y-6">
-          <span className="px-4 py-1.5 rounded-full bg-yellow-400/20 text-[#f7d978] font-['Space_Grotesk'] text-xs font-bold tracking-wide border border-yellow-400/30">
+          <span className="px-4 py-1.5 rounded-full bg-yellow-400/20 text-[#f7d978] font-sans text-xs font-bold tracking-wide border border-yellow-400/30">
             Registrations Open
           </span>
 
-          <h2 className="font-['Syne'] text-4xl sm:text-6xl font-extrabold text-white leading-tight">
+          <h2 className="font-sans text-4xl sm:text-6xl font-extrabold text-white leading-tight">
             Claim Your Spot on the Grand Stage
           </h2>
 
