@@ -98,12 +98,12 @@ export default function Footer({ setCurrentPage, onOpenRegister, onOpenContact }
           </div>
 
           {/* Column 4: Official Socials & Channels (Logos Only) */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <p className="font-bold text-white uppercase tracking-widest text-sm border-b border-white/10 pb-2">
               Socials &amp; Channels
             </p>
             
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-3 pt-1">
               {/* Official Website Logo Button */}
               <a
                 href={WEBSITE_LINK}
@@ -167,6 +167,28 @@ export default function Footer({ setCurrentPage, onOpenRegister, onOpenContact }
               </a>
             </div>
 
+            {/* Engineered Under Badge directly under Social Handles */}
+            <div className="border-l-2 border-[#00F2FF]/60 pl-3 py-0.5 mt-4">
+              <span className="text-[10px] font-sans font-bold tracking-[0.2em] text-gray-400 uppercase block leading-tight">
+                WEBSITE ENGINEERED UNDER
+              </span>
+              <p className="text-xs sm:text-sm font-bold text-[#00F2FF] flex items-center gap-1 flex-wrap mt-0.5">
+                <a
+                  href="https://linktr.ee/vasu_gera"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline hover:text-cyan-300 transition-all cursor-pointer inline-flex items-center gap-0.5"
+                  title="Connect with Vasu Gera"
+                >
+                  <span>Vasu Gera</span>
+                </a>
+                <span className="text-gray-400 font-normal">,</span>
+                <span>Ayushi Mishra</span>
+                <span className="text-gray-400 font-normal">,</span>
+                <span>Manisana</span>
+              </p>
+            </div>
+
           </div>
 
         </div>
@@ -177,7 +199,7 @@ export default function Footer({ setCurrentPage, onOpenRegister, onOpenContact }
           
           <button
             onClick={scrollToTop}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer text-xs font-bold"
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white transition-all cursor-pointer text-xs font-bold shrink-0"
             title="Scroll to top"
           >
             <span>Back to Top</span>
