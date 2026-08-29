@@ -27,9 +27,30 @@ import {
 import heroBlendImg from '../assets/hero_blend.jpg'
 import stageHeroImg from '../assets/stage_hero.jpg'
 import trophyImg from '../assets/trophy_celebration.jpg'
+import winnersImg from '../assets/Winners.jpg'
 import cuLogo from '../assets/Logo/CU Logo red &white.png'
 import alexaLogo from '../assets/Logo/Alexa Developers Community Logo.png'
 import gfgLogo from '../assets/Logo/GfG Horizontal Combination Mark (Dark Mode)@2x.png'
+
+// Real EGT 1.0 Archive Photos
+import egtPhoto1 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.42.jpeg'
+import egtPhoto2 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.43.jpeg'
+import egtPhoto3 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.47 (1).jpeg'
+import egtPhoto4 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.47.jpeg'
+import egtPhoto5 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.49.jpeg'
+import egtPhoto6 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.50 (1).jpeg'
+import egtPhoto7 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.50.jpeg'
+import egtPhoto8 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.51.jpeg'
+import egtPhoto9 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.52.jpeg'
+import egtPhoto10 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.53 (1).jpeg'
+import egtPhoto11 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.53.jpeg'
+import egtPhoto12 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.56.jpeg'
+import egtPhoto13 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.59.jpeg'
+import egtPhoto14 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.26.00.jpeg'
+import egtPhoto15 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.26.01 (1).jpeg'
+import egtPhoto16 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.26.01.jpeg'
+import egtPhoto17 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.26.02 (1).jpeg'
+import egtPhoto18 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.26.02.jpeg'
 
 export default function HomePage({ setCurrentPage, onOpenRegister }) {
   // Real Theatre Curtain Animation State
@@ -93,113 +114,193 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
     }
   }
 
-  // Showcase Cards
+  // Showcase Cards (Featured Acts & Battles)
   const showcaseCards = [
     {
       id: 'vocal',
-      tag: 'Day 1 • 9 Sept',
+      tag: 'DAY 1 • 9 SEPT',
       title: 'Vocal & Acoustic Jam',
       desc: 'Solo, duo or acoustic jams on the main auditorium stage with studio audio setup.',
       day: 'day1',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA19g7gwO_hqDI0yCYWXYGvBfRl-K6nC_TccXYTPA_gJHPOFZ56AYyFdPxhHdPI3bzMl_xQeThFJXr9LDVxxgKpDMRt9kfLU0bPs749tq0gylA5BPz3fc3rFhitAVJBnhA5YaHLcV-nzNuM_cCpSVqUNKOFGilWpGJJRv86po5QCHYYmR3G0cjjHVcIEYddTNcemTpkKRexcgRviy2vXbPbgkJjTMXys3izaA1WNA2iTfVFF_PzuhsL',
-      badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+      img: egtPhoto4,
+      badgeClass: 'bg-black/90 backdrop-blur-md text-[#ff9bb2] border-rose-500/70 shadow-lg'
     },
     {
       id: 'dance',
-      tag: 'Day 1 • 9 Sept',
+      tag: 'DAY 1 • 9 SEPT',
       title: 'Dance & Crew Battles',
       desc: 'Hip-hop, classical fusion, popping, and squad choreography battles.',
       day: 'day1',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCng2Ae-afsdBBBha0vcZv2rmoC1bdkSKQh-1Hrie1SLBcwQvaNqEvorsBKTZlGHxsLy6toWBh-Pn057U9VnLbIuJzcSRyoYqIosbjgolJhoX5KZ8c4Bp6vE5gqZj6XgnKsVohdPD1cUAgS6aRaQFJRV27TB9mzABdBVm_4a3Xe7fPBv3OdYYR6Knx3Zo0F96hyOoIixxNCU-XqdHQ-6eSn0m5GXXKYo4xPMJYyZgxSZqe8vRMQX9tl',
-      badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+      img: egtPhoto3,
+      badgeClass: 'bg-black/90 backdrop-blur-md text-[#ff9bb2] border-rose-500/70 shadow-lg'
     },
     {
       id: 'chamber',
-      tag: 'Day 2 • 10 Sept',
-      title: 'Chamber of Logic (10+1)',
-      desc: 'Solve 10 cryptic algorithmic puzzles to crack the 11th master key. Top 20 advance!',
+      tag: 'DAY 2 • 10 SEPT',
+      title: 'Round 1 – THE VAULT',
+      desc: '10:30 AM – 11:30 AM • Decipher 10+1 cryptic seals inside C1 Seminar Hall to unlock the first key.',
       day: 'day2',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBZEv33HJUXtZgTfu4ehI0QjSYk1Xfh9NSXsfcRkyoYLmIbxSnVU9YU6_kyQcun3A7nAQ47ruEhMBYmd7EXUbKd564e2eyaolSXTBJ_QLSR7kmuhE_COue5xK1WoCeRvnqVpdfIGx6AD66G6rivxvg5q3KmRVcKQVjPkbocR8mVmalrCUrjDU_QR1sVcQ22BQM4ooirF4JB3Ts1Ol6HnfolW6sOYuR-dC6XpM8lFDEjNPHgBIUMfIvU',
-      badgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+      img: stageHeroImg,
+      badgeClass: 'bg-black/90 backdrop-blur-md text-[#00F2FF] border-[#00F2FF]/70 shadow-lg'
     },
     {
       id: 'hunt',
-      tag: 'Day 2 • 10 Sept',
-      title: 'Forbidden Grounds QR Hunt',
-      desc: 'Speed campus hunt across 6 hidden locations solving live code snippets.',
+      tag: 'DAY 2 • 10 SEPT',
+      title: 'Round 2 – THE HUNT',
+      desc: '11:30 AM – 2:00 PM • Campus-wide QR Horcrux treasure trail across 6 mysterious university zones.',
       day: 'day2',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBmXaQxgKVI6vX4I3jst6w6SwiwxP1hA7loqUgiAnU5lmt0KAN6rbZ6I3IXMeaCa2r1etnKYw76tdFJfSbMjJMet6vqkqinLC_ER9QXBXtSSYmwATie8PlO9vuyON5LpkMx--W5dYL2rRzEyVmHFSgsy6rTtalgMXt5Pjb1_1ZKlbNNtQiCOEJ3OuvhWKr16MLSZ1w7jpiwg9rGojZKJQpK_xAtkFCVF2dd8EJFx7UoKDc4_Rgdv8cf',
-      badgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+      img: heroBlendImg,
+      badgeClass: 'bg-black/90 backdrop-blur-md text-[#00F2FF] border-[#00F2FF]/70 shadow-lg'
     },
     {
       id: 'champions',
-      tag: 'Day 2 • Finale',
-      title: 'The Champion’s Flag',
-      desc: 'The ultimate sprint to claim the trophy and department championship title.',
+      tag: 'DAY 2 • 10 SEPT',
+      title: 'Round 3 – THE CHAMBER',
+      desc: '2:00 PM – 2:45 PM • Top 20 live leaderboard cut-off final sprint & strategic climax for the Grand Trophy.',
       day: 'day2',
       img: trophyImg,
-      badgeClass: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/40'
+      badgeClass: 'bg-black/90 backdrop-blur-md text-[#f7d978] border-[#f7d978]/70 shadow-lg'
     },
     {
       id: 'comedy',
-      tag: 'Day 1 • 9 Sept',
+      tag: 'DAY 1 • 9 SEPT',
       title: 'Stand-up & Mono-Acts',
       desc: 'Witty comedy acts, crowd interactions, and theatrical drama skits.',
       day: 'day1',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA4O0LAIffGn2-WgBCfvLFM9IAN4M4Prh9Kc-us7ypB0t5cgJVjJgpXj1B8NKaP95XxzUFEznhQ11FPlAHtKdbfRCGx-acliEdvFkTVTNnbbD1c_9aVHtcWlKdPRznANRo3fwHwpZ9QmP4GEBIV5kcHSJMKgYWhfMdLVaAT7J7gmQdFyz0EI3ZyfO3S_ZGqKTs-L5hVnKPb3pxBg3wvoUnY0IqPFGOosKByWoLv97C7DZZDwN8NLb_8',
-      badgeClass: 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+      img: egtPhoto8,
+      badgeClass: 'bg-black/90 backdrop-blur-md text-[#ff9bb2] border-rose-500/70 shadow-lg'
     }
   ]
 
-  // Gallery
+  // Hall of Fame & Past Season Highlights (Distinct Non-Overlapping EGT 1.0 Photos)
   const galleryItems = [
     {
       id: 1,
-      category: 'stage',
-      title: 'Grand Vocal Performance',
-      sub: 'Solo & Acoustic Jamming at A1 Auditorium',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA19g7gwO_hqDI0yCYWXYGvBfRl-K6nC_TccXYTPA_gJHPOFZ56AYyFdPxhHdPI3bzMl_xQeThFJXr9LDVxxgKpDMRt9kfLU0bPs749tq0gylA5BPz3fc3rFhitAVJBnhA5YaHLcV-nzNuM_cCpSVqUNKOFGilWpGJJRv86po5QCHYYmR3G0cjjHVcIEYddTNcemTpkKRexcgRviy2vXbPbgkJjTMXys3izaA1WNA2iTfVFF_PzuhsL',
-      tag: 'Day 1 Highlight'
+      category: 'winners',
+      title: 'Official Winner Felicitation',
+      sub: 'Certificate of Appreciation & Victory on Stage at A1 Auditorium',
+      img: winnersImg,
+      tag: '🏆 Season 1 Winner'
     },
     {
       id: 2,
-      category: 'awards',
-      title: 'Champions of EGT Season 1',
-      sub: 'Trophy Distribution & Victory Cheers',
-      img: trophyImg,
-      tag: 'Grand Finale'
+      category: 'music',
+      title: 'Electric Guitar Rock Jam',
+      sub: 'Passionate solo riffs and heavy instrumental prowess',
+      img: egtPhoto9,
+      tag: 'Electric Guitar'
     },
     {
       id: 3,
-      category: 'tech',
-      title: 'Midnight Hack & Debug Arena',
-      sub: 'Speed Debugging & DSA Wizardry',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBZEv33HJUXtZgTfu4ehI0QjSYk1Xfh9NSXsfcRkyoYLmIbxSnVU9YU6_kyQcun3A7nAQ47ruEhMBYmd7EXUbKd564e2eyaolSXTBJ_QLSR7kmuhE_COue5xK1WoCeRvnqVpdfIGx6AD66G6rivxvg5q3KmRVcKQVjPkbocR8mVmalrCUrjDU_QR1sVcQ22BQM4ooirF4JB3Ts1Ol6HnfolW6sOYuR-dC6XpM8lFDEjNPHgBIUMfIvU',
-      tag: 'Day 2 Battle'
+      category: 'music',
+      title: 'Classical & Semi-Classical Vocals',
+      sub: 'Mesmerizing traditional singing and melodic control',
+      img: egtPhoto6,
+      tag: 'Classical Singing'
     },
     {
       id: 4,
-      category: 'crowd',
-      title: '1,500+ Roaring Audience',
-      sub: 'Electric atmosphere in the Main Theatre',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA4O0LAIffGn2-WgBCfvLFM9IAN4M4Prh9Kc-us7ypB0t5cgJVjJgpXj1B8NKaP95XxzUFEznhQ11FPlAHtKdbfRCGx-acliEdvFkTVTNnbbD1c_9aVHtcWlKdPRznANRo3fwHwpZ9QmP4GEBIV5kcHSJMKgYWhfMdLVaAT7J7gmQdFyz0EI3ZyfO3S_ZGqKTs-L5hVnKPb3pxBg3wvoUnY0IqPFGOosKByWoLv97C7DZZDwN8NLb_8',
-      tag: 'Community Energy'
+      category: 'music',
+      title: 'Desi Hip-Hop & Rap Flow',
+      sub: 'High-energy rhymes, stage presence, and mic flow',
+      img: egtPhoto7,
+      tag: 'Rap & Hip-Hop'
     },
     {
       id: 5,
-      category: 'stage',
-      title: 'Cinematic Dance & Drama Skits',
-      sub: 'Mono-acts and expressive crew performances',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCng2Ae-afsdBBBha0vcZv2rmoC1bdkSKQh-1Hrie1SLBcwQvaNqEvorsBKTZlGHxsLy6toWBh-Pn057U9VnLbIuJzcSRyoYqIosbjgolJhoX5KZ8c4Bp6vE5gqZj6XgnKsVohdPD1cUAgS6aRaQFJRV27TB9mzABdBVm_4a3Xe7fPBv3OdYYR6Knx3Zo0F96hyOoIixxNCU-XqdHQ-6eSn0m5GXXKYo4xPMJYyZgxSZqe8vRMQX9tl',
-      tag: 'Theatrical Arts'
+      category: 'dance',
+      title: 'Western & Hip-Hop Routine',
+      sub: 'Sharp choreography and rhythmic stage mastery',
+      img: egtPhoto12,
+      tag: 'Western Dance'
     },
     {
       id: 6,
-      category: 'tech',
-      title: 'Triwizard Coding Tournament',
-      sub: 'Algorithmic battles & Champion flag hunt',
-      img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBmXaQxgKVI6vX4I3jst6w6SwiwxP1hA7loqUgiAnU5lmt0KAN6rbZ6I3IXMeaCa2r1etnKYw76tdFJfSbMjJMet6vqkqinLC_ER9QXBXtSSYmwATie8PlO9vuyON5LpkMx--W5dYL2rRzEyVmHFSgsy6rTtalgMXt5Pjb1_1ZKlbNNtQiCOEJ3OuvhWKr16MLSZ1w7jpiwg9rGojZKJQpK_xAtkFCVF2dd8EJFx7UoKDc4_Rgdv8cf',
-      tag: 'Campus Wide Hunt'
+      category: 'music',
+      title: 'Unplugged Guitarist & Singer',
+      sub: 'Original composition and acoustic melodies',
+      img: egtPhoto11,
+      tag: 'Live Vocals'
+    },
+    {
+      id: 7,
+      category: 'stage',
+      title: 'Creative Runway & Fashion Act',
+      sub: 'Dramatic character styling and stage walk',
+      img: egtPhoto1,
+      tag: 'Fashion & Runway'
+    },
+    {
+      id: 8,
+      category: 'dance',
+      title: 'Showstopping Stage Finale',
+      sub: 'Captivating power-packed choreography',
+      img: egtPhoto13,
+      tag: 'Stage Champion'
+    },
+    {
+      id: 9,
+      category: 'music',
+      title: 'Soulful Solo Singing',
+      sub: 'Heartfelt vocal acoustics in the spotlight',
+      img: egtPhoto10,
+      tag: 'Solo Vocals'
+    },
+    {
+      id: 10,
+      category: 'stage',
+      title: 'Spoken Word & Poetry Slam',
+      sub: 'Original literature and heartfelt emotional recital',
+      img: egtPhoto5,
+      tag: 'Poetry & Literature'
+    },
+    {
+      id: 11,
+      category: 'music',
+      title: 'Beatbox & Voice Modulation',
+      sub: 'Acoustic sound effects and rhythmic beat patterns',
+      img: egtPhoto15,
+      tag: 'Beatbox Showcase'
+    },
+    {
+      id: 12,
+      category: 'music',
+      title: 'Acoustic Folk & Indie Chords',
+      sub: 'Soothing strumming and acoustic vocal harmony',
+      img: egtPhoto16,
+      tag: 'Indie Acoustics'
+    },
+    {
+      id: 13,
+      category: 'dance',
+      title: 'Bhangra & Cultural Folk Dance',
+      sub: 'Traditional Punjabi folk spirit and energetic mudras',
+      img: egtPhoto17,
+      tag: 'Cultural Dance'
+    },
+    {
+      id: 14,
+      category: 'stage',
+      title: 'Dramatic Mono-Act & Speech',
+      sub: 'Theatrical expression and audience engagement',
+      img: egtPhoto18,
+      tag: 'Theatrical Drama'
+    },
+    {
+      id: 15,
+      category: 'stage',
+      title: 'Auditorium Audience & Fans',
+      sub: 'Full house students cheering for their peers',
+      img: egtPhoto14,
+      tag: 'Auditorium Crowd'
+    },
+    {
+      id: 16,
+      category: 'winners',
+      title: 'Mentors & Organizing Dignitaries',
+      sub: 'Department leadership & coordinators behind EGT',
+      img: egtPhoto2,
+      tag: 'Organizers & Faculty'
     }
   ]
 
@@ -223,7 +324,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
     },
     {
       q: 'What are the Harry Potter challenges on Day 2?',
-      a: 'Day 2 features a 5-stage wizarding tech arena at C1 Seminar Hall & Campus Wide: Trial 1 (Chamber of Logic 10+1 DSA riddle challenge), Trial 2 (Triwizard Campus QR Hunt), Trial 3 (Pensieve Debugging), Trial 4 (Dark Arts Security & Encryption), and Trial 5 (The Elder Wand Finale).'
+      a: 'Day 2 features a 3-round wizarding tech tournament at C1 Seminar Hall & Campus Wide: Round 1 – The Vault (10+1 Cryptic Logic Seals), Round 2 – The Hunt (Campus-Wide QR Horcrux Trail), and Round 3 – The Chamber (Top 20 Leaderboard Climax & Championship Trophy).'
     },
     {
       q: 'Is there any registration fee?',
@@ -500,11 +601,11 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
                 <h3 className="font-['Syne'] text-2xl xs:text-3xl sm:text-4xl font-extrabold text-white tracking-wide relative z-10">THE WIZARD’S CODE</h3>
                 <p className="font-sans text-xs sm:text-base font-semibold text-cyan-200/80 italic my-1.5 sm:my-2 relative z-10">"Harry Potter — The Wizarding World of Technology"</p>
                 <p className="font-sans text-xs sm:text-sm text-gray-300 leading-relaxed mb-4 sm:mb-6 font-normal relative z-10">
-                  Enter an enchanted 5-stage tech arena at C1 Seminar Hall. Battle through Trial 1: Chamber of Logic, Trial 2: Triwizard Hunt, Trial 3: Pensieve Debug, Trial 4: Dark Arts Security, and Trial 5: The Elder Wand Finale.
+                  Enter an enchanted 3-round wizarding tech tournament at C1 Seminar Hall &amp; Campus Wide. Battle through Round 1: The Vault (10+1 Cryptic Logic), Round 2: The Hunt (Campus QR Horcrux Trail), and Round 3: The Chamber (Top 20 Leaderboard Climax).
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 my-4 sm:my-6 relative z-10">
-                  {['Trial 1: Chamber of Logic', 'Trial 2: Triwizard Hunt', 'Trial 3: Pensieve Debug', 'Trial 4 & 5: Elder Wand Finale'].map((item, idx) => (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 my-4 sm:my-6 relative z-10">
+                  {['Round 1: THE VAULT', 'Round 2: THE HUNT', 'Round 3: THE CHAMBER'].map((item, idx) => (
                     <div key={idx} className="bg-[#22d3ee]/5 px-3 py-2 sm:py-2.5 rounded-xl text-xs font-sans border border-[#22d3ee]/15 hover:border-[#22d3ee]/35 text-cyan-100/90 transition-colors flex items-center justify-center text-center font-medium">
                       {item}
                     </div>
@@ -583,7 +684,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#070709] via-transparent to-transparent"></div>
-                  <span className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-sans font-semibold border ${card.badgeClass}`}>
+                  <span className={`absolute top-3.5 left-3.5 px-3.5 py-1.5 rounded-full text-xs font-['Space_Grotesk'] font-extrabold tracking-wider border z-10 ${card.badgeClass}`}>
                     {card.tag}
                   </span>
                 </div>
@@ -626,11 +727,11 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
 
             <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-6 sm:mt-8">
               {[
-                { id: 'all', label: 'All Highlights' },
-                { id: 'stage', label: 'Stage Battles' },
-                { id: 'tech', label: 'Tech Arenas' },
-                { id: 'awards', label: 'Trophies & Victories' },
-                { id: 'crowd', label: 'Crowd Energy' }
+                { id: 'all', label: 'All Highlights (16)' },
+                { id: 'winners', label: '🏆 Winners & Honors' },
+                { id: 'music', label: '🎸 Music & Vocals' },
+                { id: 'dance', label: '💃 Dance & Moves' },
+                { id: 'stage', label: '🎤 Stage & Comedy' }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -681,13 +782,13 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       <section className="w-full bg-[#050508] py-14 sm:py-20 border-t border-white/10 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 text-center relative z-10">
           <span className="font-['Space_Grotesk'] text-xs font-extrabold text-[#f7d978] tracking-[0.25em] uppercase block mb-3">
-            Official Sponsors &amp; Community Partners
+            Official Sponsors
           </span>
           <h2 className="font-['Syne'] text-2xl xs:text-3xl sm:text-5xl font-black text-white uppercase tracking-tight mb-4">
             POWERED BY INNOVATION
           </h2>
           <p className="font-sans text-xs sm:text-base text-gray-400 max-w-xl mx-auto mb-8 sm:mb-12 font-light px-2">
-            Proudly supported by leading tech communities, academic institutions, and developer organizations.
+            Proudly supported and sponsored by our official tech and institutional partners.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 items-center max-w-5xl mx-auto">

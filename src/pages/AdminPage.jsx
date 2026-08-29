@@ -24,7 +24,11 @@ import {
   ToggleLeft,
   ToggleRight,
   Power,
-  Ban
+  Ban,
+  UploadCloud,
+  Check,
+  Copy,
+  Settings
 } from 'lucide-react'
 import {
   getDay1Registrations,
@@ -103,6 +107,273 @@ export default function AdminPage({ setCurrentPage }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedItem, setSelectedItem] = useState(null)
+
+  // Direct Google Sheets Webhook Sync State
+  const [day1WebhookUrl, setDay1WebhookUrl] = useState(
+    localStorage.getItem('egt_day1_webhook_url') || ''
+  )
+  const [day2WebhookUrl, setDay2WebhookUrl] = useState(
+    localStorage.getItem('egt_day2_webhook_url') || ''
+  )
+  const [isSyncing, setIsSyncing] = useState(null) // 'day1' | 'day2' | null
+  const [syncStatus, setSyncStatus] = useState(null) // { day, success, message }
+  const [showSyncModal, setShowSyncModal] = useState(false)
+  const [copiedScript, setCopiedScript] = useState(false)
+
+  const handleSaveWebhookUrls = (d1Url, d2Url) => {
+    setDay1WebhookUrl(d1Url)
+    setDay2WebhookUrl(d2Url)
+    localStorage.setItem('egt_day1_webhook_url', d1Url.trim())
+    localStorage.setItem('egt_day2_webhook_url', d2Url.trim())
+  }
+
+  // Push Data to Google Sheet Webhook (Creates formatted table in Excel / Google Sheets)
+  const handlePushToGoogleSheet = async (dayKey) => {
+    const webhookUrl = dayKey === 'day1' ? day1WebhookUrl.trim() : day2WebhookUrl.trim()
+    const dataToExport = dayKey === 'day1' ? day1Data : day2Data
+    const dayName = dayKey === 'day1' ? 'Day 1 (The Stage)' : 'Day 2 (Tech Wizard Arena)'
+
+    if (!webhookUrl) {
+      alert(`Please enter the Google Apps Script Webhook URL for ${dayName} first!`)
+      setShowSyncModal(true)
+      return
+    }
+
+    if (!dataToExport || dataToExport.length === 0) {
+      alert(`No registration data available to push for ${dayName}!`)
+      return
+    }
+
+    setIsSyncing(dayKey)
+    setSyncStatus(null)
+
+    try {
+      let headers = []
+      let rows = []
+
+      if (dayKey === 'day1') {
+        const maxTeammates = Math.max(0, ...dataToExport.map(row => parseDay1TeamMembers(row).length))
+        headers = [
+          'Registration ID',
+          'Timestamp',
+          'Full Name (Solo / Lead)',
+          'UID',
+          'Email Address',
+          'Phone No.',
+          'Academic Year',
+          'Department',
+          'Section',
+          'Group',
+          'Block',
+          'Performance Category',
+          'Requires Audio Track',
+          'Audio Track Link',
+          'Entry Format',
+          'Team Name'
+        ]
+        for (let i = 1; i <= maxTeammates; i++) {
+          headers.push(
+            `Teammate ${i} Name`,
+            `Teammate ${i} UID`,
+            `Teammate ${i} Section`,
+            `Teammate ${i} Group`,
+            `Teammate ${i} Block`
+          )
+        }
+
+        rows = dataToExport.map(row => {
+          const timestamp = new Date(row.created_at || Date.now()).toLocaleString()
+          const parsed = parseDay1TeamMembers(row)
+          const r = [
+            row.reg_id || '',
+            timestamp,
+            row.full_name || '',
+            row.uid || '',
+            row.email || '',
+            row.phone || '',
+            row.academic_year || '',
+            row.department || '',
+            row.section || '',
+            row.group_name || row.group || '',
+            row.block || '',
+            row.category || '',
+            row.requires_audio_track || 'No',
+            row.audio_track_url || '',
+            row.entry_type || 'Solo',
+            row.team_name || ''
+          ]
+          for (let i = 0; i < maxTeammates; i++) {
+            const m = parsed[i] || {}
+            r.push(m.fullName || '', m.uid || '', m.section || '', m.group || '', m.block || '')
+          }
+          return r
+        })
+      } else {
+        // Day 2 Tech Arena
+        headers = [
+          'Registration ID',
+          'Timestamp',
+          'Squad Name',
+          'Leader Name',
+          'Leader UID',
+          'Leader Email',
+          'Leader Phone',
+          'Department',
+          'Academic Year',
+          'Section',
+          'Group',
+          'Block',
+          'Teammate 1 Name',
+          'Teammate 1 UID',
+          'Teammate 1 Section',
+          'Teammate 1 Group',
+          'Teammate 1 Block',
+          'Teammate 2 Name',
+          'Teammate 2 UID',
+          'Teammate 2 Section',
+          'Teammate 2 Group',
+          'Teammate 2 Block',
+          'Teammate 3 Name',
+          'Teammate 3 UID',
+          'Teammate 3 Section',
+          'Teammate 3 Group',
+          'Teammate 3 Block'
+        ]
+
+        rows = dataToExport.map(row => {
+          const timestamp = new Date(row.created_at || Date.now()).toLocaleString()
+          return [
+            row.reg_id || '',
+            timestamp,
+            row.squad_name || '',
+            row.leader_name || '',
+            row.uid || '',
+            row.email || '',
+            row.phone || '',
+            row.department || '',
+            row.academic_year || '',
+            row.section || '',
+            row.group_name || '',
+            row.block || '',
+            row.teammate_1_name || '',
+            row.teammate_1_uid || '',
+            row.teammate_1_section || '',
+            row.teammate_1_group || '',
+            row.teammate_1_block || '',
+            row.teammate_2_name || '',
+            row.teammate_2_uid || '',
+            row.teammate_2_section || '',
+            row.teammate_2_group || '',
+            row.teammate_2_block || '',
+            row.teammate_3_name || '',
+            row.teammate_3_uid || '',
+            row.teammate_3_section || '',
+            row.teammate_3_group || '',
+            row.teammate_3_block || ''
+          ]
+        })
+      }
+
+      // Send payload to Google Apps Script Webhook
+      await fetch(webhookUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dayKey,
+          dayName,
+          headers,
+          rows
+        })
+      })
+
+      setSyncStatus({
+        day: dayKey,
+        success: true,
+        message: `Successfully pushed ${rows.length} ${dayName} records into your Google Sheet table!`
+      })
+    } catch (err) {
+      console.error('Google Sheet Push Error:', err)
+      setSyncStatus({
+        day: dayKey,
+        success: false,
+        message: `Failed to push to Google Sheet: ${err.message || 'Network error'}`
+      })
+    } finally {
+      setIsSyncing(null)
+    }
+  }
+
+  // Google Apps Script Template for User Setup
+  const appsScriptCode = `function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    
+    // Clear old data and format table fresh
+    sheet.clear();
+    
+    // 1. Append Header Row
+    if (data.headers && data.headers.length > 0) {
+      sheet.appendRow(data.headers);
+      
+      // Style Gold/Dark Header Row
+      var headerRange = sheet.getRange(1, 1, 1, data.headers.length);
+      headerRange.setBackground('#1a1711');
+      headerRange.setFontColor('#f7d978');
+      headerRange.setFontWeight('bold');
+      headerRange.setFontFamily('Arial');
+      headerRange.setFontSize(11);
+      headerRange.setHorizontalAlignment('center');
+      sheet.setFrozenRows(1);
+    }
+    
+    // 2. Append Participant Rows
+    if (data.rows && data.rows.length > 0) {
+      for (var i = 0; i < data.rows.length; i++) {
+        sheet.appendRow(data.rows[i]);
+      }
+      
+      var numRows = data.rows.length;
+      var numCols = data.headers.length;
+      var dataRange = sheet.getRange(2, 1, numRows, numCols);
+      dataRange.setFontFamily('Arial');
+      dataRange.setFontSize(10);
+      
+      // Zebra striping for table
+      for (var r = 2; r <= numRows + 1; r++) {
+        var rowRange = sheet.getRange(r, 1, 1, numCols);
+        if (r % 2 === 0) {
+          rowRange.setBackground('#f4f4f6');
+        } else {
+          rowRange.setBackground('#ffffff');
+        }
+      }
+    }
+    
+    // 3. Auto-fit all columns
+    for (var col = 1; col <= (data.headers ? data.headers.length : 15); col++) {
+      sheet.autoResizeColumn(col);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      rowsCount: data.rows ? data.rows.length : 0
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}`
+
+  const copyAppsScript = () => {
+    navigator.clipboard.writeText(appsScriptCode)
+    setCopiedScript(true)
+    setTimeout(() => setCopiedScript(false), 3000)
+  }
 
   // Check active Supabase session on mount
   useEffect(() => {
@@ -648,6 +919,104 @@ export default function AdminPage({ setCurrentPage }) {
         </div>
       </div>
 
+      {/* Google Sheets Direct Cloud Sync Panel */}
+      <div className="glass-panel p-5 rounded-3xl border border-emerald-500/30 mb-8 bg-gradient-to-r from-emerald-950/20 via-black to-cyan-950/20">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+              <FileSpreadsheet className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-['Syne'] text-base font-bold text-white flex items-center gap-2">
+                <span>Google Sheets Live Cloud Sync</span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-['Space_Grotesk'] font-bold uppercase tracking-wider">
+                  Excel Table Format
+                </span>
+              </h3>
+              <p className="font-sans text-xs text-gray-400">
+                Bulk push all participant records into formatted Google Sheets with styled headers, zebra striping &amp; auto-width columns.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            {/* Push Day 1 Button */}
+            <button
+              onClick={() => handlePushToGoogleSheet('day1')}
+              disabled={isSyncing === 'day1'}
+              className="flex-1 lg:flex-initial px-4 py-2.5 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+              title="Push all Day 1 entries into Day 1 Google Sheet"
+            >
+              {isSyncing === 'day1' ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin text-rose-400" />
+                  <span>Syncing Day 1...</span>
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="w-4 h-4 text-rose-400" />
+                  <span>Push Day 1 ({day1Data.length})</span>
+                </>
+              )}
+            </button>
+
+            {/* Push Day 2 Button */}
+            <button
+              onClick={() => handlePushToGoogleSheet('day2')}
+              disabled={isSyncing === 'day2'}
+              className="flex-1 lg:flex-initial px-4 py-2.5 rounded-2xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+              title="Push all Day 2 entries into Day 2 Google Sheet"
+            >
+              {isSyncing === 'day2' ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin text-cyan-400" />
+                  <span>Syncing Day 2...</span>
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="w-4 h-4 text-cyan-400" />
+                  <span>Push Day 2 ({day2Data.length})</span>
+                </>
+              )}
+            </button>
+
+            {/* Settings & Setup Modal Trigger */}
+            <button
+              onClick={() => setShowSyncModal(true)}
+              className="px-3.5 py-2.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/15 text-gray-300 hover:text-white text-xs font-['Space_Grotesk'] font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+              title="Configure Webhook URLs & View Apps Script Code"
+            >
+              <Settings className="w-4 h-4 text-[#f7d978]" />
+              <span className="hidden sm:inline">Sheet Settings</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Sync Status Banner */}
+        {syncStatus && (
+          <div className={`mt-4 p-3.5 rounded-2xl border text-xs font-['Space_Grotesk'] flex items-center justify-between gap-3 animate-in fade-in duration-300 ${
+            syncStatus.success
+              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
+              : 'bg-rose-500/15 border-rose-500/40 text-rose-300'
+          }`}>
+            <div className="flex items-center gap-2">
+              {syncStatus.success ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              )}
+              <span>{syncStatus.message}</span>
+            </div>
+            <button
+              onClick={() => setSyncStatus(null)}
+              className="text-gray-400 hover:text-white text-xs font-bold px-2 py-0.5 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Controls: Tabs, Search & Filters */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         
@@ -1089,6 +1458,104 @@ export default function AdminPage({ setCurrentPage }) {
                 className="flex-1 btn-primary-gold text-xs py-3 rounded-full"
               >
                 Close Window
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Google Sheets Sync & Apps Script Configuration Modal */}
+      {showSyncModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/40 max-w-2xl w-full space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            
+            <div className="flex justify-between items-start border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                  <FileSpreadsheet className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="font-['Syne'] text-lg sm:text-xl font-bold text-white">
+                    Google Sheets Cloud Sync Configuration
+                  </h2>
+                  <p className="font-sans text-xs text-gray-400">
+                    Setup separate Google Sheet Webhooks for Day 1 and Day 2 participant data.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSyncModal(false)}
+                className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Webhook URLs Form */}
+            <div className="space-y-4 font-['Space_Grotesk']">
+              <div>
+                <label className="block text-xs font-bold text-rose-400 mb-1 flex items-center gap-1.5">
+                  <Mic className="w-3.5 h-3.5" />
+                  <span>Day 1 (The Stage) Google Apps Script Webhook URL</span>
+                </label>
+                <input
+                  type="url"
+                  value={day1WebhookUrl}
+                  onChange={(e) => handleSaveWebhookUrls(e.target.value, day2WebhookUrl)}
+                  placeholder="https://script.google.com/macros/s/.../exec"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-400 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-cyan-400 mb-1 flex items-center gap-1.5">
+                  <Code className="w-3.5 h-3.5" />
+                  <span>Day 2 (Tech Wizard Arena) Google Apps Script Webhook URL</span>
+                </label>
+                <input
+                  type="url"
+                  value={day2WebhookUrl}
+                  onChange={(e) => handleSaveWebhookUrls(day1WebhookUrl, e.target.value)}
+                  placeholder="https://script.google.com/macros/s/.../exec"
+                  className="w-full bg-white/5 border border-white/15 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Quick 3-Step Setup Guide */}
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 font-sans text-xs">
+              <div className="font-['Space_Grotesk'] font-bold text-[#f7d978] text-sm flex items-center justify-between">
+                <span>⚡ How to set up in 30 Seconds:</span>
+                <button
+                  onClick={copyAppsScript}
+                  className="px-3 py-1 rounded-lg bg-[#f7d978]/20 hover:bg-[#f7d978]/30 text-[#f7d978] border border-[#f7d978]/40 text-[11px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                >
+                  {copiedScript ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedScript ? 'Code Copied!' : 'Copy Apps Script Code'}</span>
+                </button>
+              </div>
+
+              <ol className="list-decimal list-inside space-y-1.5 text-gray-300 leading-relaxed font-normal">
+                <li>Create or open your Google Sheet for <strong>Day 1</strong> or <strong>Day 2</strong>.</li>
+                <li>Click <strong>Extensions</strong> → <strong>Apps Script</strong>, delete existing code, and paste the copied script.</li>
+                <li>Click <strong>Deploy</strong> → <strong>New deployment</strong> → Select type: <strong>Web app</strong>.</li>
+                <li>Set <em>Execute as</em>: <strong>Me</strong> and <em>Who has access</em>: <strong>Anyone</strong>.</li>
+                <li>Click <strong>Deploy</strong>, copy the generated Web app URL, and paste it in the fields above!</li>
+              </ol>
+
+              <div className="mt-2 text-[11px] text-gray-400 bg-black/40 p-2.5 rounded-xl border border-white/5 font-mono">
+                ✨ When you click "Push Data", it will automatically create gold/cyan styled headers, freeze the top row, apply zebra striping, and auto-fit column widths!
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => {
+                  handleSaveWebhookUrls(day1WebhookUrl, day2WebhookUrl)
+                  setShowSyncModal(false)
+                }}
+                className="w-full btn-primary-gold text-xs py-3 rounded-full font-bold uppercase tracking-wider cursor-pointer"
+              >
+                Save Webhook Settings &amp; Close
               </button>
             </div>
           </div>

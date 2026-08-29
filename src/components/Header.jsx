@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import cuLogo from '../assets/Logo/CU Logo red &white.png'
 import alexaLogo from '../assets/Logo/Alexa Developers Community Logo.png'
-import gfgLogo from '../assets/Logo/GfG Horizontal Combination Mark (Dark Mode)@2x.png'
 import { Menu, X, Mail } from 'lucide-react'
 
 export default function Header({ currentPage, setCurrentPage, onOpenRegister, onOpenContact }) {

@@ -82,7 +82,6 @@ export default function Footer({ setCurrentPage, onOpenRegister, onOpenContact }
             <ul className="space-y-2 text-gray-400 font-medium">
               <li className="text-gray-300 font-semibold">9 Sept: The Stage (A1 Auditorium)</li>
               <li className="text-gray-300 font-semibold">10 Sept: The Wizard’s Code (C1 Seminar Hall)</li>
-              <li className="text-gray-400">Department of CSE – Takshashila</li>
             </ul>
           </div>
 
@@ -93,7 +92,7 @@ export default function Footer({ setCurrentPage, onOpenRegister, onOpenContact }
             </p>
             <ul className="space-y-2 text-gray-400 font-medium">
               <li>Alexa Developers Community</li>
-              <li>GeeksforGeeks Student Chapter</li>
+              <li>Department of CSE – Takshashila</li>
               <li>Chandigarh University</li>
             </ul>
           </div>
