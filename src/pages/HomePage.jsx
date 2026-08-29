@@ -205,7 +205,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
   const filteredGallery =
     activeGalleryTab === 'all'
       ? galleryItems
-      : galleryItems.filter((item) => item.category === item)
+      : galleryItems.filter((item) => item.category === activeGalleryTab)
 
   const faqs = [
     {
@@ -311,7 +311,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
           {/* Action CTAs: Navigate directly to Day 1 / Day 2 pages */}
           <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
             <button
-              onClick={() => setCurrentPage('day1')}
+              onClick={() => onOpenRegister('day1-performer')}
               className="bg-gradient-to-r from-[#e5b84c] via-[#f7d978] to-[#c9982e] text-[#1c0800] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-8 py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(247,217,120,0.5)] flex items-center gap-2 cursor-pointer border border-yellow-200/60"
             >
               <Mic className="w-4 h-4" />
@@ -319,7 +319,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
             </button>
 
             <button
-              onClick={() => setCurrentPage('day2')}
+              onClick={() => onOpenRegister('day2-wizard')}
               className="bg-[#09090d]/90 text-[#00F2FF] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-8 py-3.5 rounded-full hover:bg-cyan-500/10 transition-all shadow-[0_0_25px_rgba(0,242,255,0.4)] flex items-center gap-2 cursor-pointer border-2 border-[#00F2FF]"
             >
               <Code className="w-4 h-4" />

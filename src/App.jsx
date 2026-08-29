@@ -24,13 +24,13 @@ export default function App() {
       
       if (path === '' || path === '/') {
         setCurrentPageState('home')
-      } else if (path === '/day1') {
+      } else if (path === '/day1' || path === '/day-1') {
         setCurrentPageState('day1')
-      } else if (path === '/day2') {
+      } else if (path === '/day2' || path === '/day-2') {
         setCurrentPageState('day2')
-      } else if (path === '/register-day1') {
+      } else if (path === '/register-day1' || path === '/register-day-1') {
         setCurrentPageState('register-day1')
-      } else if (path === '/register-day2') {
+      } else if (path === '/register-day2' || path === '/register-day-2') {
         setCurrentPageState('register-day2')
       } else if (path === '/guidelines' || path === '/rules') {
         setCurrentPageState('guidelines')
