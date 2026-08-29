@@ -54,19 +54,34 @@ export default function App() {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual'
     }
-    window.scrollTo(0, 0)
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }, 50)
 
     const handleUnload = () => {
-      window.scrollTo(0, 0)
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual'
+      }
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     }
 
     window.addEventListener('beforeunload', handleUnload)
-    return () => window.removeEventListener('beforeunload', handleUnload)
+    window.addEventListener('pagehide', handleUnload)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('beforeunload', handleUnload)
+      window.removeEventListener('pagehide', handleUnload)
+    }
   }, [])
 
   // Scroll to top of window whenever currentPage state changes
   useEffect(() => {
-    window.scrollTo(0, 0)
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    const t = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }, 10)
+    return () => clearTimeout(t)
   }, [currentPage])
 
   const setCurrentPage = (page) => {
