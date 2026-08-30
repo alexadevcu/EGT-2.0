@@ -177,6 +177,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                   type="text"
                   name="fullName"
                   required
+                  maxLength={100}
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="e.g. Rahul Sharma"
@@ -192,6 +193,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                   type="text"
                   name="uid"
                   required
+                  maxLength={30}
                   value={formData.uid}
                   onChange={handleChange}
                   placeholder="e.g. 22BCS10192"
@@ -207,6 +209,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                   type="email"
                   name="email"
                   required
+                  maxLength={150}
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="e.g. rahul@cuchd.in"
@@ -222,6 +225,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                   type="tel"
                   name="phone"
                   required
+                  maxLength={15}
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="e.g. 9876543210"
@@ -277,6 +281,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                   type="text"
                   name="section"
                   required
+                  maxLength={20}
                   value={formData.section}
                   onChange={handleChange}
                   placeholder="e.g. 801-A or Sec-A"
@@ -309,6 +314,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                   type="text"
                   name="block"
                   required
+                  maxLength={20}
                   value={formData.block}
                   onChange={handleChange}
                   placeholder="e.g. B1 Block"
@@ -327,6 +333,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                   type="text"
                   name="squadName"
                   required
+                  maxLength={100}
                   value={formData.squadName}
                   onChange={handleChange}
                   placeholder="e.g. Cyber Horcrux Hunters"
@@ -354,6 +361,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       type="text"
                       name="teammate1Name"
                       required
+                      maxLength={100}
                       value={formData.teammate1Name}
                       onChange={handleChange}
                       placeholder="e.g. Neha Sharma"
@@ -369,6 +377,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       type="text"
                       name="teammate1Uid"
                       required
+                      maxLength={30}
                       value={formData.teammate1Uid}
                       onChange={handleChange}
                       placeholder="e.g. 22BCS1098"
@@ -384,6 +393,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       type="text"
                       name="teammate1Section"
                       required
+                      maxLength={20}
                       value={formData.teammate1Section}
                       onChange={handleChange}
                       placeholder="e.g. 801-A"
@@ -416,6 +426,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       type="text"
                       name="teammate1Block"
                       required
+                      maxLength={20}
                       value={formData.teammate1Block}
                       onChange={handleChange}
                       placeholder="e.g. B1 Block"
@@ -439,6 +450,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       type="text"
                       name="teammate2Name"
                       required
+                      maxLength={100}
                       value={formData.teammate2Name}
                       onChange={handleChange}
                       placeholder="e.g. Simran Kaur"
@@ -454,6 +466,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       type="text"
                       name="teammate2Uid"
                       required
+                      maxLength={30}
                       value={formData.teammate2Uid}
                       onChange={handleChange}
                       placeholder="e.g. 22BCS1102"
@@ -469,6 +482,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       type="text"
                       name="teammate2Section"
                       required
+                      maxLength={20}
                       value={formData.teammate2Section}
                       onChange={handleChange}
                       placeholder="e.g. 801-B"
@@ -501,6 +515,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                       type="text"
                       name="teammate2Block"
                       required
+                      maxLength={20}
                       value={formData.teammate2Block}
                       onChange={handleChange}
                       placeholder="e.g. B2 Block"

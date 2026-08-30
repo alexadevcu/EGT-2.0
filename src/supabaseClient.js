@@ -41,23 +41,9 @@ export async function signInAdmin(email, password) {
   }
 }
 
-export async function signUpAdmin(email, password) {
-  if (!supabase) {
-    return { success: false, error: 'Supabase credentials not configured in environment variables.' }
-  }
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password
-    })
-    if (error) {
-      return { success: false, error: error.message }
-    }
-    return { success: true, data }
-  } catch (err) {
-    return { success: false, error: err.message || 'Supabase account creation failed.' }
-  }
-}
+// signUpAdmin has been intentionally removed for security.
+// Admin accounts must be created directly in the Supabase Dashboard
+// with public signups DISABLED in Auth → Settings.
 
 export async function signOutAdmin() {
   if (supabase) {
@@ -88,7 +74,23 @@ export function sanitizeInput(str) {
   return str
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+    .replace(/[\u0000-\u001F\u007F]/g, '')    // Strip null bytes & control characters
+    .replace(/[\u200B-\u200D\uFEFF\u00AD]/g, '') // Strip zero-width & invisible unicode
     .trim()
+    .slice(0, 500)                               // Hard cap length at 500 chars
+}
+
+// Validates and sanitizes URL fields — only http/https protocols allowed
+export function sanitizeUrl(url) {
+  if (!url || typeof url !== 'string') return ''
+  const trimmed = url.trim().slice(0, 1000)
+  try {
+    const u = new URL(trimmed)
+    if (!['http:', 'https:'].includes(u.protocol)) return '' // Block javascript:, data:, etc.
+    return trimmed
+  } catch {
+    return '' // Invalid URL — discard
+  }
 }
 
 export function validateEmail(email) {
@@ -107,9 +109,11 @@ export function validateUID(uid) {
 }
 
 export function checkSubmissionRateLimit(key = 'egt_last_sub') {
+  // NOTE: This is client-side rate limiting only — a database-level UNIQUE constraint
+  // on the uid column is the authoritative duplicate-prevention mechanism.
   const lastSub = localStorage.getItem(key)
   const now = Date.now()
-  if (lastSub && now - Number(lastSub) < 2500) { // 2.5s anti-spam threshold
+  if (lastSub && now - Number(lastSub) < 5000) { // 5s anti-spam threshold
     return false
   }
   localStorage.setItem(key, String(now))
@@ -239,13 +243,13 @@ export async function saveDay1Registration(data) {
     block: sanitizeInput(data.block),
     category: sanitizeInput(data.category),
     requires_audio_track: sanitizeInput(data.requiresAudioTrack),
-    audio_track_url: sanitizeInput(data.audioTrackUrl),
+    audio_track_url: sanitizeUrl(data.audioTrackUrl),       // URL-validated: only http/https
     entry_type: sanitizeInput(data.entryType) || 'Solo',
     team_name: sanitizeInput(data.teamName),
     team_members: formattedTeamMembers,
     team_members_raw: rawTeamMembersJson,
     performance_desc: sanitizeInput(data.performanceDesc),
-    previous_performance_link: sanitizeInput(data.previousPerformanceLink),
+    previous_performance_link: sanitizeUrl(data.previousPerformanceLink), // URL-validated
     instagram: sanitizeInput(data.instagram),
     created_at: new Date().toISOString()
   }

@@ -226,6 +226,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                   type="text"
                   name="fullName"
                   required
+                  maxLength={100}
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="e.g. Rahul Sharma"
@@ -241,6 +242,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                   type="text"
                   name="uid"
                   required
+                  maxLength={30}
                   value={formData.uid}
                   onChange={handleChange}
                   placeholder="e.g. 22BCS10192"
@@ -256,6 +258,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                   type="email"
                   name="email"
                   required
+                  maxLength={150}
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="e.g. rahul@cuchd.in"
@@ -271,6 +274,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                   type="tel"
                   name="phone"
                   required
+                  maxLength={15}
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="e.g. 9876543210"
@@ -326,6 +330,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                   type="text"
                   name="section"
                   required
+                  maxLength={20}
                   value={formData.section}
                   onChange={handleChange}
                   placeholder="e.g. 801-A or Sec-A"
@@ -358,6 +363,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                   type="text"
                   name="block"
                   required
+                  maxLength={20}
                   value={formData.block}
                   onChange={handleChange}
                   placeholder="e.g. B1 Block"
@@ -602,6 +608,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                 <textarea
                   name="performanceDesc"
                   rows="3"
+                  maxLength={500}
                   value={formData.performanceDesc}
                   onChange={handleChange}
                   placeholder="Describe your performance, song titles, audio track requirements, or special stage props needed."
@@ -663,6 +670,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                       type="url"
                       name="audioTrackUrl"
                       required
+                      maxLength={500}
                       value={formData.audioTrackUrl}
                       onChange={handleChange}
                       placeholder="https://drive.google.com/... or MP3 audio link"
@@ -685,6 +693,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                 <input
                   type="url"
                   name="previousPerformanceLink"
+                  maxLength={500}
                   value={formData.previousPerformanceLink}
                   onChange={handleChange}
                   placeholder="https://youtube.com/... or https://drive.google.com/... or Instagram Reel link"
