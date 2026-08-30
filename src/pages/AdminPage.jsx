@@ -76,6 +76,18 @@ export function parseDay1TeamMembers(row) {
   }).filter(m => m.fullName || m.uid)
 }
 
+// Safely validate a URL from the database before using it as an href.
+// Only allows http: and https: protocols — blocks javascript:, data:, etc.
+function safeHref(url) {
+  if (!url || typeof url !== 'string') return '#'
+  try {
+    const u = new URL(url.trim())
+    return ['http:', 'https:'].includes(u.protocol) ? url.trim() : '#'
+  } catch {
+    return '#'
+  }
+}
+
 export default function AdminPage({ setCurrentPage }) {
   // Supabase Auth State
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -1192,7 +1204,7 @@ export default function AdminPage({ setCurrentPage }) {
                         {activeTab === 'day1' ? (
                           row.audio_track_url ? (
                             <a
-                              href={row.audio_track_url}
+                              href={safeHref(row.audio_track_url)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="px-2.5 py-1 rounded-md bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[11px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -1212,7 +1224,7 @@ export default function AdminPage({ setCurrentPage }) {
                         {activeTab === 'day1' ? (
                           row.previous_performance_link ? (
                             <a
-                              href={row.previous_performance_link}
+                              href={safeHref(row.previous_performance_link)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-cyan-400 underline font-mono text-[11px] hover:text-cyan-300"
@@ -1372,7 +1384,7 @@ export default function AdminPage({ setCurrentPage }) {
                 <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between">
                   <span className="font-bold text-rose-300">Performance Audio Track:</span>
                   <a
-                    href={selectedItem.audio_track_url}
+                    href={safeHref(selectedItem.audio_track_url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-3 py-1 rounded-lg bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"

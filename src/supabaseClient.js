@@ -498,6 +498,13 @@ export async function getDay2Registrations() {
 
 // Update Registration Status
 export async function updateRegistrationStatus(table, regId, status) {
+  // Whitelist allowed tables to prevent table injection attacks
+  const ALLOWED_TABLES = ['day1_registrations', 'day2_registrations']
+  if (!ALLOWED_TABLES.includes(table)) {
+    console.warn('updateRegistrationStatus: invalid table name blocked:', table)
+    return
+  }
+
   if (supabase) {
     try {
       await supabase
@@ -517,6 +524,13 @@ export async function updateRegistrationStatus(table, regId, status) {
 
 // Delete Registration
 export async function deleteRegistration(table, regId) {
+  // Whitelist allowed tables to prevent table injection attacks
+  const ALLOWED_TABLES = ['day1_registrations', 'day2_registrations']
+  if (!ALLOWED_TABLES.includes(table)) {
+    console.warn('deleteRegistration: invalid table name blocked:', table)
+    return
+  }
+
   if (supabase) {
     try {
       await supabase
