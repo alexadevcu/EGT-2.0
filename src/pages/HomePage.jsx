@@ -28,6 +28,9 @@ import heroBlendImg from '../assets/hero_blend.jpg'
 import stageHeroImg from '../assets/stage_hero.jpg'
 import trophyImg from '../assets/trophy_celebration.jpg'
 import winnersImg from '../assets/Winners.jpg'
+import day2Round1Img from '../assets/IMG_0530.jpg'
+import day2Round2Img from '../assets/17641439521762841306Screenshot 2025-11-11 113615.webp'
+import day2WinnersImg from '../assets/image.png'
 import cuLogo from '../assets/Logo/CU Logo red &white.png'
 import alexaLogo from '../assets/Logo/Alexa Developers Community Logo.png'
 import gfgLogo from '../assets/Logo/GfG Horizontal Combination Mark (Dark Mode)@2x.png'
@@ -140,7 +143,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       title: 'Round 1 – THE VAULT',
       desc: '10:30 AM – 11:30 AM • Decipher 10+1 cryptic seals inside C1 Seminar Hall to unlock the first key.',
       day: 'day2',
-      img: stageHeroImg,
+      img: day2Round1Img,
       badgeClass: 'bg-black/90 backdrop-blur-md text-[#00F2FF] border-[#00F2FF]/70 shadow-lg'
     },
     {
@@ -149,7 +152,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       title: 'Round 2 – THE HUNT',
       desc: '11:30 AM – 2:00 PM • Campus-wide QR Horcrux treasure trail across 6 mysterious university zones.',
       day: 'day2',
-      img: heroBlendImg,
+      img: day2Round2Img,
       badgeClass: 'bg-black/90 backdrop-blur-md text-[#00F2FF] border-[#00F2FF]/70 shadow-lg'
     },
     {
@@ -158,7 +161,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       title: 'Round 3 – THE CHAMBER',
       desc: '2:00 PM – 2:45 PM • Top 20 live leaderboard cut-off final sprint & strategic climax for the Grand Trophy.',
       day: 'day2',
-      img: trophyImg,
+      img: day2WinnersImg,
       badgeClass: 'bg-black/90 backdrop-blur-md text-[#f7d978] border-[#f7d978]/70 shadow-lg'
     },
     {
@@ -429,7 +432,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
           {/* Action CTAs: Full width on mobile */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-8 w-full max-w-sm sm:max-w-none mx-auto px-2">
             <button
-              onClick={() => onOpenRegister('day1-performer')}
+              onClick={() => setCurrentPage('day1')}
               className="w-full sm:w-auto justify-center bg-gradient-to-r from-[#e5b84c] via-[#f7d978] to-[#c9982e] text-[#1c0800] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(247,217,120,0.5)] flex items-center gap-2 cursor-pointer border border-yellow-200/60"
             >
               <Mic className="w-4 h-4" />
@@ -437,7 +440,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
             </button>
 
             <button
-              onClick={() => onOpenRegister('day2-wizard')}
+              onClick={() => setCurrentPage('day2')}
               className="w-full sm:w-auto justify-center bg-[#09090d]/90 text-[#00F2FF] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:bg-cyan-500/10 transition-all shadow-[0_0_25px_rgba(0,242,255,0.4)] flex items-center gap-2 cursor-pointer border-2 border-[#00F2FF]"
             >
               <Code className="w-4 h-4" />

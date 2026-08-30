@@ -172,28 +172,8 @@ export default function Footer({ setCurrentPage, onOpenRegister, onOpenContact }
               <span className="text-[10px] font-sans font-bold tracking-[0.2em] text-gray-400 uppercase block leading-tight">
                 WEBSITE ENGINEERED UNDER
               </span>
-              <p className="text-xs sm:text-sm font-bold text-[#00F2FF] flex items-center gap-1.5 flex-wrap mt-0.5">
-                <a
-                  href="https://linktr.ee/vasu_gera"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline hover:text-cyan-300 transition-all cursor-pointer inline-flex items-center gap-0.5"
-                  title="Connect with Vasu Gera"
-                >
-                  <span>Vasu Gera</span>
-                </a>
-                <span className="text-gray-400 font-normal">,</span>
-                <a
-                  href="https://linktr.ee/Aayushi_mishra"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:underline hover:text-cyan-300 transition-all cursor-pointer inline-flex items-center gap-0.5"
-                  title="Connect with Aayushi Mishra"
-                >
-                  <span>Aayushi Mishra</span>
-                </a>
-                <span className="text-gray-300 font-normal">&amp;</span>
-                <span className="text-[#00F2FF]">ADC core team</span>
+              <p className="text-xs sm:text-sm font-bold text-[#00F2FF] mt-0.5">
+                ADC Web Team @2026
               </p>
             </div>
 
