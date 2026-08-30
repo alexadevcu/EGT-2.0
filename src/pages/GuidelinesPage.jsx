@@ -880,7 +880,7 @@ export default function GuidelinesPage({ setCurrentPage }) {
             <span className="fact-no">02</span>
             <h3>Entry Format</h3>
             <p>
-              Day 1 is <strong>strictly Solo-based acts</strong>. Day 2 Technical Squads permit up to <strong>3 members per squad</strong>.
+              Day 1 supports <strong>Solo &amp; Group Acts</strong> (Solo, Duo, and Teams up to 10 members). Day 2 Technical Squads permit up to <strong>3 members per squad</strong>.
             </p>
           </div>
           <div className="fact">
@@ -912,8 +912,8 @@ export default function GuidelinesPage({ setCurrentPage }) {
                 <li>
                   <span className="rnum">01</span>
                   <div>
-                    <strong>Solo Acts Only</strong>
-                    Day 1 stage acts are strictly individual solo performances.
+                    <strong>Solo, Duo &amp; Group Acts Allowed</strong>
+                    Day 1 stage acts welcome individual solo artists, duos, and group/crew acts (up to 10 performers per group).
                   </div>
                 </li>
                 <li>
