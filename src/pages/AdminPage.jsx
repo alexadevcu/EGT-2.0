@@ -96,6 +96,8 @@ export default function AdminPage({ setCurrentPage }) {
   const [showPassword, setShowPassword] = useState(false)
   const [authError, setAuthError] = useState('')
   const [isAuthenticating, setIsAuthenticating] = useState(false)
+  const [loginAttempts, setLoginAttempts] = useState(0)
+  const [lockoutUntil, setLockoutUntil] = useState(null)
 
   // Registration Controls (Open vs Full/Closed)
   const [regSettings, setRegSettings] = useState(getRegistrationSettings())
@@ -286,8 +288,20 @@ export default function AdminPage({ setCurrentPage }) {
         })
       }
 
+      // Validate webhook URL before fetch — must be https:
+      let validatedWebhook
+      try {
+        const parsedUrl = new URL(webhookUrl)
+        if (parsedUrl.protocol !== 'https:') throw new Error('Non-HTTPS webhook URL')
+        validatedWebhook = webhookUrl
+      } catch {
+        setSyncStatus({ day: dayKey, success: false, message: 'Invalid webhook URL. Must be a valid https:// Google Apps Script URL.' })
+        setIsSyncing(null)
+        return
+      }
+
       // Send payload to Google Apps Script Webhook
-      await fetch(webhookUrl, {
+      await fetch(validatedWebhook, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
@@ -414,9 +428,17 @@ export default function AdminPage({ setCurrentPage }) {
     }
   }, [isAuthenticated])
 
-  // Admin Auth Handler (Pure Supabase Auth)
+  // Admin Auth Handler — with brute-force lockout after 5 failed attempts
   const handleSupabaseLogin = async (e) => {
     e.preventDefault()
+
+    // Check lockout
+    if (lockoutUntil && Date.now() < lockoutUntil) {
+      const minutesLeft = Math.ceil((lockoutUntil - Date.now()) / 60000)
+      setAuthError(`Too many failed attempts. Please wait ${minutesLeft} minute(s) before trying again.`)
+      return
+    }
+
     setIsAuthenticating(true)
     setAuthError('')
 
@@ -426,8 +448,19 @@ export default function AdminPage({ setCurrentPage }) {
     if (res.success) {
       setIsAuthenticated(true)
       setAuthError('')
+      setLoginAttempts(0)
+      setLockoutUntil(null)
     } else {
-      setAuthError(res.error || 'Authentication failed. Please check your Supabase admin credentials.')
+      const newAttempts = loginAttempts + 1
+      setLoginAttempts(newAttempts)
+      if (newAttempts >= 5) {
+        // Lock out for 15 minutes after 5 failed attempts
+        setLockoutUntil(Date.now() + 15 * 60 * 1000)
+        setAuthError('Too many failed attempts. Admin login is locked for 15 minutes.')
+      } else {
+        // Generic message — does not reveal whether account exists
+        setAuthError(`Invalid credentials. ${5 - newAttempts} attempt(s) remaining before lockout.`)
+      }
     }
   }
 
