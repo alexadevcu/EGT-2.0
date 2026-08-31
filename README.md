@@ -71,7 +71,6 @@ https://egt-2-0.vercel.app/
 egt-2.0/
 ├── public/
 │   ├── favicon.png
-│   ├── favicon.svg
 │   ├── icons.svg
 │   └── sitemap.xml
 ├── src/
