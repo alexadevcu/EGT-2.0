@@ -230,6 +230,18 @@ export async function saveDay1Registration(data) {
     }
   }
 
+  // Check for duplicate UIDs within Team Roster
+  if (data.entryType === 'Team' && Array.isArray(data.teamMembersList) && data.teamMembersList.length > 0) {
+    const allRosterUids = [cleanUid, ...data.teamMembersList.map(m => sanitizeInput(m.uid).toUpperCase())].filter(Boolean)
+    const uniqueUids = new Set(allRosterUids)
+    if (uniqueUids.size !== allRosterUids.length) {
+      return {
+        success: false,
+        error: 'Duplicate Student UID detected in your team roster. The lead performer and all co-performers must have unique UIDs.'
+      }
+    }
+  }
+
   const formattedTeamMembers = Array.isArray(data.teamMembersList) && data.teamMembersList.length > 0
     ? data.teamMembersList.map((m, idx) => `${idx + 1}. ${m.fullName.trim()} (${m.uid.trim()}) [Sec: ${m.section.trim()}, ${m.group}, Blk: ${m.block.trim()}]`).join(' | ')
     : sanitizeInput(data.teamMembers)
@@ -420,6 +432,16 @@ export async function saveDay2Registration(data) {
   }
   if (!cleanT3Name && cleanT3Uid) {
     return { success: false, error: 'Please enter the Full Name for Teammate 3 (or leave both fields blank).' }
+  }
+
+  // Squad internal duplicate UID check (Leader + Teammates 1, 2, 3)
+  const squadUids = [cleanUid, cleanT1Uid, cleanT2Uid, cleanT3Uid].filter(Boolean)
+  const uniqueSquadUids = new Set(squadUids)
+  if (uniqueSquadUids.size !== squadUids.length) {
+    return {
+      success: false,
+      error: 'Duplicate Student UID detected in squad roster. The squad leader and all teammates must have unique UIDs.'
+    }
   }
 
   const formattedT1 = cleanT1Uid ? `${cleanT1Name} (${cleanT1Uid}) [Sec: ${cleanT1Section}, ${cleanT1Group}, Blk: ${cleanT1Block}]` : cleanT1Name
