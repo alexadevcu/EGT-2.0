@@ -303,7 +303,7 @@ export async function saveDay1Registration(data) {
 
       if (!error) {
         // Successfully saved in Supabase (even if select() returns [] due to RLS, the row was saved)
-        const savedData = (dbData && dbData.length > 0) ? dbData[0] : insertPayload
+        const savedData = (dbData && dbData.length > 0) ? dbData[0] : currentPayload
         saveToLocalStorage('egt_day1_registrations', savedData)
         return { success: true, data: savedData, isSupabase: true }
       }
@@ -330,8 +330,24 @@ export async function saveDay1Registration(data) {
   }
 
   // 7. Local Fallback storage only if Supabase client is not configured
-  saveToLocalStorage('egt_day1_registrations', insertPayload)
-  return { success: true, data: insertPayload, isSupabase: false }
+  const localItems = getFromLocalStorage('egt_day1_registrations')
+  let maxSeq = 0
+  localItems.forEach(item => {
+    if (item?.reg_id) {
+      const match = item.reg_id.match(/(\d+)$/)
+      if (match) {
+        const num = parseInt(match[1], 10)
+        if (!isNaN(num) && num > maxSeq) maxSeq = num
+      }
+    }
+  })
+  const nextSeq = String(maxSeq + 1).padStart(4, '0')
+  const localPayload = {
+    ...insertPayload,
+    reg_id: `EGT2-P-${nextSeq}`
+  }
+  saveToLocalStorage('egt_day1_registrations', localPayload)
+  return { success: true, data: localPayload, isSupabase: false }
 }
 
 export async function saveDay2Registration(data) {
@@ -515,7 +531,7 @@ export async function saveDay2Registration(data) {
 
       if (!error) {
         // Successfully saved in Supabase (even if select() returns [] due to RLS, the row was saved)
-        const savedData = (dbData && dbData.length > 0) ? dbData[0] : insertPayload
+        const savedData = (dbData && dbData.length > 0) ? dbData[0] : currentPayload
         saveToLocalStorage('egt_day2_registrations', savedData)
         return { success: true, data: savedData, isSupabase: true }
       }
@@ -542,8 +558,24 @@ export async function saveDay2Registration(data) {
   }
 
   // 7. Local Fallback storage only if Supabase client is not configured
-  saveToLocalStorage('egt_day2_registrations', insertPayload)
-  return { success: true, data: insertPayload, isSupabase: false }
+  const localItems = getFromLocalStorage('egt_day2_registrations')
+  let maxSeq = 0
+  localItems.forEach(item => {
+    if (item?.reg_id) {
+      const match = item.reg_id.match(/(\d+)$/)
+      if (match) {
+        const num = parseInt(match[1], 10)
+        if (!isNaN(num) && num > maxSeq) maxSeq = num
+      }
+    }
+  })
+  const nextSeq = String(maxSeq + 1).padStart(4, '0')
+  const localPayload = {
+    ...insertPayload,
+    reg_id: `EGT2-T-${nextSeq}`
+  }
+  saveToLocalStorage('egt_day2_registrations', localPayload)
+  return { success: true, data: localPayload, isSupabase: false }
 }
 
 // Fetch all Day 1 Registrations
@@ -596,17 +628,23 @@ export async function updateRegistrationStatus(table, regId, status) {
   const ALLOWED_TABLES = ['day1_registrations', 'day2_registrations']
   if (!ALLOWED_TABLES.includes(table)) {
     console.warn('updateRegistrationStatus: invalid table name blocked:', table)
-    return
+    return { success: false, error: 'Invalid table name' }
   }
 
   if (supabase) {
     try {
-      await supabase
+      const { error } = await supabase
         .from(table)
         .update({ status })
         .eq('reg_id', regId)
+
+      if (error) {
+        console.error('Supabase status update failed:', error)
+        return { success: false, error: error.message }
+      }
     } catch (err) {
-      console.warn('Supabase status update failed:', err)
+      console.error('Supabase status update exception:', err)
+      return { success: false, error: err.message || 'Status update failed' }
     }
   }
 
@@ -614,6 +652,7 @@ export async function updateRegistrationStatus(table, regId, status) {
   const items = getFromLocalStorage(localKey)
   const updated = items.map(item => item.reg_id === regId ? { ...item, status } : item)
   localStorage.setItem(localKey, JSON.stringify(updated))
+  return { success: true }
 }
 
 // Delete Registration
@@ -622,17 +661,23 @@ export async function deleteRegistration(table, regId) {
   const ALLOWED_TABLES = ['day1_registrations', 'day2_registrations']
   if (!ALLOWED_TABLES.includes(table)) {
     console.warn('deleteRegistration: invalid table name blocked:', table)
-    return
+    return { success: false, error: 'Invalid table name' }
   }
 
   if (supabase) {
     try {
-      await supabase
+      const { error } = await supabase
         .from(table)
         .delete()
         .eq('reg_id', regId)
+
+      if (error) {
+        console.error('Supabase delete failed:', error)
+        return { success: false, error: error.message }
+      }
     } catch (err) {
-      console.warn('Supabase delete failed:', err)
+      console.error('Supabase delete exception:', err)
+      return { success: false, error: err.message || 'Delete operation failed' }
     }
   }
 
@@ -640,6 +685,7 @@ export async function deleteRegistration(table, regId) {
   const items = getFromLocalStorage(localKey)
   const filtered = items.filter(item => item.reg_id !== regId)
   localStorage.setItem(localKey, JSON.stringify(filtered))
+  return { success: true }
 }
 
 // Storage Helpers

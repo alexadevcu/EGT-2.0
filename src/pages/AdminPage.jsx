@@ -470,17 +470,24 @@ export default function AdminPage({ setCurrentPage }) {
   }
 
   const handleStatusChange = async (table, regId, newStatus) => {
-    await updateRegistrationStatus(table, regId, newStatus)
+    const res = await updateRegistrationStatus(table, regId, newStatus)
+    if (res && !res.success) {
+      alert(`Status update failed: ${res.error || 'Unknown error'}`)
+    }
     loadAllData()
   }
 
   const handleDelete = async (table, regId) => {
     if (window.confirm('Are you sure you want to delete this registration entry?')) {
-      await deleteRegistration(table, regId)
-      loadAllData()
-      if (selectedItem?.reg_id === regId) {
-        setSelectedItem(null)
+      const res = await deleteRegistration(table, regId)
+      if (res && !res.success) {
+        alert(`Delete failed: ${res.error || 'Unknown error'}`)
+      } else {
+        if (selectedItem?.reg_id === regId) {
+          setSelectedItem(null)
+        }
       }
+      loadAllData()
     }
   }
 
@@ -494,7 +501,11 @@ export default function AdminPage({ setCurrentPage }) {
 
     const cleanField = (val) => {
       if (val === null || val === undefined) return '""'
-      const str = String(val).replace(/"/g, '""')
+      let str = String(val).replace(/"/g, '""')
+      // Neutralize spreadsheet formula injection: if cell starts with =, +, -, @, \t, \r, prepend single quote
+      if (/^[=+\-@\t\r]/.test(str)) {
+        str = `'${str}`
+      }
       return `"${str}"`
     }
 
