@@ -266,23 +266,39 @@ export async function saveDay1Registration(data) {
     created_at: new Date().toISOString()
   }
 
-  // 6. Insert into Supabase
+  // 6. Insert into Supabase with automatic schema reconciliation
   if (supabase) {
     try {
-      let { data: dbData, error } = await supabase
-        .from('day1_registrations')
-        .insert([insertPayload])
-        .select()
+      let currentPayload = { ...insertPayload }
+      let dbData = null
+      let error = null
+      let attempts = 0
 
-      // If error is about missing team_members_raw column, automatically retry without it
-      if (error && (error.message?.includes('team_members_raw') || error.details?.includes('team_members_raw'))) {
-        const { team_members_raw, ...cleanPayloadWithoutRaw } = insertPayload
-        const retry = await supabase
-          .from('day1_registrations')
-          .insert([cleanPayloadWithoutRaw])
-          .select()
-        dbData = retry.data
-        error = retry.error
+      // Initial insert attempt
+      const res = await supabase
+        .from('day1_registrations')
+        .insert([currentPayload])
+        .select()
+      dbData = res.data
+      error = res.error
+
+      // Self-healing loop: if any column is not in DB table, strip it and retry automatically
+      while (error && (error.message?.includes('column') || error.message?.includes('schema cache')) && attempts < 8) {
+        attempts++
+        const match = error.message.match(/Could not find the '([^']+)' column/i)
+        if (match && match[1]) {
+          const missingCol = match[1]
+          console.warn(`Day 1 DB missing column '${missingCol}', pruning and retrying...`)
+          delete currentPayload[missingCol]
+          const retryRes = await supabase
+            .from('day1_registrations')
+            .insert([currentPayload])
+            .select()
+          dbData = retryRes.data
+          error = retryRes.error
+        } else {
+          break
+        }
       }
 
       if (!error) {
@@ -462,39 +478,39 @@ export async function saveDay2Registration(data) {
     created_at: new Date().toISOString()
   }
 
-  // 6. Insert into Supabase
+  // 6. Insert into Supabase with automatic schema reconciliation
   if (supabase) {
     try {
-      let { data: dbData, error } = await supabase
-        .from('day2_registrations')
-        .insert([insertPayload])
-        .select()
+      let currentPayload = { ...insertPayload }
+      let dbData = null
+      let error = null
+      let attempts = 0
 
-      // If error is about missing teammate detail columns, retry with base payload
-      if (error && (error.message?.includes('teammate_') || error.details?.includes('teammate_'))) {
-        const basePayload = {
-          reg_id: clientRegId,
-          leader_name: cleanLeaderName,
-          uid: cleanUid,
-          email: cleanEmail,
-          phone: cleanPhone,
-          department: sanitizeInput(data.department) || 'AIT CSE',
-          academic_year: sanitizeInput(data.academicYear) || '3rd Year',
-          section: sanitizeInput(data.section),
-          group_name: sanitizeInput(data.group),
-          block: sanitizeInput(data.block),
-          squad_name: cleanSquadName,
-          teammate_1: formattedT1,
-          teammate_2: formattedT2,
-          teammate_3: formattedT3 || '',
-          created_at: new Date().toISOString()
+      // Initial insert attempt
+      const res = await supabase
+        .from('day2_registrations')
+        .insert([currentPayload])
+        .select()
+      dbData = res.data
+      error = res.error
+
+      // Self-healing loop: if any column is not in DB table, strip it and retry automatically
+      while (error && (error.message?.includes('column') || error.message?.includes('schema cache')) && attempts < 10) {
+        attempts++
+        const match = error.message.match(/Could not find the '([^']+)' column/i)
+        if (match && match[1]) {
+          const missingCol = match[1]
+          console.warn(`Day 2 DB missing column '${missingCol}', pruning and retrying...`)
+          delete currentPayload[missingCol]
+          const retryRes = await supabase
+            .from('day2_registrations')
+            .insert([currentPayload])
+            .select()
+          dbData = retryRes.data
+          error = retryRes.error
+        } else {
+          break
         }
-        const retry = await supabase
-          .from('day2_registrations')
-          .insert([basePayload])
-          .select()
-        dbData = retry.data
-        error = retry.error
       }
 
       if (!error) {
