@@ -119,7 +119,7 @@ export default function AdminPage({ setCurrentPage }) {
   const [viewMode, setViewMode] = useState('table') // 'table' | 'sheets'
   const [googleSheetUrl, setGoogleSheetUrl] = useState(import.meta.env.VITE_GOOGLE_SHEET_URL || '')
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [selectedItem, setSelectedItem] = useState(null)
 
   // Direct Google Sheets Webhook Sync State
@@ -288,30 +288,48 @@ export default function AdminPage({ setCurrentPage }) {
         })
       }
 
-      // Validate webhook URL before fetch — must be https:
+      // Validate webhook URL before fetch — must be https: and end with /exec
       let validatedWebhook
       try {
         const parsedUrl = new URL(webhookUrl)
         if (parsedUrl.protocol !== 'https:') throw new Error('Non-HTTPS webhook URL')
+        if (!webhookUrl.includes('/exec')) {
+          setSyncStatus({
+            day: dayKey,
+            success: false,
+            message: 'Invalid Webhook URL! The URL must end with /exec (from Apps Script > Deploy > Manage deployments > Web app URL).'
+          })
+          setIsSyncing(null)
+          return
+        }
         validatedWebhook = webhookUrl
       } catch {
-        setSyncStatus({ day: dayKey, success: false, message: 'Invalid webhook URL. Must be a valid https:// Google Apps Script URL.' })
+        setSyncStatus({ day: dayKey, success: false, message: 'Invalid webhook URL. Must be a valid https:// Google Apps Script Web App URL ending in /exec.' })
         setIsSyncing(null)
         return
       }
 
-      // Send payload to Google Apps Script Webhook
+      console.log(`[GoogleSheetSync] Sending ${rows.length} rows to ${validatedWebhook}...`)
+
+      // Send payload to Google Apps Script Webhook via URLSearchParams (guaranteed delivery in no-cors mode)
+      const formParams = new URLSearchParams()
+      formParams.append('data', JSON.stringify({
+        dayKey,
+        dayName,
+        headers,
+        rows
+      }))
+
       await fetch(validatedWebhook, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          dayKey,
-          dayName,
-          headers,
-          rows
-        })
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formParams.toString()
       })
+
+      console.log(`[GoogleSheetSync] Request dispatched to Google Apps Script successfully.`)
 
       setSyncStatus({
         day: dayKey,
@@ -330,21 +348,54 @@ export default function AdminPage({ setCurrentPage }) {
     }
   }
 
-  // Google Apps Script Template for User Setup
+  // Google Apps Script Template for User Setup (Production Tested)
   const appsScriptCode = `function doPost(e) {
   try {
-    var data = JSON.parse(e.postData.contents);
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var raw = "";
+    if (e && e.parameter && e.parameter.data) {
+      raw = e.parameter.data;
+    } else if (e && e.postData && e.postData.contents) {
+      raw = e.postData.contents;
+      if (raw.indexOf("data=") === 0) {
+        raw = decodeURIComponent(raw.substring(5).replace(/\\+/g, " "));
+      }
+    }
+    
+    if (!raw) throw new Error("No data parameter received in request");
+    
+    var data = JSON.parse(raw);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheets()[0];
     
     // Clear old data and format table fresh
     sheet.clear();
     
-    // 1. Append Header Row
+    var allRows = [];
     if (data.headers && data.headers.length > 0) {
-      sheet.appendRow(data.headers);
+      allRows.push(data.headers);
+    }
+    if (data.rows && data.rows.length > 0) {
+      for (var i = 0; i < data.rows.length; i++) {
+        allRows.push(data.rows[i]);
+      }
+    }
+    
+    if (allRows.length > 0) {
+      var numRows = allRows.length;
+      var numCols = allRows[0].length;
+      
+      // Ensure all rows match column length
+      for (var r = 0; r < numRows; r++) {
+        while (allRows[r].length < numCols) {
+          allRows[r].push("");
+        }
+      }
+      
+      var range = sheet.getRange(1, 1, numRows, numCols);
+      range.setValues(allRows);
       
       // Style Gold/Dark Header Row
-      var headerRange = sheet.getRange(1, 1, 1, data.headers.length);
+      var headerRange = sheet.getRange(1, 1, 1, numCols);
       headerRange.setBackground('#1a1711');
       headerRange.setFontColor('#f7d978');
       headerRange.setFontWeight('bold');
@@ -352,47 +403,43 @@ export default function AdminPage({ setCurrentPage }) {
       headerRange.setFontSize(11);
       headerRange.setHorizontalAlignment('center');
       sheet.setFrozenRows(1);
-    }
-    
-    // 2. Append Participant Rows
-    if (data.rows && data.rows.length > 0) {
-      for (var i = 0; i < data.rows.length; i++) {
-        sheet.appendRow(data.rows[i]);
-      }
       
-      var numRows = data.rows.length;
-      var numCols = data.headers.length;
-      var dataRange = sheet.getRange(2, 1, numRows, numCols);
-      dataRange.setFontFamily('Arial');
-      dataRange.setFontSize(10);
-      
-      // Zebra striping for table
-      for (var r = 2; r <= numRows + 1; r++) {
-        var rowRange = sheet.getRange(r, 1, 1, numCols);
-        if (r % 2 === 0) {
-          rowRange.setBackground('#f4f4f6');
-        } else {
-          rowRange.setBackground('#ffffff');
+      // Zebra striping for data rows
+      if (numRows > 1) {
+        var dataRange = sheet.getRange(2, 1, numRows - 1, numCols);
+        dataRange.setFontFamily('Arial');
+        dataRange.setFontSize(10);
+        
+        for (var rowIdx = 2; rowIdx <= numRows; rowIdx++) {
+          var rowBg = (rowIdx % 2 === 0) ? '#f4f4f6' : '#ffffff';
+          sheet.getRange(rowIdx, 1, 1, numCols).setBackground(rowBg);
         }
       }
+      
+      // Auto-fit columns
+      for (var c = 1; c <= numCols; c++) {
+        try { sheet.autoResizeColumn(c); } catch (err) {}
+      }
     }
     
-    // 3. Auto-fit all columns
-    for (var col = 1; col <= (data.headers ? data.headers.length : 15); col++) {
-      sheet.autoResizeColumn(col);
-    }
-    
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "success",
-      rowsCount: data.rows ? data.rows.length : 0
-    })).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput("SUCCESS").setMimeType(ContentService.MimeType.TEXT);
     
   } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "error",
-      message: error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss) {
+      ss.getSheets()[0].appendRow(["SYNC ERROR", new Date(), error.toString()]);
+    }
+    return ContentService.createTextOutput(error.toString()).setMimeType(ContentService.MimeType.TEXT);
   }
+}
+
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  return ContentService.createTextOutput(JSON.stringify({
+    status: "online",
+    sheetName: ss ? ss.getSheets()[0].getName() : "Unknown Sheet",
+    message: "EGT 2.0 Webhook is active!"
+  })).setMimeType(ContentService.MimeType.JSON);
 }`
 
   const copyAppsScript = () => {
@@ -412,19 +459,43 @@ export default function AdminPage({ setCurrentPage }) {
     checkSession()
   }, [])
 
-  // Load Data
+  // Load Data (with loading indicator)
   const loadAllData = async () => {
     setLoading(true)
-    const d1 = await getDay1Registrations()
-    const d2 = await getDay2Registrations()
-    setDay1Data(d1)
-    setDay2Data(d2)
-    setLoading(false)
+    try {
+      const [d1, d2] = await Promise.all([
+        getDay1Registrations(),
+        getDay2Registrations()
+      ])
+      setDay1Data(d1)
+      setDay2Data(d2)
+    } catch (err) {
+      console.warn('Failed to load data:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Silent Background Auto-Refresh (does not disrupt active UI or show spinners)
+  const loadAllDataSilently = async () => {
+    try {
+      const [d1, d2] = await Promise.all([
+        getDay1Registrations(),
+        getDay2Registrations()
+      ])
+      setDay1Data(d1)
+      setDay2Data(d2)
+    } catch (err) {
+      console.warn('Silent refresh error:', err)
+    }
   }
 
   useEffect(() => {
     if (isAuthenticated) {
       loadAllData()
+      // Live Auto-Sync: Automatically check for new registrations every 15 seconds
+      const pollInterval = setInterval(loadAllDataSilently, 15000)
+      return () => clearInterval(pollInterval)
     }
   }, [isAuthenticated])
 
@@ -788,8 +859,46 @@ export default function AdminPage({ setCurrentPage }) {
     try {
       const searchString = JSON.stringify(item).toLowerCase()
       const matchesSearch = searchString.includes((searchTerm || '').toLowerCase())
-      const matchesStatus = statusFilter === 'all' || (item.status && String(item.status).toLowerCase() === statusFilter.toLowerCase())
-      return matchesSearch && matchesStatus
+
+      let matchesFilter = true
+      if (categoryFilter !== 'all') {
+        if (activeTab === 'day1') {
+          if (categoryFilter === 'solo') {
+            matchesFilter = (item.entry_type || 'Solo').toLowerCase() === 'solo'
+          } else if (categoryFilter === 'team') {
+            matchesFilter = (item.entry_type || '').toLowerCase() === 'team' || Boolean(item.team_name && item.team_name.trim().length > 0)
+          } else if (categoryFilter === 'dance') {
+            matchesFilter = (item.category || '').toLowerCase().includes('dance')
+          } else if (categoryFilter === 'singing') {
+            matchesFilter = (item.category || '').toLowerCase().includes('singing') || (item.category || '').toLowerCase().includes('vocal')
+          } else if (categoryFilter === 'comedy') {
+            matchesFilter = (item.category || '').toLowerCase().includes('comedy')
+          } else if (categoryFilter === 'beatboxing') {
+            matchesFilter = (item.category || '').toLowerCase().includes('beatbox') || (item.category || '').toLowerCase().includes('rap')
+          } else if (categoryFilter === 'instrumental') {
+            matchesFilter = (item.category || '').toLowerCase().includes('instrumental')
+          } else if (categoryFilter === 'poetry') {
+            matchesFilter = (item.category || '').toLowerCase().includes('poetry') || (item.category || '').toLowerCase().includes('spoken')
+          } else if (categoryFilter === 'dramatic') {
+            matchesFilter = (item.category || '').toLowerCase().includes('dramatic') || (item.category || '').toLowerCase().includes('monologue')
+          } else if (categoryFilter === 'magic') {
+            matchesFilter = (item.category || '').toLowerCase().includes('magic') || (item.category || '').toLowerCase().includes('mentalism')
+          } else if (categoryFilter === 'other') {
+            matchesFilter = (item.category || '').toLowerCase().includes('other')
+          } else {
+            matchesFilter = (item.category || '').toLowerCase().includes(categoryFilter.toLowerCase())
+          }
+        } else {
+          // Day 2 Tech Squad filtering
+          if (categoryFilter === '3-members') {
+            matchesFilter = !(item.teammate_3 || item.teammate_3_name)
+          } else if (categoryFilter === '4-members') {
+            matchesFilter = Boolean(item.teammate_3 || item.teammate_3_name)
+          }
+        }
+      }
+
+      return matchesSearch && matchesFilter
     } catch (err) {
       return true
     }
@@ -838,10 +947,12 @@ export default function AdminPage({ setCurrentPage }) {
 
           <button
             onClick={loadAllData}
-            className="p-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
-            title="Refresh Data"
+            disabled={loading}
+            className="px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white transition-all text-xs font-['Space_Grotesk'] font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Refresh database entries"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#f7d978]' : ''}`} />
+            <span>{loading ? 'Fetching...' : 'Refresh'}</span>
           </button>
 
           {googleSheetUrl ? (
@@ -1079,7 +1190,7 @@ export default function AdminPage({ setCurrentPage }) {
         {/* Tab Buttons */}
         <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 font-['Space_Grotesk'] text-xs font-bold w-full sm:w-auto">
           <button
-            onClick={() => setActiveTab('day1')}
+            onClick={() => { setActiveTab('day1'); setCategoryFilter('all'); }}
             className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'day1' ? 'bg-[#f7d978] text-black shadow-md' : 'text-gray-300 hover:text-white'
             }`}
@@ -1089,7 +1200,7 @@ export default function AdminPage({ setCurrentPage }) {
           </button>
 
           <button
-            onClick={() => setActiveTab('day2')}
+            onClick={() => { setActiveTab('day2'); setCategoryFilter('all'); }}
             className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'day2' ? 'bg-cyan-400 text-black shadow-md' : 'text-gray-300 hover:text-white'
             }`}
@@ -1099,7 +1210,7 @@ export default function AdminPage({ setCurrentPage }) {
           </button>
         </div>
 
-        {/* Search & Status Filter */}
+        {/* Search & Category/Format Filter */}
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
@@ -1113,16 +1224,48 @@ export default function AdminPage({ setCurrentPage }) {
           </div>
 
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-auto bg-[#12121c] border border-white/15 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full sm:w-auto bg-[#12121c] border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#f7d978] cursor-pointer shadow-lg"
           >
-            <option value="all">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-            <option value="waitlist">Waitlist</option>
+            {activeTab === 'day1' ? (
+              <>
+                <option value="all">All Formats &amp; Categories</option>
+                <optgroup label="── Performance Format ──">
+                  <option value="solo">Solo Acts Only</option>
+                  <option value="team">Team / Group Acts Only</option>
+                </optgroup>
+                <optgroup label="── Talent Categories ──">
+                  <option value="singing">Singing &amp; Vocal Arts</option>
+                  <option value="dance">Dance (Solo / Group)</option>
+                  <option value="comedy">Stand-Up Comedy</option>
+                  <option value="beatboxing">Beatboxing &amp; Rap</option>
+                  <option value="instrumental">Instrumental Music</option>
+                  <option value="poetry">Poetry &amp; Spoken Word</option>
+                  <option value="dramatic">Dramatic Act &amp; Monologue</option>
+                  <option value="magic">Magic &amp; Mentalism</option>
+                  <option value="other">Other Talent</option>
+                </optgroup>
+              </>
+            ) : (
+              <>
+                <option value="all">All Squads</option>
+                <option value="3-members">3-Member Squads</option>
+                <option value="4-members">4-Member Squads (With Teammate 3)</option>
+              </>
+            )}
           </select>
+
+          {/* Dedicated Refresh Button */}
+          <button
+            onClick={loadAllData}
+            disabled={loading}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
+            title="Fetch latest registrations from database"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-amber-400' : 'text-purple-300'}`} />
+            <span>{loading ? 'Fetching...' : 'Refresh Data'}</span>
+          </button>
         </div>
       </div>
 
@@ -1606,7 +1749,7 @@ export default function AdminPage({ setCurrentPage }) {
             {/* Quick 3-Step Setup Guide */}
             <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3 font-sans text-xs">
               <div className="font-['Space_Grotesk'] font-bold text-[#f7d978] text-sm flex items-center justify-between">
-                <span>⚡ How to set up in 30 Seconds:</span>
+                <span>⚡ How to set up in 30 Seconds (Day 1 &amp; Day 2):</span>
                 <button
                   onClick={copyAppsScript}
                   className="px-3 py-1 rounded-lg bg-[#f7d978]/20 hover:bg-[#f7d978]/30 text-[#f7d978] border border-[#f7d978]/40 text-[11px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
@@ -1619,13 +1762,13 @@ export default function AdminPage({ setCurrentPage }) {
               <ol className="list-decimal list-inside space-y-1.5 text-gray-300 leading-relaxed font-normal">
                 <li>Create or open your Google Sheet for <strong>Day 1</strong> or <strong>Day 2</strong>.</li>
                 <li>Click <strong>Extensions</strong> → <strong>Apps Script</strong>, delete existing code, and paste the copied script.</li>
-                <li>Click <strong>Deploy</strong> → <strong>New deployment</strong> → Select type: <strong>Web app</strong>.</li>
-                <li>Set <em>Execute as</em>: <strong>Me</strong> and <em>Who has access</em>: <strong>Anyone</strong>.</li>
-                <li>Click <strong>Deploy</strong>, copy the generated Web app URL, and paste it in the fields above!</li>
+                <li>Click <strong>Deploy</strong> → <strong>New deployment</strong> (or <strong>Manage deployments</strong> → <strong>Edit</strong> → <strong>New version</strong>) → Select type: <strong>Web app</strong>.</li>
+                <li>Set <em>Execute as</em>: <strong>Me</strong> and <em>Who has access</em>: <strong className="text-amber-300">Anyone</strong> *(Required!)*.</li>
+                <li>Click <strong>Deploy</strong>, copy the generated Web app URL (ending in <code className="text-[#f7d978]">/exec</code>), and paste it in the fields above!</li>
               </ol>
 
-              <div className="mt-2 text-[11px] text-gray-400 bg-black/40 p-2.5 rounded-xl border border-white/5 font-mono">
-                ✨ When you click "Push Data", it will automatically create gold/cyan styled headers, freeze the top row, apply zebra striping, and auto-fit column widths!
+              <div className="mt-2 text-[11px] text-emerald-300 bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/20 font-sans">
+                💡 <strong>Pro-Tip:</strong> In Google Sheets, convert to table format via <strong>Format → Convert to table</strong> for easy filtering, sorting, and squad search!
               </div>
             </div>
 
