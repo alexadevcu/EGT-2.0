@@ -218,13 +218,15 @@ export async function saveDay1Registration(data) {
     }
   }
 
-  // 5. Check local fallback storage
-  const localItems = getFromLocalStorage('egt_day1_registrations')
-  const localDuplicate = localItems.find(item => item.uid?.trim().toUpperCase() === cleanUid)
-  if (localDuplicate) {
-    return {
-      success: false,
-      error: `Student UID [${cleanUid}] is already registered for Day 1 (${localDuplicate.reg_id}). Duplicate registrations are not allowed.`
+  // 5. Check local fallback storage ONLY if Supabase client is not configured
+  if (!supabase) {
+    const localItems = getFromLocalStorage('egt_day1_registrations')
+    const localDuplicate = localItems.find(item => item.uid?.trim().toUpperCase() === cleanUid)
+    if (localDuplicate) {
+      return {
+        success: false,
+        error: `Student UID [${cleanUid}] is already registered for Day 1 (${localDuplicate.reg_id}). Duplicate registrations are not allowed.`
+      }
     }
   }
 
@@ -411,13 +413,15 @@ export async function saveDay2Registration(data) {
     }
   }
 
-  // 5. Check local fallback storage
-  const localItems = getFromLocalStorage('egt_day2_registrations')
-  const localDuplicate = localItems.find(item => item.uid?.trim().toUpperCase() === cleanUid)
-  if (localDuplicate) {
-    return {
-      success: false,
-      error: `Student UID [${cleanUid}] is already registered for Day 2 (${localDuplicate.reg_id}). Duplicate registrations are not allowed.`
+  // 5. Check local fallback storage ONLY if Supabase client is not configured
+  if (!supabase) {
+    const localItems = getFromLocalStorage('egt_day2_registrations')
+    const localDuplicate = localItems.find(item => item.uid?.trim().toUpperCase() === cleanUid)
+    if (localDuplicate) {
+      return {
+        success: false,
+        error: `Student UID [${cleanUid}] is already registered for Day 2 (${localDuplicate.reg_id}). Duplicate registrations are not allowed.`
+      }
     }
   }
 
