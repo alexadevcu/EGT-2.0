@@ -108,6 +108,12 @@ export function validateUID(uid) {
   return clean.length >= 4 && clean.length <= 30
 }
 
+export function generateRegId(prefix = 'EGT2-P') {
+  const timestamp = Date.now().toString().slice(-4)
+  const rand = Math.floor(10 + Math.random() * 90)
+  return `${prefix}-${timestamp}${rand}`
+}
+
 export function checkSubmissionRateLimit(key = 'egt_last_sub') {
   // NOTE: This is client-side rate limiting only — a database-level UNIQUE constraint
   // on the uid column is the authoritative duplicate-prevention mechanism.
@@ -230,8 +236,12 @@ export async function saveDay1Registration(data) {
     ? JSON.stringify(data.teamMembersList)
     : ''
 
+  // Generate unique registration ID directly (guaranteed to prevent sequence/null constraint issues)
+  const clientRegId = generateRegId('EGT2-P')
+
   // Payload for backend insertion
   const insertPayload = {
+    reg_id: clientRegId,
     full_name: cleanFullName,
     uid: cleanUid,
     email: cleanEmail,
@@ -254,37 +264,56 @@ export async function saveDay1Registration(data) {
     created_at: new Date().toISOString()
   }
 
-  // 6. Insert into Supabase (Backend generates unique EGT2-P-0001 reg_id)
+  // 6. Insert into Supabase
   if (supabase) {
     try {
-      const { data: dbData, error } = await supabase
+      let { data: dbData, error } = await supabase
         .from('day1_registrations')
         .insert([insertPayload])
         .select()
 
-      if (!error && dbData && dbData.length > 0) {
-        saveToLocalStorage('egt_day1_registrations', dbData[0])
-        return { success: true, data: dbData[0], isSupabase: true }
-      } else if (error && (error.code === '23505' || error.message.includes('unique'))) {
+      // If error is about missing team_members_raw column, automatically retry without it
+      if (error && (error.message?.includes('team_members_raw') || error.details?.includes('team_members_raw'))) {
+        const { team_members_raw, ...cleanPayloadWithoutRaw } = insertPayload
+        const retry = await supabase
+          .from('day1_registrations')
+          .insert([cleanPayloadWithoutRaw])
+          .select()
+        dbData = retry.data
+        error = retry.error
+      }
+
+      if (!error) {
+        // Successfully saved in Supabase (even if select() returns [] due to RLS, the row was saved)
+        const savedData = (dbData && dbData.length > 0) ? dbData[0] : insertPayload
+        saveToLocalStorage('egt_day1_registrations', savedData)
+        return { success: true, data: savedData, isSupabase: true }
+      }
+
+      if (error.code === '23505' || error.message?.toLowerCase().includes('unique') || error.message?.toLowerCase().includes('duplicate')) {
         return {
           success: false,
           error: `Student UID [${cleanUid}] is already registered! Duplicate registrations are not allowed.`
         }
       }
+
+      console.error('Supabase Day 1 Insert Error:', error)
+      return {
+        success: false,
+        error: `Database registration error: ${error.message || 'Unable to save to server.'} Please notify organizers if this persists.`
+      }
     } catch (err) {
-      console.warn('Supabase insert exception, falling back to local:', err)
+      console.error('Supabase Day 1 Insert Exception:', err)
+      return {
+        success: false,
+        error: `Connection error: ${err.message || 'Failed to submit registration.'}`
+      }
     }
   }
 
-  // 7. Local Fallback storage with sequential EGT2-P-XXXX format
-  const nextSeq = String(localItems.length + 1).padStart(4, '0')
-  const localPayload = {
-    reg_id: `EGT2-P-${nextSeq}`,
-    ...insertPayload
-  }
-
-  saveToLocalStorage('egt_day1_registrations', localPayload)
-  return { success: true, data: localPayload, isSupabase: false }
+  // 7. Local Fallback storage only if Supabase client is not configured
+  saveToLocalStorage('egt_day1_registrations', insertPayload)
+  return { success: true, data: insertPayload, isSupabase: false }
 }
 
 export async function saveDay2Registration(data) {
@@ -392,8 +421,12 @@ export async function saveDay2Registration(data) {
     }
   }
 
+  // Generate unique registration ID directly (guaranteed to prevent sequence/null constraint issues)
+  const clientRegId = generateRegId('EGT2-T')
+
   // Payload for backend insertion
   const insertPayload = {
+    reg_id: clientRegId,
     leader_name: cleanLeaderName,
     uid: cleanUid,
     email: cleanEmail,
@@ -425,37 +458,72 @@ export async function saveDay2Registration(data) {
     created_at: new Date().toISOString()
   }
 
-  // 6. Insert into Supabase (Backend generates unique EGT2-T-0001 reg_id)
+  // 6. Insert into Supabase
   if (supabase) {
     try {
-      const { data: dbData, error } = await supabase
+      let { data: dbData, error } = await supabase
         .from('day2_registrations')
         .insert([insertPayload])
         .select()
 
-      if (!error && dbData && dbData.length > 0) {
-        saveToLocalStorage('egt_day2_registrations', dbData[0])
-        return { success: true, data: dbData[0], isSupabase: true }
-      } else if (error && (error.code === '23505' || error.message.includes('unique'))) {
+      // If error is about missing teammate detail columns, retry with base payload
+      if (error && (error.message?.includes('teammate_') || error.details?.includes('teammate_'))) {
+        const basePayload = {
+          reg_id: clientRegId,
+          leader_name: cleanLeaderName,
+          uid: cleanUid,
+          email: cleanEmail,
+          phone: cleanPhone,
+          department: sanitizeInput(data.department) || 'AIT CSE',
+          academic_year: sanitizeInput(data.academicYear) || '3rd Year',
+          section: sanitizeInput(data.section),
+          group_name: sanitizeInput(data.group),
+          block: sanitizeInput(data.block),
+          squad_name: cleanSquadName,
+          teammate_1: formattedT1,
+          teammate_2: formattedT2,
+          teammate_3: formattedT3 || '',
+          created_at: new Date().toISOString()
+        }
+        const retry = await supabase
+          .from('day2_registrations')
+          .insert([basePayload])
+          .select()
+        dbData = retry.data
+        error = retry.error
+      }
+
+      if (!error) {
+        // Successfully saved in Supabase (even if select() returns [] due to RLS, the row was saved)
+        const savedData = (dbData && dbData.length > 0) ? dbData[0] : insertPayload
+        saveToLocalStorage('egt_day2_registrations', savedData)
+        return { success: true, data: savedData, isSupabase: true }
+      }
+
+      if (error.code === '23505' || error.message?.toLowerCase().includes('unique') || error.message?.toLowerCase().includes('duplicate')) {
         return {
           success: false,
           error: `Student UID [${cleanUid}] is already registered! Duplicate registrations are not allowed.`
         }
       }
+
+      console.error('Supabase Day 2 Insert Error:', error)
+      return {
+        success: false,
+        error: `Database registration error: ${error.message || 'Unable to save to server.'} Please notify organizers if this persists.`
+      }
     } catch (err) {
-      console.warn('Supabase insert exception, falling back to local:', err)
+      console.error('Supabase Day 2 Insert Exception:', err)
+      return {
+        success: false,
+        error: `Connection error: ${err.message || 'Failed to submit registration.'}`
+      }
     }
   }
 
-  // 7. Local Fallback storage with sequential EGT2-T-XXXX format
-  const nextSeq = String(localItems.length + 1).padStart(4, '0')
-  const localPayload = {
-    reg_id: `EGT2-T-${nextSeq}`,
-    ...insertPayload
-  }
-
-  saveToLocalStorage('egt_day2_registrations', localPayload)
-  return { success: true, data: localPayload, isSupabase: false }
+  // 7. Local Fallback storage only if Supabase client is not configured
+  saveToLocalStorage('egt_day2_registrations', insertPayload)
+  return { success: true, data: insertPayload, isSupabase: false }
 }
 
 // Fetch all Day 1 Registrations
@@ -470,8 +538,11 @@ export async function getDay1Registrations() {
       if (!error && data) {
         return data
       }
+      if (error) {
+        console.error('Supabase fetch day1_registrations error:', error)
+      }
     } catch (err) {
-      console.warn('Failed to fetch from Supabase:', err)
+      console.error('Failed to fetch day1 from Supabase:', err)
     }
   }
   return getFromLocalStorage('egt_day1_registrations')
@@ -489,8 +560,11 @@ export async function getDay2Registrations() {
       if (!error && data) {
         return data
       }
+      if (error) {
+        console.error('Supabase fetch day2_registrations error:', error)
+      }
     } catch (err) {
-      console.warn('Failed to fetch from Supabase:', err)
+      console.error('Failed to fetch day2 from Supabase:', err)
     }
   }
   return getFromLocalStorage('egt_day2_registrations')

@@ -86,8 +86,10 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
       }
 
       setSubmittedPass(result.data)
+      window.scrollTo({ top: 100, behavior: 'smooth' })
     } else {
       setErrorMessage(result?.error || 'Registration failed. Please check your details.')
+      window.scrollTo({ top: 150, behavior: 'smooth' })
     }
   }
 
@@ -650,8 +652,18 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
               </label>
             </div>
 
+            {/* Bottom Error Display if any */}
+            {errorMessage && (
+              <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-['Space_Grotesk'] space-y-1 animate-in fade-in duration-300">
+                <div className="font-bold text-rose-400 text-sm flex items-center gap-1.5">
+                  <span>Registration Error</span>
+                </div>
+                <p>{errorMessage}</p>
+              </div>
+            )}
+
             {/* Submit Button */}
-            <div className="pt-4">
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={isSubmitting}
