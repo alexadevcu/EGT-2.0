@@ -1173,7 +1173,7 @@ export default function AdminPage({ setCurrentPage }) {
           {/* Google Sheets Grid Table */}
           <div className="overflow-x-auto max-h-[650px] overflow-y-auto">
             <table className="w-full border-collapse text-left font-sans text-xs">
-              {/* Alphabetical Column Header Row (A, B, C, D, E...) */}
+              {/* Alphabetical Column Header Row (A, B, C, D, E... L) */}
               <thead className="bg-[#29293d] sticky top-0 z-10 text-gray-400 text-[11px] font-mono">
                 <tr>
                   <th className="w-12 py-1 px-2 text-center border border-gray-700 bg-[#212130]"></th>
@@ -1188,6 +1188,7 @@ export default function AdminPage({ setCurrentPage }) {
                   <th className="py-1 px-3 border border-gray-700 text-center font-semibold">I</th>
                   <th className="py-1 px-3 border border-gray-700 text-center font-semibold">J</th>
                   <th className="py-1 px-3 border border-gray-700 text-center font-semibold">K</th>
+                  <th className="py-1 px-3 border border-gray-700 text-center font-semibold">L</th>
                 </tr>
 
                 {/* Purple Table Column Header Row (Matching Day 1 vs Day 2 Layout) */}
@@ -1203,13 +1204,14 @@ export default function AdminPage({ setCurrentPage }) {
                   <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Performance Category' : 'Squad Name'}</td>
                   <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Audio Track' : 'Teammate 1'}</td>
                   <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Previous Work' : 'Teammate 2'}</td>
+                  <td className="py-2 px-3 border border-gray-700">{activeTab === 'day1' ? 'Co-Performers & Team' : 'Teammate 3'}</td>
                 </tr>
               </thead>
 
               <tbody className="bg-[#181824] text-gray-200 divide-y divide-gray-800">
                 {filteredDataset.length === 0 ? (
                   <tr>
-                    <td colSpan="11" className="text-center py-10 text-gray-500 italic border border-gray-800">
+                    <td colSpan="12" className="text-center py-10 text-gray-500 italic border border-gray-800">
                       No records found in {activeTab === 'day1' ? 'Day 1 Performers' : 'Day 2 Technical Squads'} sheet.
                     </td>
                   </tr>
@@ -1261,7 +1263,7 @@ export default function AdminPage({ setCurrentPage }) {
                             <span className="text-gray-500 text-[11px] italic">No Track Required</span>
                           )
                         ) : (
-                          row.teammate_1 || 'N/A'
+                          row.teammate_1 || (row.teammate_1_name ? `${row.teammate_1_name} (${row.teammate_1_uid || ''})` : 'N/A')
                         )}
                       </td>
                       <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
@@ -1279,7 +1281,31 @@ export default function AdminPage({ setCurrentPage }) {
                             <span className="text-gray-500 text-[11px]">None</span>
                           )
                         ) : (
-                          row.teammate_2 || 'N/A'
+                          row.teammate_2 || (row.teammate_2_name ? `${row.teammate_2_name} (${row.teammate_2_uid || ''})` : 'N/A')
+                        )}
+                      </td>
+                      <td className="py-2 px-3 border border-gray-800 text-gray-300 whitespace-nowrap">
+                        {activeTab === 'day1' ? (
+                          (parseDay1TeamMembers(row).length > 0 || row.team_name || row.entry_type === 'Team') ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="px-2 py-0.5 rounded bg-purple-500/20 text-[#f7d978] border border-purple-500/40 text-[10px] font-bold">
+                                {row.team_name || 'Team'} ({parseDay1TeamMembers(row).length + 1})
+                              </span>
+                              <span className="text-gray-300 text-[11px] truncate max-w-[280px]" title={row.team_members || JSON.stringify(parseDay1TeamMembers(row))}>
+                                {parseDay1TeamMembers(row).length > 0
+                                  ? parseDay1TeamMembers(row).map(m => `${m.fullName} (${m.uid})`).join(', ')
+                                  : (row.team_members || 'Group Members')}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-500 text-[11px] italic">Solo Performer</span>
+                          )
+                        ) : (
+                          (row.teammate_3 || row.teammate_3_name) ? (
+                            row.teammate_3 || `${row.teammate_3_name} (${row.teammate_3_uid || ''})`
+                          ) : (
+                            <span className="text-gray-500 text-[11px] italic">No 3rd Teammate</span>
+                          )
                         )}
                       </td>
                     </tr>

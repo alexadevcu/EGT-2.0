@@ -710,6 +710,43 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
                 <span className="font-bold text-gray-200">{submittedPass.leader_name} ({submittedPass.uid})</span>
               </div>
 
+              {/* Day 2 Squad Teammates Roster */}
+              <div className="pt-2.5 border-t border-white/10 space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-[11px] font-bold text-cyan-400 uppercase flex items-center gap-1">
+                    <Users className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Squad Teammates ({(formData.teammate3Name || submittedPass.teammate_3_name || submittedPass.teammate_3) ? '4' : '3'} Members Total)</span>
+                  </span>
+                </div>
+
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between items-center bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
+                    <span className="text-white font-medium">1. {formData.teammate1Name || submittedPass.teammate_1_name || (submittedPass.teammate_1 ? submittedPass.teammate_1.split('(')[0].trim() : 'Teammate 1')}</span>
+                    <span className="font-mono text-xs text-cyan-300">
+                      {formData.teammate1Uid || submittedPass.teammate_1_uid || ''}
+                      {(formData.teammate1Section || submittedPass.teammate_1_section) ? ` [${formData.teammate1Section || submittedPass.teammate_1_section}]` : ''}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
+                    <span className="text-white font-medium">2. {formData.teammate2Name || submittedPass.teammate_2_name || (submittedPass.teammate_2 ? submittedPass.teammate_2.split('(')[0].trim() : 'Teammate 2')}</span>
+                    <span className="font-mono text-xs text-cyan-300">
+                      {formData.teammate2Uid || submittedPass.teammate_2_uid || ''}
+                      {(formData.teammate2Section || submittedPass.teammate_2_section) ? ` [${formData.teammate2Section || submittedPass.teammate_2_section}]` : ''}
+                    </span>
+                  </div>
+
+                  {(formData.teammate3Name || submittedPass.teammate_3_name || submittedPass.teammate_3) && (
+                    <div className="flex justify-between items-center bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
+                      <span className="text-white font-medium">3. {formData.teammate3Name || submittedPass.teammate_3_name || (submittedPass.teammate_3 ? submittedPass.teammate_3.split('(')[0].trim() : 'Teammate 3')}</span>
+                      <span className="font-mono text-xs text-cyan-300">
+                        {formData.teammate3Uid || submittedPass.teammate_3_uid || ''}
+                        {(formData.teammate3Section || submittedPass.teammate_3_section) ? ` [${formData.teammate3Section || submittedPass.teammate_3_section}]` : ''}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Mandatory WhatsApp Group Callout Banner */}

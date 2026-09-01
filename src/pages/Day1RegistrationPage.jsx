@@ -806,11 +806,45 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                 <span className="font-bold text-gray-200">{submittedPass.uid}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
+                <span className="text-gray-400">Format:</span>
+                <span className="font-bold text-gray-200">
+                  {submittedPass.entry_type === 'Team' ? `Group Act (${submittedPass.team_name || 'Team'})` : 'Solo Performer'}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-xs">
                 <span className="text-gray-400">Category:</span>
                 <span className="font-bold text-rose-300 uppercase">
                   {submittedPass.category}
                 </span>
               </div>
+
+              {/* Day 1 Group Co-Performers Roster */}
+              {submittedPass.entry_type === 'Team' && (
+                <div className="pt-2.5 border-t border-white/10 space-y-2">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-[11px] font-bold text-[#f7d978] uppercase flex items-center gap-1">
+                      <Users className="w-3.5 h-3.5 text-[#f7d978]" />
+                      <span>Team Members ({teamMembersList.length + 1} Total)</span>
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-mono">Lead: {submittedPass.full_name}</span>
+                  </div>
+
+                  {teamMembersList.length > 0 ? (
+                    <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                      {teamMembersList.map((member, idx) => (
+                        <div key={idx} className="flex justify-between items-center text-xs bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
+                          <span className="text-white font-medium">{idx + 2}. {member.fullName}</span>
+                          <span className="font-mono text-xs text-[#f7d978]">{member.uid} <span className="text-gray-400 text-[10px]">[{member.section}, {member.group}]</span></span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : submittedPass.team_members ? (
+                    <div className="text-xs text-gray-300 bg-white/5 p-2.5 rounded-xl border border-white/10">
+                      <p className="leading-relaxed font-mono text-[11px]">{submittedPass.team_members}</p>
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
 
             {/* Mandatory WhatsApp Group Callout Banner */}
