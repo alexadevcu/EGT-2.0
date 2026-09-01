@@ -1289,7 +1289,7 @@ export default function AdminPage({ setCurrentPage }) {
                 <th className="py-4 px-6">Participant / Leader</th>
                 <th className="py-4 px-6">UID</th>
                 <th className="py-4 px-6">{activeTab === 'day1' ? 'Category' : 'Squad Name'}</th>
-                <th className="py-4 px-6">{activeTab === 'day1' ? 'Format' : 'Tech Stack'}</th>
+                <th className="py-4 px-6">{activeTab === 'day1' ? 'Format' : 'Squad Size'}</th>
                 <th className="py-4 px-6">Contact</th>
                 <th className="py-4 px-6 text-right">Actions</th>
               </tr>
@@ -1326,7 +1326,7 @@ export default function AdminPage({ setCurrentPage }) {
                     </td>
 
                     <td className="py-4 px-6 text-gray-300">
-                      {row.entry_type || row.tech_stack || 'N/A'}
+                      {activeTab === 'day1' ? (row.entry_type || 'Solo') : ((row.teammate_3 || row.teammate_3_name) ? '4 Members' : '3 Members')}
                     </td>
 
                     <td className="py-4 px-6 text-gray-300 text-[11px]">
