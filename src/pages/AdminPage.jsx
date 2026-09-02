@@ -28,7 +28,8 @@ import {
   UploadCloud,
   Check,
   Copy,
-  Settings
+  Settings,
+  Music
 } from 'lucide-react'
 import {
   getDay1Registrations,
@@ -45,35 +46,52 @@ import {
 
 export function parseDay1TeamMembers(row) {
   if (!row) return []
-  if (Array.isArray(row.teamMembersList) && row.teamMembersList.length > 0) {
-    return row.teamMembersList
+
+  const normalizeMember = (item) => {
+    if (!item) return null
+    if (typeof item === 'string') {
+      const nameMatch = item.match(/(?:\d+\.\s*)?([^(]+)\s*\(([^)]+)\)/)
+      const secMatch = item.match(/\[Sec:\s*([^,\]]+)/i)
+      const grpMatch = item.match(/Sec:[^,]+,\s*([^,\]]+)/i) || item.match(/,\s*(Group\s+[AB]|[^,\]]+),\s*Blk:/i)
+      const blkMatch = item.match(/Blk:\s*([^\]]+)/i)
+      return {
+        fullName: nameMatch ? nameMatch[1].trim() : item.trim(),
+        uid: nameMatch ? nameMatch[2].trim() : '',
+        section: secMatch ? secMatch[1].trim() : '',
+        group: grpMatch ? grpMatch[1].trim() : '',
+        block: blkMatch ? blkMatch[1].trim() : ''
+      }
+    }
+    if (typeof item === 'object') {
+      return {
+        fullName: String(item.fullName || item.name || item.full_name || '').trim(),
+        uid: String(item.uid || item.student_uid || '').trim(),
+        section: String(item.section || '').trim(),
+        group: String(item.group || item.group_name || '').trim(),
+        block: String(item.block || '').trim()
+      }
+    }
+    return null
   }
+
+  if (Array.isArray(row.teamMembersList) && row.teamMembersList.length > 0) {
+    return row.teamMembersList.map(normalizeMember).filter(m => m && (m.fullName || m.uid))
+  }
+
   if (row.team_members_raw) {
     try {
-      const parsed = JSON.parse(row.team_members_raw)
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      const parsed = typeof row.team_members_raw === 'string' ? JSON.parse(row.team_members_raw) : row.team_members_raw
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map(normalizeMember).filter(m => m && (m.fullName || m.uid))
+      }
     } catch (e) {}
   }
-  
+
   const rawStr = row.team_members || ''
   if (!rawStr) return []
 
-  const parts = rawStr.split(/\s*\|\s*/)
-  return parts.map(part => {
-    // e.g. "1. Vasu Gera (7056502148) [Sec: dfg, Group A, Blk: s2]"
-    const nameMatch = part.match(/(?:\d+\.\s*)?([^(]+)\s*\(([^)]+)\)/)
-    const secMatch = part.match(/\[Sec:\s*([^,\]]+)/i)
-    const grpMatch = part.match(/Sec:[^,]+,\s*([^,\]]+)/i) || part.match(/,\s*(Group\s+[AB]|[^,\]]+),\s*Blk:/i)
-    const blkMatch = part.match(/Blk:\s*([^\]]+)/i)
-
-    return {
-      fullName: nameMatch ? nameMatch[1].trim() : part.trim(),
-      uid: nameMatch ? nameMatch[2].trim() : '',
-      section: secMatch ? secMatch[1].trim() : '',
-      group: grpMatch ? grpMatch[1].trim() : '',
-      block: blkMatch ? blkMatch[1].trim() : ''
-    }
-  }).filter(m => m.fullName || m.uid)
+  const parts = typeof rawStr === 'string' ? rawStr.split(/\s*\|\s*/) : []
+  return parts.map(normalizeMember).filter(m => m && (m.fullName || m.uid))
 }
 
 // Safely validate a URL from the database before using it as an href.
@@ -1436,7 +1454,7 @@ function doGet(e) {
                               </span>
                               <span className="text-gray-300 text-[11px] truncate max-w-[280px]" title={row.team_members || JSON.stringify(parseDay1TeamMembers(row))}>
                                 {parseDay1TeamMembers(row).length > 0
-                                  ? parseDay1TeamMembers(row).map(m => `${m.fullName} (${m.uid})`).join(', ')
+                                  ? parseDay1TeamMembers(row).map(m => `${m.fullName || 'Member'}${m.uid ? ` (${m.uid})` : ''}`).join(', ')
                                   : (row.team_members || 'Group Members')}
                               </span>
                             </div>
