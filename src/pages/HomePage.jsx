@@ -20,7 +20,9 @@ import {
   ArrowUpRight,
   Mail,
   Send,
-  Globe
+  Globe,
+  Sparkles,
+  UtensilsCrossed
 } from 'lucide-react'
 
 // Assets
@@ -34,6 +36,8 @@ import day2WinnersImg from '../assets/image.png'
 import cuLogo from '../assets/Logo/CU Logo red &white.png'
 import alexaLogo from '../assets/Logo/Alexa Developers Community Logo.png'
 import gfgLogo from '../assets/Logo/GfG Horizontal Combination Mark (Dark Mode)@2x.png'
+import belgianWaffleLogo from '../assets/Logo/Belgiam Waffle and co..svg'
+import crustiesLogo from '../assets/Logo/Crusties Logo.png'
 
 // Real EGT 1.0 Archive Photos
 import egtPhoto1 from '../assets/EGT1photos/WhatsApp Image 2026-08-29 at 23.25.42.jpeg'
@@ -782,56 +786,145 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       {/* ========================================================================= */}
       {/* 6. SPONSORS & STRATEGIC PARTNERS SECTION */}
       {/* ========================================================================= */}
-      <section className="w-full bg-[#050508] py-14 sm:py-20 border-t border-white/10 relative overflow-hidden">
+      <section className="w-full bg-[#050508] py-16 sm:py-24 border-t border-white/10 relative overflow-hidden">
+        {/* Ambient Glows */}
+        <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-[#f7d978]/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 text-center relative z-10">
           <span className="font-['Space_Grotesk'] text-xs font-extrabold text-[#f7d978] tracking-[0.25em] uppercase block mb-3">
-            Official Sponsors
+            Partners &amp; Sponsors
           </span>
           <h2 className="font-['Syne'] text-2xl xs:text-3xl sm:text-5xl font-black text-white uppercase tracking-tight mb-4">
-            POWERED BY INNOVATION
+            POWERED BY EXCELLENCE
           </h2>
-          <p className="font-sans text-xs sm:text-base text-gray-400 max-w-xl mx-auto mb-8 sm:mb-12 font-light px-2">
-            Proudly supported and sponsored by our official tech and institutional partners.
+          <p className="font-sans text-xs sm:text-base text-gray-400 max-w-xl mx-auto mb-10 sm:mb-12 font-light px-2">
+            Proudly supported by our official food partners, tech communities, and institutional sponsors.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 items-center max-w-5xl mx-auto">
-            {/* Sponsor 1: GeeksforGeeks */}
-            <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/30 hover:border-emerald-400/60 bg-gradient-to-b from-emerald-950/25 to-black/70 flex flex-col items-center justify-center gap-3 sm:gap-4 transition-all hover:scale-105 group shadow-[0_0_30px_rgba(46,125,50,0.15)]">
-              <span className="px-3.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-extrabold tracking-widest uppercase border border-emerald-500/30">
-                Official Tech Sponsor
-              </span>
-              <img
-                src={gfgLogo}
-                alt="GeeksforGeeks Logo"
-                className="h-10 sm:h-14 object-contain filter drop-shadow-[0_0_20px_rgba(46,125,50,0.6)] group-hover:scale-105 transition-transform my-1 sm:my-2"
-              />
-              <p className="text-xs text-emerald-200/90 font-['Space_Grotesk'] font-bold tracking-wider uppercase">GeeksforGeeks</p>
+          {/* 1. Official Food Sponsors Showcase (First) */}
+          <div className="mb-14 sm:mb-18 max-w-5xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#f7d978]/10 border border-[#f7d978]/30 text-[#f7d978] text-xs font-['Space_Grotesk'] font-bold uppercase tracking-widest mb-8 shadow-[0_0_20px_rgba(247,217,120,0.15)]">
+              <UtensilsCrossed className="w-3.5 h-3.5 text-[#f7d978]" />
+              <span>Official Food Sponsors</span>
             </div>
 
-            {/* Partner 2: Chandigarh University */}
-            <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-rose-500/30 hover:border-rose-400/60 bg-gradient-to-b from-rose-950/25 to-black/70 flex flex-col items-center justify-center gap-3 sm:gap-4 transition-all hover:scale-105 group shadow-[0_0_30px_rgba(244,63,94,0.15)]">
-              <span className="px-3.5 py-1 rounded-full bg-rose-500/15 text-rose-400 text-[10px] font-extrabold tracking-widest uppercase border border-rose-500/30">
-                Host Institution
-              </span>
-              <img
-                src={cuLogo}
-                alt="Chandigarh University Logo"
-                className="h-10 sm:h-14 object-contain filter drop-shadow-[0_0_20px_rgba(244,63,94,0.5)] group-hover:scale-105 transition-transform my-1 sm:my-2"
-              />
-              <p className="text-xs text-rose-200/90 font-['Space_Grotesk'] font-bold tracking-wider uppercase">Department of CSE – Takshashila</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 items-stretch max-w-4xl mx-auto">
+              {/* Day 1 Food Sponsor: The Belgian Waffle Co. */}
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-amber-500/35 hover:border-amber-400/70 bg-gradient-to-b from-amber-950/20 via-black/40 to-black/80 flex flex-col items-center justify-between gap-4 transition-all duration-300 hover:scale-[1.03] group shadow-[0_0_30px_rgba(245,158,11,0.14)] min-h-[250px] sm:min-h-[270px]">
+                <span className="px-3.5 py-1 rounded-full bg-amber-500/15 text-amber-300 text-[10px] font-extrabold tracking-widest uppercase border border-amber-500/35 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  <span>Day 1 • Official Food Partner</span>
+                </span>
+                
+                <img
+                  src={belgianWaffleLogo}
+                  alt="The Belgian Waffle Co. Logo"
+                  className="h-11 sm:h-14 w-auto object-contain filter drop-shadow-[0_0_20px_rgba(245,158,11,0.5)] group-hover:scale-105 transition-transform my-2"
+                />
+
+                <div className="text-center">
+                  <h3 className="text-sm sm:text-base text-white font-['Syne'] font-bold tracking-wide">
+                    The Belgian Waffle Co.
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-amber-200/85 font-sans mt-1">
+                    Special discount on fresh warm waffles and delights for all participants &amp; audience.
+                  </p>
+                </div>
+              </div>
+
+              {/* Day 2 Food Sponsor: Crusties */}
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-orange-500/35 hover:border-orange-400/70 bg-gradient-to-b from-orange-950/20 via-black/40 to-black/80 flex flex-col items-center justify-between gap-4 transition-all duration-300 hover:scale-[1.03] group shadow-[0_0_30px_rgba(249,115,22,0.14)] min-h-[250px] sm:min-h-[270px]">
+                <span className="px-3.5 py-1 rounded-full bg-orange-500/15 text-orange-300 text-[10px] font-extrabold tracking-widest uppercase border border-orange-500/35 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-orange-400" />
+                  <span>Day 2 • Official Food Partner</span>
+                </span>
+                
+                <img
+                  src={crustiesLogo}
+                  alt="Crusties Logo"
+                  className="h-11 sm:h-14 w-auto object-contain filter drop-shadow-[0_0_20px_rgba(249,115,22,0.5)] group-hover:scale-105 transition-transform my-2"
+                />
+
+                <div className="text-center">
+                  <h3 className="text-sm sm:text-base text-white font-['Syne'] font-bold tracking-wide">
+                    Crusties
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-orange-200/85 font-sans mt-1">
+                    Fueling our Harry Potter Wizarding Tech Squads through campus trials &amp; hunts.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Primary Partners & Tech Sponsors (Second) */}
+          <div className="pt-10 sm:pt-14 border-t border-white/10 max-w-5xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-['Space_Grotesk'] font-bold uppercase tracking-widest mb-8 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+              <Zap className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Tech &amp; Strategic Partners</span>
             </div>
 
-            {/* Partner 3: Alexa Developers Community */}
-            <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-cyan-500/30 hover:border-cyan-400/60 bg-gradient-to-b from-cyan-950/25 to-black/70 flex flex-col items-center justify-center gap-3 sm:gap-4 transition-all hover:scale-105 group shadow-[0_0_30px_rgba(34,211,238,0.15)]">
-              <span className="px-3.5 py-1 rounded-full bg-cyan-500/15 text-cyan-400 text-[10px] font-extrabold tracking-widest uppercase border border-cyan-500/30">
-                Organizing Community
-              </span>
-              <img
-                src={alexaLogo}
-                alt="Alexa Developers Community Logo"
-                className="h-10 sm:h-14 object-contain filter drop-shadow-[0_0_20px_rgba(34,211,238,0.5)] group-hover:scale-105 transition-transform my-1 sm:my-2"
-              />
-              <p className="text-xs text-cyan-200/90 font-['Space_Grotesk'] font-bold tracking-wider uppercase">Alexa Developers Community</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 items-stretch max-w-5xl mx-auto">
+              {/* Sponsor 1: GeeksforGeeks */}
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/35 hover:border-emerald-400/70 bg-gradient-to-b from-emerald-950/20 via-black/40 to-black/80 flex flex-col items-center justify-between gap-4 transition-all duration-300 hover:scale-[1.03] group shadow-[0_0_30px_rgba(46,125,50,0.12)] min-h-[250px] sm:min-h-[270px]">
+                <span className="px-3.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-extrabold tracking-widest uppercase border border-emerald-500/30">
+                  Official Tech Sponsor
+                </span>
+                <img
+                  src={gfgLogo}
+                  alt="GeeksforGeeks Logo"
+                  className="h-11 sm:h-14 object-contain filter drop-shadow-[0_0_20px_rgba(46,125,50,0.5)] group-hover:scale-105 transition-transform my-2"
+                />
+                <div className="text-center">
+                  <h3 className="text-sm sm:text-base text-white font-['Syne'] font-bold tracking-wide">
+                    GeeksforGeeks
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-emerald-200/85 font-sans mt-1">
+                    Official Tech Sponsor &amp; Educational Platform Partner.
+                  </p>
+                </div>
+              </div>
+
+              {/* Partner 2: Chandigarh University */}
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-rose-500/35 hover:border-rose-400/70 bg-gradient-to-b from-rose-950/20 via-black/40 to-black/80 flex flex-col items-center justify-between gap-4 transition-all duration-300 hover:scale-[1.03] group shadow-[0_0_30px_rgba(244,63,94,0.12)] min-h-[250px] sm:min-h-[270px]">
+                <span className="px-3.5 py-1 rounded-full bg-rose-500/15 text-rose-400 text-[10px] font-extrabold tracking-widest uppercase border border-rose-500/30">
+                  Host Institution
+                </span>
+                <img
+                  src={cuLogo}
+                  alt="Chandigarh University Logo"
+                  className="h-11 sm:h-14 object-contain filter drop-shadow-[0_0_20px_rgba(244,63,94,0.5)] group-hover:scale-105 transition-transform my-2"
+                />
+                <div className="text-center">
+                  <h3 className="text-sm sm:text-base text-white font-['Syne'] font-bold tracking-wide">
+                    Chandigarh University
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-rose-200/85 font-sans mt-1">
+                    Department of CSE – Takshashila &bull; Academic Host.
+                  </p>
+                </div>
+              </div>
+
+              {/* Partner 3: Alexa Developers Community */}
+              <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-cyan-500/35 hover:border-cyan-400/70 bg-gradient-to-b from-cyan-950/20 via-black/40 to-black/80 flex flex-col items-center justify-between gap-4 transition-all duration-300 hover:scale-[1.03] group shadow-[0_0_30px_rgba(34,211,238,0.12)] min-h-[250px] sm:min-h-[270px]">
+                <span className="px-3.5 py-1 rounded-full bg-cyan-500/15 text-cyan-400 text-[10px] font-extrabold tracking-widest uppercase border border-cyan-500/30">
+                  Organizing Community
+                </span>
+                <img
+                  src={alexaLogo}
+                  alt="Alexa Developers Community Logo"
+                  className="h-11 sm:h-14 object-contain filter drop-shadow-[0_0_20px_rgba(34,211,238,0.5)] group-hover:scale-105 transition-transform my-2"
+                />
+                <div className="text-center">
+                  <h3 className="text-sm sm:text-base text-white font-['Syne'] font-bold tracking-wide">
+                    Alexa Developers CU
+                  </h3>
+                  <p className="text-[11px] sm:text-xs text-cyan-200/85 font-sans mt-1">
+                    Student Community organizing EGT 2.0.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

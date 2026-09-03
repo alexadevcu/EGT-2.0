@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import wizardVideo from '../assets/Wizard.webm'
+import crustiesLogo from '../assets/Logo/Crusties Logo.png'
 import {
   KeyRound,
   Compass,
@@ -156,15 +157,30 @@ export default function Day2Page({ onOpenRegister }) {
             </p>
 
             {/* Organizing Body & Venue Info */}
-            <p className="font-['Space_Grotesk'] text-xs sm:text-sm text-[#00F2FF] mt-2.5 font-bold text-center tracking-widest uppercase px-3 break-words">
+            <p className="font-['Space_Grotesk'] text-xs sm:text-sm text-[#00F2FF] mt-3 sm:mt-4 font-bold text-center tracking-widest uppercase px-3 break-words">
               Organized by Alexa Developers Community
             </p>
             <p className="font-['Space_Grotesk'] text-[10px] sm:text-xs text-gray-300 mt-1 font-semibold text-center tracking-wider px-3 break-words">
               Department of CSE – Takshashila &bull; Chandigarh University
             </p>
 
+            {/* Official Food Sponsor Crest below Department info */}
+            <div className="mt-5 mb-2 flex flex-col items-center justify-center gap-1.5 text-center group">
+              <span className="px-3 py-0.5 rounded-full bg-orange-500/20 text-orange-300 text-[10px] sm:text-[11px] font-['Space_Grotesk'] font-extrabold uppercase tracking-wider border border-orange-500/35 shadow-sm">
+                Day 2 Official Food Sponsor
+              </span>
+              <img
+                src={crustiesLogo}
+                alt="Crusties Logo"
+                className="h-14 sm:h-18 w-auto object-contain filter drop-shadow-[0_0_25px_rgba(249,115,22,0.85)] hover:scale-105 transition-transform my-0.5 cursor-pointer"
+              />
+              <p className="text-xs sm:text-[13px] text-orange-200/90 font-medium max-w-md mx-auto">
+                <strong className="text-orange-300 font-bold">Crusties</strong> — Fueling our wizard squads across all trials &amp; treasure hunts! 🍕
+              </p>
+            </div>
+
             {/* Single Registration CTA Button */}
-            <div className="flex justify-center items-center mt-6 sm:mt-8 w-full max-w-xs sm:max-w-md mx-auto px-2">
+            <div className="flex justify-center items-center mt-5 sm:mt-6 w-full max-w-xs sm:max-w-md mx-auto px-2">
               <button
                 onClick={() => onOpenRegister('day2-wizard')}
                 className="w-full justify-center bg-gradient-to-r from-[#e5b84c] via-[#f2ca50] to-[#c9982e] text-[#1c0800] font-['Cinzel'] text-xs sm:text-base font-extrabold uppercase px-6 sm:px-10 py-3.5 sm:py-4 rounded-full transition-colors hover:brightness-110 shadow-[0_0_40px_rgba(242,202,80,0.85)] flex items-center gap-2 cursor-pointer border border-yellow-200/60 text-center leading-tight"

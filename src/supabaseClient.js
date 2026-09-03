@@ -315,7 +315,7 @@ export async function saveDay1Registration(data) {
 
       if (!error) {
         // Successfully saved in Supabase (even if select() returns [] due to RLS, the row was saved)
-        const savedData = (dbData && dbData.length > 0) ? dbData[0] : currentPayload
+        const savedData = (dbData && dbData.length > 0) ? dbData[0] : { ...insertPayload, ...currentPayload }
         saveToLocalStorage('egt_day1_registrations', savedData)
         return { success: true, data: savedData, isSupabase: true }
       }
@@ -553,7 +553,7 @@ export async function saveDay2Registration(data) {
 
       if (!error) {
         // Successfully saved in Supabase (even if select() returns [] due to RLS, the row was saved)
-        const savedData = (dbData && dbData.length > 0) ? dbData[0] : currentPayload
+        const savedData = (dbData && dbData.length > 0) ? dbData[0] : { ...insertPayload, ...currentPayload }
         saveToLocalStorage('egt_day2_registrations', savedData)
         return { success: true, data: savedData, isSupabase: true }
       }
@@ -710,6 +710,86 @@ export async function deleteRegistration(table, regId) {
   return { success: true }
 }
 
+// ----------------------------------------------------
+// CONTACT & INQUIRY MESSAGES API
+// ----------------------------------------------------
+export async function submitContactMessage(messageData) {
+  const payload = {
+    name: (messageData.name || '').trim(),
+    email: (messageData.email || '').trim(),
+    phone: (messageData.phone || '').trim() || null,
+    category: messageData.category || 'General Inquiry & Feedback',
+    message: (messageData.message || '').trim(),
+    created_at: new Date().toISOString()
+  }
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .insert([payload])
+
+      if (error) {
+        console.warn('Supabase contact message insert notice:', error)
+      } else {
+        const savedItem = { ...payload, id: (data && data[0]?.id) || Date.now() }
+        saveToLocalStorage('egt_contact_messages', savedItem)
+        return { success: true, data: savedItem }
+      }
+    } catch (err) {
+      console.warn('Supabase contact message exception:', err)
+    }
+  }
+
+  // Fallback to localStorage
+  const fallbackItem = { ...payload, id: Date.now() }
+  saveToLocalStorage('egt_contact_messages', fallbackItem)
+  return { success: true, data: fallbackItem }
+}
+
+export async function getContactMessages() {
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.warn('Supabase getContactMessages warning:', error)
+      } else if (data) {
+        return data
+      }
+    } catch (err) {
+      console.warn('Supabase getContactMessages exception:', err)
+    }
+  }
+
+  return getFromLocalStorage('egt_contact_messages')
+}
+
+export async function deleteContactMessage(id) {
+  if (supabase) {
+    try {
+      const { error } = await supabase
+        .from('contact_messages')
+        .delete()
+        .eq('id', id)
+
+      if (error) {
+        console.warn('Supabase deleteContactMessage warning:', error)
+      }
+    } catch (err) {
+      console.warn('Supabase deleteContactMessage exception:', err)
+    }
+  }
+
+  const items = getFromLocalStorage('egt_contact_messages')
+  const filtered = items.filter(item => String(item.id) !== String(id))
+  localStorage.setItem('egt_contact_messages', JSON.stringify(filtered))
+  return { success: true }
+}
+
 // Storage Helpers
 function saveToLocalStorage(key, payload) {
   try {
@@ -733,3 +813,4 @@ function getFromLocalStorage(key) {
   }
   return []
 }
+

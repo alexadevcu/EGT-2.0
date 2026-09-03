@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import stageHero from '../assets/stage_hero.jpg'
+import belgianWaffleLogo from '../assets/Logo/Belgiam Waffle and co..svg'
 import './Day1Page.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -213,7 +214,19 @@ export default function Day1Page({ onOpenRegister }) {
   return (
     <div ref={page} className="day1-page">
       {/* HERO SECTION */}
-      <section className="day1-hero" style={{ '--stage-image': `url(${stageHero})` }}>
+      <section className="day1-hero relative" style={{ '--stage-image': `url(${stageHero})` }}>
+        {/* Pure Large Logo & Name on the Right Side (Zero Box) */}
+        <div className="hidden lg:flex absolute right-8 xl:right-16 top-1/2 -translate-y-1/2 z-20 flex-col items-center gap-2 text-center group">
+          <img
+            src={belgianWaffleLogo}
+            alt="The Belgian Waffle Co. Logo"
+            className="h-24 xl:h-28 w-auto object-contain filter drop-shadow-[0_0_35px_rgba(245,158,11,0.8)] hover:scale-110 transition-transform duration-300 cursor-pointer"
+          />
+          <span className="text-xs sm:text-sm font-['Syne'] font-bold text-amber-200 tracking-wider">
+            The Belgian Waffle Co.
+          </span>
+        </div>
+
         <div className="day1-hero__beam" />
         <div className="day1-hero__content">
           <div className="mb-4">
@@ -226,6 +239,21 @@ export default function Day1Page({ onOpenRegister }) {
             <span>STAGE</span>
           </h1>
           <p className="day1-hero__detail">NON-TECH TALENT SHOWCASE</p>
+
+          {/* Mobile Only Centered Logo */}
+          <div className="lg:hidden flex items-center justify-center gap-3 my-3">
+            <img
+              src={belgianWaffleLogo}
+              alt="The Belgian Waffle Co. Logo"
+              className="h-12 sm:h-14 w-auto object-contain filter drop-shadow-[0_0_20px_rgba(245,158,11,0.6)]"
+            />
+          </div>
+
+          {/* Normal Mention in Hero */}
+          <p className="text-xs sm:text-sm text-amber-200/90 font-medium max-w-xl mx-auto px-3 mt-2 mb-6 leading-relaxed">
+            🧇 Official Food Partner <strong className="text-amber-300 font-bold">The Belgian Waffle Co.</strong> — Enjoy discount on fresh warm waffles and delights exclusively for participants and audience!
+          </p>
+
           <div className="day1-hero__actions">
             <button className="btn-hero-primary-gold" onClick={() => onOpenRegister('day1-performer')}>
               REGISTER AS PERFORMER <span>→</span>

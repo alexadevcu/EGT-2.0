@@ -29,7 +29,11 @@ import {
   Check,
   Copy,
   Settings,
-  Music
+  Music,
+  MessageSquare,
+  PhoneCall,
+  Mail,
+  Phone
 } from 'lucide-react'
 import {
   getDay1Registrations,
@@ -41,7 +45,9 @@ import {
   getAdminSession,
   getRegistrationSettings,
   updateRegistrationSettings,
-  updateRegistrationStatus
+  updateRegistrationStatus,
+  getContactMessages,
+  deleteContactMessage
 } from '../supabaseClient'
 
 export function parseDay1TeamMembers(row) {
@@ -128,9 +134,10 @@ export default function AdminPage({ setCurrentPage }) {
   }
 
   // Data & Tabs State
-  const [activeTab, setActiveTab] = useState('day1')
+  const [activeTab, setActiveTab] = useState('day1') // 'day1' | 'day2' | 'inquiries'
   const [day1Data, setDay1Data] = useState([])
   const [day2Data, setDay2Data] = useState([])
+  const [contactMessages, setContactMessages] = useState([])
   const [loading, setLoading] = useState(true)
 
   // Filters, Search & View Mode
@@ -483,12 +490,14 @@ function doGet(e) {
   const loadAllData = async () => {
     setLoading(true)
     try {
-      const [d1, d2] = await Promise.all([
+      const [d1, d2, msgs] = await Promise.all([
         getDay1Registrations(),
-        getDay2Registrations()
+        getDay2Registrations(),
+        getContactMessages()
       ])
       setDay1Data(d1)
       setDay2Data(d2)
+      setContactMessages(msgs)
     } catch (err) {
       console.warn('Failed to load data:', err)
     } finally {
@@ -499,12 +508,14 @@ function doGet(e) {
   // Silent Background Auto-Refresh (does not disrupt active UI or show spinners)
   const loadAllDataSilently = async () => {
     try {
-      const [d1, d2] = await Promise.all([
+      const [d1, d2, msgs] = await Promise.all([
         getDay1Registrations(),
-        getDay2Registrations()
+        getDay2Registrations(),
+        getContactMessages()
       ])
       setDay1Data(d1)
       setDay2Data(d2)
+      setContactMessages(msgs)
     } catch (err) {
       console.warn('Silent refresh error:', err)
     }
@@ -577,14 +588,25 @@ function doGet(e) {
         if (selectedItem?.reg_id === regId) {
           setSelectedItem(null)
         }
+        loadAllData()
       }
-      loadAllData()
+    }
+  }
+
+  const handleDeleteMessage = async (id) => {
+    if (window.confirm('Are you sure you want to delete this inquiry message?')) {
+      const res = await deleteContactMessage(id)
+      if (res && !res.success) {
+        alert(`Delete failed: ${res.error || 'Unknown error'}`)
+      } else {
+        loadAllData()
+      }
     }
   }
 
   // Export to CSV Functionality (Formats perfectly into Google Sheets / Excel Table)
   const exportToCSV = () => {
-    const dataToExport = activeTab === 'day1' ? day1Data : day2Data
+    const dataToExport = activeTab === 'day1' ? day1Data : (activeTab === 'day2' ? day2Data : contactMessages)
     if (!dataToExport || dataToExport.length === 0) {
       alert('No data available to export!')
       return
@@ -592,17 +614,39 @@ function doGet(e) {
 
     const cleanField = (val) => {
       if (val === null || val === undefined) return '""'
-      let str = String(val).replace(/"/g, '""')
-      // Neutralize spreadsheet formula injection: if cell starts with =, +, -, @, \t, \r, prepend single quote
-      if (/^[=+\-@\t\r]/.test(str)) {
+      let str = String(val).trim()
+      // Neutralize spreadsheet formula injection (CSV/Excel/Sheets)
+      if (/^[=+\-@\t\r|%]/.test(str)) {
         str = `'${str}`
       }
+      str = str.replace(/"/g, '""')
       return `"${str}"`
     }
 
     let rows = []
 
-    if (activeTab === 'day1') {
+    if (activeTab === 'inquiries') {
+      rows.push([
+        'Timestamp',
+        'Name',
+        'Email Address',
+        'Phone Number',
+        'Query Category',
+        'Message Body'
+      ].map(cleanField).join(','))
+
+      dataToExport.forEach(row => {
+        const timestamp = new Date(row.created_at || Date.now()).toLocaleString()
+        rows.push([
+          timestamp,
+          row.name || '',
+          row.email || '',
+          row.phone || '',
+          row.category || 'General Inquiry',
+          row.message || ''
+        ].map(cleanField).join(','))
+      })
+    } else if (activeTab === 'day1') {
       // Dynamically calculate maximum teammates present across teams in current dataset
       const maxTeammatesInDataset = Math.max(
         0,
@@ -761,7 +805,7 @@ function doGet(e) {
     const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     
-    const filename = `EGT2_${activeTab === 'day1' ? 'Day1_Performers' : 'Day2_TechSquads'}_Form_Responses.csv`
+    const filename = `EGT2_${activeTab === 'day1' ? 'Day1_Performers' : (activeTab === 'day2' ? 'Day2_TechSquads' : 'Inquiries_and_Messages')}_Responses.csv`
     const link = document.createElement('a')
     link.href = url
     link.setAttribute('download', filename)
@@ -872,8 +916,10 @@ function doGet(e) {
   }
 
   // Filter Logic (Authenticated only)
-  const currentDataset = Array.isArray(activeTab === 'day1' ? day1Data : day2Data)
-    ? (activeTab === 'day1' ? day1Data : day2Data)
+  const currentDataset = Array.isArray(
+    activeTab === 'day1' ? day1Data : (activeTab === 'day2' ? day2Data : contactMessages)
+  )
+    ? (activeTab === 'day1' ? day1Data : (activeTab === 'day2' ? day2Data : contactMessages))
     : []
 
   const filteredDataset = currentDataset.filter(item => {
@@ -884,7 +930,9 @@ function doGet(e) {
 
       let matchesFilter = true
       if (categoryFilter !== 'all') {
-        if (activeTab === 'day1') {
+        if (activeTab === 'inquiries') {
+          matchesFilter = (item.category || '').toLowerCase().includes(categoryFilter.toLowerCase())
+        } else if (activeTab === 'day1') {
           if (categoryFilter === 'solo') {
             matchesFilter = (item.entry_type || 'Solo').toLowerCase() === 'solo'
           } else if (categoryFilter === 'team') {
@@ -1008,8 +1056,8 @@ function doGet(e) {
         </div>
       </div>
 
-      {/* Metrics Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      {/* Metrics Bar (4 Columns) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="glass-panel p-5 rounded-2xl border border-white/10">
           <div className="flex items-center justify-between">
             <span className="font-['Space_Grotesk'] text-xs font-bold text-gray-400 uppercase">
@@ -1043,6 +1091,18 @@ function doGet(e) {
           </div>
           <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2">
             {day2Data.length}
+          </p>
+        </div>
+
+        <div className="glass-panel p-5 rounded-2xl border border-amber-400/30">
+          <div className="flex items-center justify-between">
+            <span className="font-['Space_Grotesk'] text-xs font-bold text-amber-400 uppercase">
+              Inquiries &amp; Messages
+            </span>
+            <MessageSquare className="w-5 h-5 text-amber-400" />
+          </div>
+          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2">
+            {contactMessages.length}
           </p>
         </div>
       </div>
@@ -1212,10 +1272,10 @@ function doGet(e) {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         
         {/* Tab Buttons */}
-        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 font-['Space_Grotesk'] text-xs font-bold w-full sm:w-auto">
+        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 font-['Space_Grotesk'] text-xs font-bold w-full sm:w-auto flex-wrap sm:flex-nowrap gap-1 sm:gap-0">
           <button
             onClick={() => { setActiveTab('day1'); setCategoryFilter('all'); }}
-            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'day1' ? 'bg-[#f7d978] text-black shadow-md' : 'text-gray-300 hover:text-white'
             }`}
           >
@@ -1225,12 +1285,22 @@ function doGet(e) {
 
           <button
             onClick={() => { setActiveTab('day2'); setCategoryFilter('all'); }}
-            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === 'day2' ? 'bg-cyan-400 text-black shadow-md' : 'text-gray-300 hover:text-white'
             }`}
           >
             <Code className="w-4 h-4" />
             <span>Day 2 Tech Squads ({day2Data.length})</span>
+          </button>
+
+          <button
+            onClick={() => { setActiveTab('inquiries'); setCategoryFilter('all'); }}
+            className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+              activeTab === 'inquiries' ? 'bg-amber-400 text-black shadow-md' : 'text-gray-300 hover:text-white'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span>Inquiries ({contactMessages.length})</span>
           </button>
         </div>
 
@@ -1242,7 +1312,7 @@ function doGet(e) {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search Name, UID, Email..."
+              placeholder="Search Name, UID, Email, Message..."
               className="w-full bg-white/5 border border-white/15 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#f7d978]"
             />
           </div>
@@ -1252,7 +1322,16 @@ function doGet(e) {
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="w-full sm:w-auto bg-[#12121c] border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#f7d978] cursor-pointer shadow-lg"
           >
-            {activeTab === 'day1' ? (
+            {activeTab === 'inquiries' ? (
+              <>
+                <option value="all">All Inquiry Topics</option>
+                <option value="General Inquiry">General Inquiry &amp; Feedback</option>
+                <option value="Day 1">Day 1 Stage Queries</option>
+                <option value="Day 2">Day 2 Wizard's Code Queries</option>
+                <option value="Sponsorship">Sponsorship &amp; Brand Partner</option>
+                <option value="Technical">Technical &amp; Portal Issues</option>
+              </>
+            ) : activeTab === 'day1' ? (
               <>
                 <option value="all">All Formats &amp; Categories</option>
                 <optgroup label="── Performance Format ──">
@@ -1478,6 +1557,92 @@ function doGet(e) {
                       </td>
                     </tr>
                   ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : activeTab === 'inquiries' ? (
+        /* INQUIRIES & CONTACT MESSAGES TABLE */
+        <div className="glass-panel rounded-3xl border border-amber-500/30 overflow-hidden shadow-2xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left font-['Space_Grotesk'] text-xs">
+              <thead className="bg-white/5 border-b border-white/10 uppercase text-gray-400 text-[11px] tracking-wider">
+                <tr>
+                  <th className="py-4 px-6">Timestamp</th>
+                  <th className="py-4 px-6">Sender Details</th>
+                  <th className="py-4 px-6">Category</th>
+                  <th className="py-4 px-6">Message Body</th>
+                  <th className="py-4 px-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 font-sans">
+                {filteredDataset.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="text-center py-12 text-gray-400 text-sm font-light">
+                      No inquiry messages received yet.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredDataset.map((msg) => {
+                    const timestamp = new Date(msg.created_at || Date.now()).toLocaleString([], {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                    return (
+                      <tr key={msg.id} className="hover:bg-white/5 transition-colors">
+                        <td className="py-4 px-6 font-mono text-gray-400 text-[11px] whitespace-nowrap">
+                          {timestamp}
+                        </td>
+                        <td className="py-4 px-6 font-bold text-white whitespace-nowrap">
+                          {msg.name}
+                          <div className="text-[11px] font-normal text-[#f7d978]">{msg.email}</div>
+                          {msg.phone && (
+                            <div className="text-[10px] font-normal text-gray-400">{msg.phone}</div>
+                          )}
+                        </td>
+                        <td className="py-4 px-6 whitespace-nowrap">
+                          <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[11px] font-semibold">
+                            {msg.category || 'General'}
+                          </span>
+                        </td>
+                        <td className="py-4 px-6 text-gray-300 min-w-[280px] max-w-md">
+                          <p className="whitespace-pre-wrap text-xs bg-black/30 p-3 rounded-xl border border-white/10 text-gray-200">
+                            {msg.message}
+                          </p>
+                        </td>
+                        <td className="py-4 px-6 text-right whitespace-nowrap space-x-2">
+                          <a
+                            href={`mailto:${msg.email}?subject=${encodeURIComponent(`Re: [EGT 2.0 Query] ${msg.category || 'Inquiry'}`)}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-xs font-bold transition-colors"
+                            title="Reply via Email"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>Reply</span>
+                          </a>
+                          {msg.phone && (
+                            <a
+                              href={`tel:${msg.phone}`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-bold transition-colors"
+                              title="Call Sender"
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                          <button
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            className="inline-flex items-center p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors cursor-pointer"
+                            title="Delete Message"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })
                 )}
               </tbody>
             </table>

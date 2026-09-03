@@ -15,37 +15,31 @@ import CurtainOverlay from './components/CurtainOverlay'
 import ContactModal from './components/ContactModal'
 import { Analytics, track } from '@vercel/analytics/react'
 
+// Function to resolve initial page from URL to prevent emitting home on deep links
+const getInitialPage = () => {
+  if (typeof window === 'undefined') return 'home'
+  const path = window.location.pathname.toLowerCase().replace(/\/$/, '')
+  if (path === '' || path === '/') return 'home'
+  if (path === '/day1' || path === '/day-1') return 'day1'
+  if (path === '/day2' || path === '/day-2') return 'day2'
+  if (path === '/register-day1' || path === '/register-day-1') return 'register-day1'
+  if (path === '/register-day2' || path === '/register-day-2') return 'register-day2'
+  if (path === '/guidelines' || path === '/rules') return 'guidelines'
+  if (path === '/admin') return 'admin'
+  return '404'
+}
+
 export default function App() {
-  const [currentPage, setCurrentPageState] = useState('home')
+  const [currentPage, setCurrentPageState] = useState(getInitialPage)
   const [transitionType, setTransitionType] = useState('idle')
   const [isContactOpen, setIsContactOpen] = useState(false)
 
-  // Support URL path navigation & 404 catch-all
+  // Support browser Back/Forward (popstate) navigation
   useEffect(() => {
     const handleLocation = () => {
-      const path = window.location.pathname.toLowerCase().replace(/\/$/, '')
-      
-      if (path === '' || path === '/') {
-        setCurrentPageState('home')
-      } else if (path === '/day1' || path === '/day-1') {
-        setCurrentPageState('day1')
-      } else if (path === '/day2' || path === '/day-2') {
-        setCurrentPageState('day2')
-      } else if (path === '/register-day1' || path === '/register-day-1') {
-        setCurrentPageState('register-day1')
-      } else if (path === '/register-day2' || path === '/register-day-2') {
-        setCurrentPageState('register-day2')
-      } else if (path === '/guidelines' || path === '/rules') {
-        setCurrentPageState('guidelines')
-      } else if (path === '/admin') {
-        setCurrentPageState('admin')
-      } else {
-        // Unknown path -> Render 404 page
-        setCurrentPageState('404')
-      }
+      setCurrentPageState(getInitialPage())
     }
 
-    handleLocation()
     window.addEventListener('popstate', handleLocation)
     return () => window.removeEventListener('popstate', handleLocation)
   }, [])
@@ -76,7 +70,7 @@ export default function App() {
     }
   }, [])
 
-  // Helper to map state to clean canonical URL paths
+  // Helper to map state to clean canonical URL paths while preserving 404 pathnames
   const getPagePath = (page) => {
     switch (page) {
       case 'home': return '/'
@@ -86,19 +80,19 @@ export default function App() {
       case 'register-day2': return '/register-day2'
       case 'guidelines': return '/guidelines'
       case 'admin': return '/admin'
+      case '404': return window.location.pathname || '/404'
       default: return '/'
     }
   }
 
-  // Scroll to top of window and track pageview whenever currentPage changes
+  // Scroll to top and track SPA pageview on route change
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     const path = getPagePath(currentPage)
     try {
       track('pageview', {
         page: currentPage,
-        path: path,
-        title: document.title
+        path: path
       })
     } catch (err) {
       // Ignore in dev/offline
