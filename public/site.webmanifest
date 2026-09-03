@@ -1,0 +1,21 @@
+{
+  "name": "Engineer's Got Talent 2.0",
+  "short_name": "EGT 2.0",
+  "description": "Chandigarh University's Premier 2-Day Cultural & Technical Extravaganza",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090708",
+  "theme_color": "#f7d978",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
