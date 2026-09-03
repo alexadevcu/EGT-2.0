@@ -198,6 +198,7 @@ export default function AdminPage({ setCurrentPage }) {
           'Group',
           'Block',
           'Performance Category',
+          'Performance Details / Description',
           'Requires Audio Track',
           'Audio Track Link',
           'Entry Format',
@@ -229,6 +230,7 @@ export default function AdminPage({ setCurrentPage }) {
             row.group_name || row.group || '',
             row.block || '',
             row.category || '',
+            row.performance_desc || '',
             row.requires_audio_track || 'No',
             row.audio_track_url || '',
             row.entry_type || 'Solo',
@@ -619,6 +621,7 @@ function doGet(e) {
         'Group',
         'Block',
         'Performance Category',
+        'Performance Details / Description',
         'Requires Audio Track',
         'Audio Track Link',
         'Entry Format',
@@ -653,6 +656,7 @@ function doGet(e) {
           row.group_name || row.group || '',
           row.block || '',
           row.category,
+          row.performance_desc || '',
           row.requires_audio_track || 'No',
           row.audio_track_url || '',
           row.entry_type || 'Solo',
@@ -1613,6 +1617,13 @@ function doGet(e) {
                   <span className="text-gray-200">{selectedItem.email}</span>
                 </div>
               </div>
+
+              {selectedItem.performance_desc && (
+                <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-1">
+                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Performance Details / Act Description:</span>
+                  <p className="text-gray-200 text-xs leading-relaxed italic">{selectedItem.performance_desc}</p>
+                </div>
+              )}
 
               {selectedItem.audio_track_url && (
                 <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between">
