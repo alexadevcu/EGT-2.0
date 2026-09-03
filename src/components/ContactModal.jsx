@@ -82,11 +82,11 @@ export default function ContactModal({ isOpen, onClose }) {
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200 overflow-y-auto"
+      className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200 overflow-y-auto no-scrollbar"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg bg-[#09070c]/98 border border-[#f7d978]/40 rounded-3xl p-5 sm:p-7 shadow-[0_0_60px_rgba(247,217,120,0.25)] relative text-left font-['Space_Grotesk'] text-white my-auto max-h-[92vh] overflow-y-auto"
+        className="w-full max-w-lg bg-[#09070c]/98 border border-[#f7d978]/40 rounded-3xl p-5 sm:p-7 shadow-[0_0_60px_rgba(247,217,120,0.25)] relative text-left font-['Space_Grotesk'] text-white my-auto max-h-[95vh] overflow-y-auto no-scrollbar"
       >
         {/* Top Close Icon */}
         <button

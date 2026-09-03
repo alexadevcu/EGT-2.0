@@ -295,3 +295,38 @@ body {
 .animate-shutter-right-day2 {
   animation: shutterRightDay2 0.48s cubic-bezier(0.77, 0, 0.175, 1) forwards;
 }
+
+/* ========================================================================= */
+/* 🚫 NO SCROLLBAR UTILITY & CUSTOM SCROLLBARS */
+/* ========================================================================= */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.no-scrollbar,
+.scrollbar-none {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(247, 217, 120, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(247, 217, 120, 0.5);
+}
+
