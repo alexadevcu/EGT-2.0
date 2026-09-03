@@ -13,7 +13,7 @@ import NotFoundPage from './pages/NotFoundPage'
 import PageTransitionOverlay from './components/PageTransitionOverlay'
 import CurtainOverlay from './components/CurtainOverlay'
 import ContactModal from './components/ContactModal'
-import { Analytics } from '@vercel/analytics/react'
+import { Analytics, track } from '@vercel/analytics/react'
 
 export default function App() {
   const [currentPage, setCurrentPageState] = useState('home')
@@ -76,22 +76,42 @@ export default function App() {
     }
   }, [])
 
-  // Scroll to top of window whenever currentPage state changes
+  // Helper to map state to clean canonical URL paths
+  const getPagePath = (page) => {
+    switch (page) {
+      case 'home': return '/'
+      case 'day1': return '/day-1'
+      case 'day2': return '/day-2'
+      case 'register-day1': return '/register-day1'
+      case 'register-day2': return '/register-day2'
+      case 'guidelines': return '/guidelines'
+      case 'admin': return '/admin'
+      default: return '/'
+    }
+  }
+
+  // Scroll to top of window and track pageview whenever currentPage changes
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-    const t = setTimeout(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-    }, 10)
-    return () => clearTimeout(t)
+    const path = getPagePath(currentPage)
+    try {
+      track('pageview', {
+        page: currentPage,
+        path: path,
+        title: document.title
+      })
+    } catch (err) {
+      // Ignore in dev/offline
+    }
   }, [currentPage])
 
   const setCurrentPage = (page) => {
+    const newPath = getPagePath(page)
     if (page === 'day1' || page === 'register-day1') {
       setTransitionType('day1-spotlight')
       setTimeout(() => {
         setCurrentPageState(page)
         window.scrollTo(0, 0)
-        const newPath = page === 'home' ? '/' : `/${page}`
         try { window.history.pushState({}, '', newPath) } catch (e) {}
       }, 200)
       setTimeout(() => {
@@ -102,7 +122,6 @@ export default function App() {
       setTimeout(() => {
         setCurrentPageState(page)
         window.scrollTo(0, 0)
-        const newPath = page === 'home' ? '/' : `/${page}`
         try { window.history.pushState({}, '', newPath) } catch (e) {}
       }, 220)
       setTimeout(() => {
@@ -111,15 +130,18 @@ export default function App() {
     } else {
       setCurrentPageState(page)
       window.scrollTo(0, 0)
-      const newPath = page === 'home' ? '/' : `/${page}`
       try { window.history.pushState({}, '', newPath) } catch (e) {}
     }
   }
 
-  const handleOpenRegister = (track = 'day1-performer') => {
-    if (track === 'day2-wizard' || track === 'day2') {
+  const handleOpenRegister = (trackType = 'day1-performer') => {
+    try {
+      track('click_register', { track: trackType })
+    } catch (e) {}
+
+    if (trackType === 'day2-wizard' || trackType === 'day2') {
       setCurrentPage('register-day2')
-    } else if (track === 'day1-audience') {
+    } else if (trackType === 'day1-audience') {
       window.open('https://luma.com/j4pp1jbv', '_blank', 'noopener,noreferrer')
     } else {
       setCurrentPage('register-day1')
@@ -127,10 +149,7 @@ export default function App() {
   }
 
   const navigate = (page) => {
-    const path = page === 'day1' ? '/day-1' : page === 'day2' ? '/day-2' : '/'
-    if (window.location.pathname !== path) window.history.pushState({}, '', path)
     setCurrentPage(page)
-    window.scrollTo({ top: 0, behavior: 'instant' })
   }
 
   return (
