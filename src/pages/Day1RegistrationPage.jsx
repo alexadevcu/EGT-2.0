@@ -564,6 +564,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
                   <option value="">Select Performance Category...</option>
                   <option value="Vocals & Jamming">Vocals &amp; Acoustic Jamming</option>
                   <option value="Dance & Choreography">Dance &amp; Choreography</option>
+                  <option value="Modeling">Modeling</option>
                   <option value="Stand-up Comedy">Stand-up Comedy</option>
                   <option value="Mono-Acts & Drama">Mono-Acts &amp; Drama Skits</option>
                   <option value="Magic & Illusions">Magic &amp; Illusions</option>

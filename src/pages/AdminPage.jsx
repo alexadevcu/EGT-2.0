@@ -887,6 +887,8 @@ function doGet(e) {
             matchesFilter = (item.entry_type || '').toLowerCase() === 'team' || Boolean(item.team_name && item.team_name.trim().length > 0)
           } else if (categoryFilter === 'dance') {
             matchesFilter = (item.category || '').toLowerCase().includes('dance')
+          } else if (categoryFilter === 'modeling') {
+            matchesFilter = (item.category || '').toLowerCase().includes('model') || (item.category || '').toLowerCase().includes('ramp')
           } else if (categoryFilter === 'singing') {
             matchesFilter = (item.category || '').toLowerCase().includes('singing') || (item.category || '').toLowerCase().includes('vocal')
           } else if (categoryFilter === 'comedy') {
@@ -1256,6 +1258,7 @@ function doGet(e) {
                 <optgroup label="── Talent Categories ──">
                   <option value="singing">Singing &amp; Vocal Arts</option>
                   <option value="dance">Dance (Solo / Group)</option>
+                  <option value="modeling">Modeling</option>
                   <option value="comedy">Stand-Up Comedy</option>
                   <option value="beatboxing">Beatboxing &amp; Rap</option>
                   <option value="instrumental">Instrumental Music</option>
