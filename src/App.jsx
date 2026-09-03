@@ -13,6 +13,7 @@ import NotFoundPage from './pages/NotFoundPage'
 import PageTransitionOverlay from './components/PageTransitionOverlay'
 import CurtainOverlay from './components/CurtainOverlay'
 import ContactModal from './components/ContactModal'
+import { Analytics } from '@vercel/analytics/react'
 
 export default function App() {
   const [currentPage, setCurrentPageState] = useState('home')
@@ -214,6 +215,9 @@ export default function App() {
         isOpen={isContactOpen}
         onClose={() => setIsContactOpen(false)}
       />
+
+      {/* Vercel Web Analytics */}
+      <Analytics />
     </div>
   )
 }
