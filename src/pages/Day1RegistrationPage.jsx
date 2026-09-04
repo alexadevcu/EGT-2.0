@@ -124,6 +124,14 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
     setIsSubmitting(false)
 
     if (result && result.success) {
+      setSubmittedPass(result.data || payload)
+      if (typeof window !== 'undefined') {
+        window.scrollTo(0, 0)
+        setTimeout(() => {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+        }, 20)
+      }
+
       try {
         confetti({
           particleCount: 140,
@@ -133,12 +141,11 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
       } catch (err) {
         console.log('Confetti active')
       }
-
-      setSubmittedPass(result.data)
-      window.scrollTo({ top: 100, behavior: 'smooth' })
     } else {
       setErrorMessage(result?.error || 'Registration failed. Please check your details.')
-      window.scrollTo({ top: 150, behavior: 'smooth' })
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 150, behavior: 'smooth' })
+      }
     }
   }
 
@@ -779,7 +786,7 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
           </form>
         ) : (
           /* SUCCESS PASS CARD */
-          <div className="text-center py-8 px-4 space-y-6 max-w-xl mx-auto">
+          <div className="text-center py-8 px-4 space-y-6 max-w-xl mx-auto animate-in fade-in zoom-in-95 duration-200">
             <div className="w-20 h-20 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center mx-auto text-rose-400 shadow-[0_0_40px_rgba(244,63,94,0.5)]">
               <CheckCircle2 className="w-10 h-10" />
             </div>
@@ -796,52 +803,52 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
             <div className="glass-panel p-6 rounded-2xl border border-rose-500/40 text-left space-y-3 font-['Space_Grotesk']">
               <div className="flex justify-between items-center border-b border-white/10 pb-3">
                 <span className="text-xs text-gray-400">Pass Registration ID:</span>
-                <span className="text-sm font-bold text-rose-400">{submittedPass.reg_id}</span>
+                <span className="text-sm font-bold text-rose-400 font-mono">{submittedPass?.reg_id || 'EGT2-P-CONFIRMED'}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-gray-400">Participant:</span>
-                <span className="font-bold text-white">{submittedPass.full_name}</span>
+                <span className="font-bold text-white">{submittedPass?.full_name || formData.fullName}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-gray-400">Student UID:</span>
-                <span className="font-bold text-gray-200">{submittedPass.uid}</span>
+                <span className="font-bold text-gray-200">{submittedPass?.uid || formData.uid}</span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-gray-400">Format:</span>
                 <span className="font-bold text-gray-200">
-                  {submittedPass.entry_type === 'Team' ? `Group Act (${submittedPass.team_name || 'Team'})` : 'Solo Performer'}
+                  {(submittedPass?.entry_type || formData.entryType) === 'Team' ? `Group Act (${submittedPass?.team_name || formData.teamName || 'Team'})` : 'Solo Performer'}
                 </span>
               </div>
               <div className="flex justify-between items-center text-xs">
                 <span className="text-gray-400">Category:</span>
                 <span className="font-bold text-rose-300 uppercase">
-                  {submittedPass.category}
+                  {submittedPass?.category || formData.category || 'Performer'}
                 </span>
               </div>
 
               {/* Day 1 Group Co-Performers Roster */}
-              {submittedPass.entry_type === 'Team' && (
+              {(submittedPass?.entry_type === 'Team' || formData.entryType === 'Team') && (
                 <div className="pt-2.5 border-t border-white/10 space-y-2">
                   <div className="flex justify-between items-center text-xs">
                     <span className="text-[11px] font-bold text-[#f7d978] uppercase flex items-center gap-1">
                       <Users className="w-3.5 h-3.5 text-[#f7d978]" />
                       <span>Team Members ({teamMembersList.length + 1} Total)</span>
                     </span>
-                    <span className="text-[10px] text-gray-400 font-mono">Lead: {submittedPass.full_name}</span>
+                    <span className="text-[10px] text-gray-400 font-mono">Lead: {submittedPass?.full_name || formData.fullName}</span>
                   </div>
 
                   {teamMembersList.length > 0 ? (
                     <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
                       {teamMembersList.map((member, idx) => (
                         <div key={idx} className="flex justify-between items-center text-xs bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
-                          <span className="text-white font-medium">{idx + 2}. {member.fullName}</span>
-                          <span className="font-mono text-xs text-[#f7d978]">{member.uid} <span className="text-gray-400 text-[10px]">[{member.section}, {member.group}]</span></span>
+                          <span className="text-white font-medium">{idx + 2}. {member.fullName || 'Member'}</span>
+                          <span className="font-mono text-xs text-[#f7d978]">{member.uid || ''} <span className="text-gray-400 text-[10px]">[{member.section || ''}, {member.group || ''}]</span></span>
                         </div>
                       ))}
                     </div>
-                  ) : submittedPass.team_members ? (
+                  ) : (submittedPass?.team_members || formData.teamMembers) ? (
                     <div className="text-xs text-gray-300 bg-white/5 p-2.5 rounded-xl border border-white/10">
-                      <p className="leading-relaxed font-mono text-[11px]">{submittedPass.team_members}</p>
+                      <p className="leading-relaxed font-mono text-[11px]">{submittedPass?.team_members || formData.teamMembers}</p>
                     </div>
                   ) : null}
                 </div>
