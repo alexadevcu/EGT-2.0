@@ -10,7 +10,8 @@ import {
   Clock,
   Sparkles,
   Zap,
-  Ban
+  Ban,
+  Users
 } from 'lucide-react'
 import { saveDay2Registration, isSupabaseConfigured, getRegistrationSettings, fetchRegistrationSettings } from '../supabaseClient'
 

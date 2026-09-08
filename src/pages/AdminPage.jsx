@@ -331,23 +331,21 @@ export default function AdminPage({ setCurrentPage }) {
       if (dayKey === 'day1') {
         const maxTeammates = Math.max(0, ...dataToExport.map(row => parseDay1TeamMembers(row).length))
         headers = [
+          'Token No.',
           'Registration ID',
-          'Timestamp',
+          'Attendance',
           'Full Name (Solo / Lead)',
           'UID',
-          'Email Address',
-          'Phone No.',
           'Academic Year',
           'Department',
           'Section',
           'Group',
           'Block',
           'Performance Category',
-          'Performance Details / Description',
-          'Requires Audio Track',
-          'Audio Track Link',
           'Entry Format',
-          'Team Name'
+          'Team Name',
+          'Requires Audio Track',
+          'Audio Track Link'
         ]
         for (let i = 1; i <= maxTeammates; i++) {
           headers.push(
@@ -359,27 +357,25 @@ export default function AdminPage({ setCurrentPage }) {
           )
         }
 
-        rows = dataToExport.map(row => {
-          const timestamp = new Date(row.created_at || Date.now()).toLocaleString()
+        rows = dataToExport.map((row, idx) => {
+          const tokenNo = `T-${String(idx + 1).padStart(3, '0')}`
           const parsed = parseDay1TeamMembers(row)
           const r = [
+            tokenNo,
             row.reg_id || '',
-            timestamp,
+            '', // Attendance (blank with dropdown for registration desk)
             row.full_name || '',
             row.uid || '',
-            row.email || '',
-            row.phone || '',
             row.academic_year || '',
             row.department || '',
             row.section || '',
             row.group_name || row.group || '',
             row.block || '',
             row.category || '',
-            row.performance_desc || '',
-            row.requires_audio_track || 'No',
-            row.audio_track_url || '',
             row.entry_type || 'Solo',
-            row.team_name || ''
+            row.team_name || '',
+            row.requires_audio_track || 'No',
+            row.audio_track_url || ''
           ]
           for (let i = 0; i < maxTeammates; i++) {
             const m = parsed[i] || {}
@@ -388,38 +384,58 @@ export default function AdminPage({ setCurrentPage }) {
           return r
         })
 
-        // Pre-initialize ALL standard Day 1 categories so every category sheet tab is synced/cleared properly
+        // Pre-initialize separate Solo & Team tabs and category tabs (with Music categories merged)
         categorySheets = {
-          'Vocals & Jamming': [],
+          'Solo Acts': [],
+          'Team Acts': [],
+          'Music & Jamming': [],
           'Dance & Choreography': [],
           'Stand-up Comedy': [],
-          'Beatboxing & Rap': [],
           'Mono-Acts & Drama': [],
-          'Magic & Illusions': [],
-          'Instrumental Performance': [],
           'Modeling': [],
           'Poetry & Spoken Word': [],
           'Other Creative Talent': []
         }
 
-        // Group rows by individual category for separate category sheet tabs
         dataToExport.forEach((row, idx) => {
+          const rowData = rows[idx]
           const catName = normalizeCategoryName(row.category)
-          if (!categorySheets[catName]) {
-            categorySheets[catName] = []
+          const members = parseDay1TeamMembers(row)
+          const isTeam =
+            (row.entry_type || '').toLowerCase() === 'team' ||
+            Boolean(row.team_name && row.team_name.trim().length > 0) ||
+            members.length > 0
+
+          // 1. Separate Solo and Team into different sheets
+          if (isTeam) {
+            categorySheets['Team Acts'].push(rowData)
+          } else {
+            categorySheets['Solo Acts'].push(rowData)
           }
-          categorySheets[catName].push(rows[idx])
+
+          // 2. Merge Vocals & Jamming, Instrumental Performance, and Beatboxing & Rap into "Music & Jamming"
+          if (
+            catName === 'Vocals & Jamming' ||
+            catName === 'Instrumental Performance' ||
+            catName === 'Beatboxing & Rap'
+          ) {
+            categorySheets['Music & Jamming'].push(rowData)
+          } else {
+            if (!categorySheets[catName]) {
+              categorySheets[catName] = []
+            }
+            categorySheets[catName].push(rowData)
+          }
         })
       } else {
         // Day 2 Tech Arena
         headers = [
+          'Token No.',
           'Registration ID',
-          'Timestamp',
+          'Attendance',
           'Squad Name',
           'Leader Name',
           'Leader UID',
-          'Leader Email',
-          'Leader Phone',
           'Department',
           'Academic Year',
           'Section',
@@ -442,16 +458,15 @@ export default function AdminPage({ setCurrentPage }) {
           'Teammate 3 Block'
         ]
 
-        rows = dataToExport.map(row => {
-          const timestamp = new Date(row.created_at || Date.now()).toLocaleString()
+        rows = dataToExport.map((row, idx) => {
+          const tokenNo = `T-${String(idx + 1).padStart(3, '0')}`
           return [
+            tokenNo,
             row.reg_id || '',
-            timestamp,
+            '', // Attendance (blank with dropdown for registration desk)
             row.squad_name || '',
             row.leader_name || '',
             row.uid || '',
-            row.email || '',
-            row.phone || '',
             row.department || '',
             row.academic_year || '',
             row.section || '',
@@ -537,7 +552,7 @@ export default function AdminPage({ setCurrentPage }) {
       setSyncStatus({
         day: dayKey,
         success: true,
-        message: `Successfully pushed ${rows.length} ${dayName} records into Google Sheets! Created master table + ${subSheetsCount} individual category sheets.`
+        message: `Successfully pushed ${rows.length} ${dayName} records into Google Sheets! Created master table + ${subSheetsCount} individual tabs.`
       })
     } catch (err) {
       console.error('Google Sheet Push Error:', err)
@@ -551,7 +566,7 @@ export default function AdminPage({ setCurrentPage }) {
     }
   }
 
-  // Google Apps Script Template for User Setup (Production Tested with Multi-Tab Category Sync)
+  // Google Apps Script Template for User Setup (Registration Desk Ready with Dropdowns & Token No.)
   const appsScriptCode = `function doPost(e) {
   try {
     var raw = "";
@@ -575,13 +590,12 @@ export default function AdminPage({ setCurrentPage }) {
     
     // Category aliases and keyword mappings for smart tab detection
     var categoryKeywords = {
-      'Vocals & Jamming': ['vocal', 'sing', 'jamming', 'acoustic', 'song', 'music'],
+      'Solo Acts': ['solo', 'solo act', 'solo acts', 'solo performance'],
+      'Team Acts': ['team', 'team act', 'team acts', 'group act', 'group'],
+      'Music & Jamming': ['music', 'vocal', 'sing', 'jamming', 'acoustic', 'instrument', 'guitar', 'piano', 'beatbox', 'rap'],
       'Dance & Choreography': ['dance', 'choreo', 'dancing', 'dancer'],
       'Stand-up Comedy': ['comedy', 'stand-up', 'standup', 'comic', 'stand up'],
-      'Beatboxing & Rap': ['beatbox', 'rap', 'hip-hop', 'hip hop'],
       'Mono-Acts & Drama': ['drama', 'mono', 'skit', 'theatre', 'theater', 'acting', 'play'],
-      'Magic & Illusions': ['magic', 'illusion', 'mentalism'],
-      'Instrumental Performance': ['instrument', 'guitar', 'piano', 'keyboard', 'flute', 'violin', 'drum'],
       'Modeling': ['model', 'ramp', 'fashion'],
       'Poetry & Spoken Word': ['poet', 'poetry', 'spoken', 'shayari', 'kavita'],
       'Other Creative Talent': ['other', 'misc', 'creative', 'talent'],
@@ -657,7 +671,7 @@ export default function AdminPage({ setCurrentPage }) {
       return ss.insertSheet(cleanTabName);
     }
     
-    // Helper function to format and populate a sheet tab with table headers and styling
+    // Helper function to format and populate a sheet tab with table headers, dropdowns, and styling
     function populateSheetTab(sheet, sheetHeaders, sheetRows, headerBgColor) {
       sheet.clearContents();
       sheet.clearFormats();
@@ -712,6 +726,22 @@ export default function AdminPage({ setCurrentPage }) {
             bgColors.push(rowColorArr);
           }
           dataRange.setBackgrounds(bgColors);
+          
+          // Format Token No. (Column 1)
+          try {
+            sheet.getRange(2, 1, numRows - 1, 1).setHorizontalAlignment('center').setFontWeight('bold');
+          } catch (eTok) {}
+          
+          // Setup interactive Present / Absent dropdown validation on Attendance (Column 3)
+          try {
+            var attRange = sheet.getRange(2, 3, numRows - 1, 1);
+            var attRule = SpreadsheetApp.newDataValidation()
+              .requireValueInList(['Present', 'Absent'], true)
+              .setAllowInvalid(true)
+              .build();
+            attRange.setDataValidation(attRule);
+            attRange.setHorizontalAlignment('center');
+          } catch (eAtt) {}
         }
         
         // Auto-fit columns
@@ -726,14 +756,15 @@ export default function AdminPage({ setCurrentPage }) {
     var masterSheet = findMasterSheet(masterTabName, data.dayKey);
     populateSheetTab(masterSheet, data.headers, data.rows, '#1a1711');
     
-    // 2. Populate Individual Category Sheets (for Day 1 and Day 2)
+    // 2. Populate Individual Tabs (Solo Acts, Team Acts, Category Sheets, Squad Tabs)
     if (data.categorySheets) {
       var catNames = Object.keys(data.categorySheets);
       for (var k = 0; k < catNames.length; k++) {
         var catName = catNames[k];
         var catRows = data.categorySheets[catName];
         var catSheet = findCategorySheet(catName);
-        populateSheetTab(catSheet, data.headers, catRows || [], '#2e1c38');
+        var tabColor = (catName === 'Solo Acts' || catName === 'Team Acts') ? '#1e3a5f' : '#2e1c38';
+        populateSheetTab(catSheet, data.headers, catRows || [], tabColor);
       }
     }
     

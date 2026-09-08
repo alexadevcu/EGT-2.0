@@ -115,11 +115,10 @@ export function generateRegId(prefix = 'EGT2-P') {
 }
 
 export function checkSubmissionRateLimit(key = 'egt_last_sub') {
-  // NOTE: This is client-side rate limiting only — a database-level UNIQUE constraint
-  // on the uid column is the authoritative duplicate-prevention mechanism.
+  // Client-side anti-double-click guard (1.5s threshold)
   const lastSub = localStorage.getItem(key)
   const now = Date.now()
-  if (lastSub && now - Number(lastSub) < 5000) { // 5s anti-spam threshold
+  if (lastSub && now - Number(lastSub) < 1500) {
     return false
   }
   localStorage.setItem(key, String(now))
@@ -248,14 +247,14 @@ export async function saveDay1Registration(data) {
   if (!checkSubmissionRateLimit('egt_last_d1_sub')) {
     return {
       success: false,
-      error: 'Please wait a few seconds before submitting another registration.'
+      error: 'Please wait a moment before submitting again.'
     }
   }
 
   // 3. Strict Input Validation Algorithms
-  const cleanUid = sanitizeInput(data.uid).toUpperCase()
-  const cleanEmail = sanitizeInput(data.email).toLowerCase()
-  const cleanPhone = sanitizeInput(data.phone)
+  const cleanUid = String(data.uid || '').trim().replace(/[\s-]/g, '').toUpperCase()
+  const cleanEmail = String(data.email || '').trim().toLowerCase()
+  const cleanPhone = String(data.phone || '').trim()
   const cleanFullName = sanitizeInput(data.fullName)
 
   if (!cleanFullName || cleanFullName.length < 2) {
@@ -304,7 +303,7 @@ export async function saveDay1Registration(data) {
 
   // Check for duplicate UIDs within Team Roster
   if (data.entryType === 'Team' && Array.isArray(data.teamMembersList) && data.teamMembersList.length > 0) {
-    const allRosterUids = [cleanUid, ...data.teamMembersList.map(m => sanitizeInput(m.uid).toUpperCase())].filter(Boolean)
+    const allRosterUids = [cleanUid, ...data.teamMembersList.map(m => String(m.uid || '').trim().replace(/[\s-]/g, '').toUpperCase())].filter(Boolean)
     const uniqueUids = new Set(allRosterUids)
     if (uniqueUids.size !== allRosterUids.length) {
       return {
@@ -339,13 +338,13 @@ export async function saveDay1Registration(data) {
     block: sanitizeInput(data.block),
     category: sanitizeInput(data.category),
     requires_audio_track: sanitizeInput(data.requiresAudioTrack),
-    audio_track_url: sanitizeUrl(data.audioTrackUrl),       // URL-validated: only http/https
+    audio_track_url: sanitizeUrl(data.audioTrackUrl),
     entry_type: sanitizeInput(data.entryType) || 'Solo',
     team_name: sanitizeInput(data.teamName),
     team_members: formattedTeamMembers,
     team_members_raw: rawTeamMembersJson,
     performance_desc: sanitizeInput(data.performanceDesc),
-    previous_performance_link: sanitizeUrl(data.previousPerformanceLink), // URL-validated
+    previous_performance_link: sanitizeUrl(data.previousPerformanceLink),
     instagram: sanitizeInput(data.instagram),
     created_at: new Date().toISOString()
   }
@@ -357,7 +356,7 @@ export async function saveDay1Registration(data) {
       let error = null
       let attempts = 0
 
-      // Initial insert attempt (direct insert without select to avoid RLS read restrictions)
+      // Initial insert attempt
       const res = await supabase
         .from('day1_registrations')
         .insert([currentPayload])
@@ -394,7 +393,6 @@ export async function saveDay1Registration(data) {
       }
 
       console.warn('Supabase Day 1 Insert Warning:', error)
-      // If error is non-fatal RLS or network, fallback to local storage so student is never blocked
       const fallbackData = { ...insertPayload, ...currentPayload }
       saveToLocalStorage('egt_day1_registrations', fallbackData)
       return { success: true, data: fallbackData, isSupabase: false }
@@ -437,35 +435,35 @@ export async function saveDay2Registration(data) {
     }
   }
 
-  // 2. Anti-Spam Rate Limit Check
+  // 2. Anti-Spam Rate Limit Check (anti double-click)
   if (!checkSubmissionRateLimit('egt_last_d2_sub')) {
     return {
       success: false,
-      error: 'Please wait a few seconds before submitting another registration.'
+      error: 'Please wait a moment before clicking submit again.'
     }
   }
 
-  // 3. Strict Input Validation Algorithms
-  const cleanUid = sanitizeInput(data.uid).toUpperCase()
-  const cleanEmail = sanitizeInput(data.email).toLowerCase()
-  const cleanPhone = sanitizeInput(data.phone)
+  // 3. Strict Input Validation & Space Cleansing
+  const cleanUid = String(data.uid || '').trim().replace(/[\s-]/g, '').toUpperCase()
+  const cleanEmail = String(data.email || '').trim().toLowerCase()
+  const cleanPhone = String(data.phone || '').trim().replace(/\D/g, '')
   const cleanLeaderName = sanitizeInput(data.fullName)
 
   const cleanSquadName = sanitizeInput(data.squadName)
   const cleanT1Name = sanitizeInput(data.teammate1Name || data.teammate1)
-  const cleanT1Uid = sanitizeInput(data.teammate1Uid).toUpperCase()
+  const cleanT1Uid = String(data.teammate1Uid || '').trim().replace(/[\s-]/g, '').toUpperCase()
   const cleanT1Section = sanitizeInput(data.teammate1Section)
   const cleanT1Group = sanitizeInput(data.teammate1Group)
   const cleanT1Block = sanitizeInput(data.teammate1Block)
 
   const cleanT2Name = sanitizeInput(data.teammate2Name || data.teammate2)
-  const cleanT2Uid = sanitizeInput(data.teammate2Uid).toUpperCase()
+  const cleanT2Uid = String(data.teammate2Uid || '').trim().replace(/[\s-]/g, '').toUpperCase()
   const cleanT2Section = sanitizeInput(data.teammate2Section)
   const cleanT2Group = sanitizeInput(data.teammate2Group)
   const cleanT2Block = sanitizeInput(data.teammate2Block)
 
   const cleanT3Name = sanitizeInput(data.teammate3Name || data.teammate3)
-  const cleanT3Uid = sanitizeInput(data.teammate3Uid).toUpperCase()
+  const cleanT3Uid = String(data.teammate3Uid || '').trim().replace(/[\s-]/g, '').toUpperCase()
   const cleanT3Section = sanitizeInput(data.teammate3Section)
   const cleanT3Group = sanitizeInput(data.teammate3Group)
   const cleanT3Block = sanitizeInput(data.teammate3Block)
@@ -474,7 +472,7 @@ export async function saveDay2Registration(data) {
     return { success: false, error: 'Please enter a valid Squad Leader name.' }
   }
   if (!validateUID(cleanUid)) {
-    return { success: false, error: 'Please enter a valid Student UID.' }
+    return { success: false, error: 'Please enter a valid Student UID for the Squad Leader.' }
   }
   if (!validateEmail(cleanEmail)) {
     return { success: false, error: 'Please enter a valid email address (e.g. name@domain.com).' }
@@ -486,17 +484,17 @@ export async function saveDay2Registration(data) {
     return { success: false, error: 'Please enter a Squad / Team Name.' }
   }
   if (!cleanT1Name || !cleanT1Uid) {
-    return { success: false, error: 'Teammate 1 Full Name and Student UID are both minimum requirements.' }
+    return { success: false, error: 'Teammate 1 Full Name and Student UID are required (Minimum 3 squad members).' }
   }
   if (!cleanT2Name || !cleanT2Uid) {
-    return { success: false, error: 'Teammate 2 Full Name and Student UID are both minimum requirements.' }
+    return { success: false, error: 'Teammate 2 Full Name and Student UID are required (Minimum 3 squad members).' }
   }
   // Teammate 3 cross-field validation: if name filled, UID must also be filled
   if (cleanT3Name && !cleanT3Uid) {
-    return { success: false, error: 'Please enter the Student UID for Teammate 3 (or leave both fields blank).' }
+    return { success: false, error: 'Please enter the Student UID for Teammate 3 (or clear Teammate 3 name to submit a 3-member squad).' }
   }
   if (!cleanT3Name && cleanT3Uid) {
-    return { success: false, error: 'Please enter the Full Name for Teammate 3 (or leave both fields blank).' }
+    return { success: false, error: 'Please enter the Full Name for Teammate 3 (or clear Teammate 3 UID to submit a 3-member squad).' }
   }
 
   // Squad internal duplicate UID check (Leader + Teammates 1, 2, 3)
@@ -518,13 +516,13 @@ export async function saveDay2Registration(data) {
     try {
       const { data: existing } = await supabase
         .from('day2_registrations')
-        .select('uid, leader_name, reg_id')
+        .select('uid, reg_id')
         .ilike('uid', cleanUid)
 
       if (existing && existing.length > 0) {
         return {
           success: false,
-          error: `Student UID [${cleanUid}] is already registered for Day 2 (${existing[0].reg_id}). Duplicate registrations are not allowed.`
+          error: `Student UID [${cleanUid}] is already registered as a squad leader for Day 2 (${existing[0].reg_id}).`
         }
       }
     } catch (err) {
@@ -544,13 +542,14 @@ export async function saveDay2Registration(data) {
     }
   }
 
-  // Generate unique registration ID directly (guaranteed to prevent sequence/null constraint issues)
+  // Generate unique registration ID directly
   const clientRegId = generateRegId('EGT2-T')
 
-  // Payload for backend insertion
+  // Payload for backend insertion (both leader_name & full_name, both squad_name & team_name for maximum schema compatibility)
   const insertPayload = {
     reg_id: clientRegId,
     leader_name: cleanLeaderName,
+    full_name: cleanLeaderName,
     uid: cleanUid,
     email: cleanEmail,
     phone: cleanPhone,
@@ -560,6 +559,7 @@ export async function saveDay2Registration(data) {
     group_name: sanitizeInput(data.group),
     block: sanitizeInput(data.block),
     squad_name: cleanSquadName,
+    team_name: cleanSquadName,
     teammate_1: formattedT1,
     teammate_2: formattedT2,
     teammate_3: formattedT3 || '',
@@ -588,16 +588,16 @@ export async function saveDay2Registration(data) {
       let error = null
       let attempts = 0
 
-      // Initial insert attempt (direct insert without select to avoid RLS read restrictions)
+      // Initial insert attempt
       const res = await supabase
         .from('day2_registrations')
         .insert([currentPayload])
       error = res.error
 
       // Self-healing loop: if any column is not in DB table, strip it and retry automatically
-      while (error && (error.message?.includes('column') || error.message?.includes('schema cache')) && attempts < 10) {
+      while (error && (error.message?.includes('column') || error.message?.includes('schema cache')) && attempts < 12) {
         attempts++
-        const match = error.message.match(/Could not find the '([^']+)' column/i)
+        const match = error.message.match(/Could not find the '([^']+)' column/i) || error.message.match(/column "([^"]+)" of relation/i)
         if (match && match[1]) {
           const missingCol = match[1]
           console.warn(`Day 2 DB missing column '${missingCol}', pruning and retrying...`)
@@ -618,9 +618,19 @@ export async function saveDay2Registration(data) {
       }
 
       if (error.code === '23505' || error.message?.toLowerCase().includes('unique') || error.message?.toLowerCase().includes('duplicate')) {
+        const msg = error.message?.toLowerCase() || ''
+        if (msg.includes('email')) {
+          return { success: false, error: `Email address [${cleanEmail}] is already registered! Please use a unique email address.` }
+        }
+        if (msg.includes('phone')) {
+          return { success: false, error: `Phone number is already registered! Please use a unique phone number.` }
+        }
+        if (msg.includes('squad') || msg.includes('team_name')) {
+          return { success: false, error: `Squad name "${cleanSquadName}" is already taken! Please choose a unique squad name.` }
+        }
         return {
           success: false,
-          error: `Student UID [${cleanUid}] is already registered! Duplicate registrations are not allowed.`
+          error: `Student UID [${cleanUid}] is already registered for Day 2! Duplicate registrations are not allowed.`
         }
       }
 
