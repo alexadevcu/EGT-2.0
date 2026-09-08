@@ -149,56 +149,39 @@ export function getRegistrationSettings() {
 
 export async function fetchRegistrationSettings() {
   if (supabase) {
-    // 1. Try fetching from dedicated 'event_settings' table
     try {
       const { data, error } = await supabase
         .from('event_settings')
         .select('*')
-        .eq('id', 'registration_controls')
-        .maybeSingle()
 
-      if (!error && data) {
+      if (!error && Array.isArray(data) && data.length > 0) {
+        let d1Closed = inMemorySettings.day1Closed
+        let d2Closed = inMemorySettings.day2Closed
+
+        data.forEach(row => {
+          const k = String(row.key || '').trim().toLowerCase()
+          const v = row.value === true || row.value === 'true' || row.value === 1 || row.value === '1'
+          if (k === 'day1_closed') d1Closed = v
+          if (k === 'day2_closed') d2Closed = v
+        })
+
         inMemorySettings = {
-          day1Closed: Boolean(data.day1_closed),
-          day2Closed: Boolean(data.day2_closed)
+          day1Closed: Boolean(d1Closed),
+          day2Closed: Boolean(d2Closed)
         }
+
         if (typeof window !== 'undefined' && window.localStorage) {
           localStorage.setItem('egt_registration_settings', JSON.stringify(inMemorySettings))
           window.dispatchEvent(new CustomEvent('egt_settings_updated', { detail: inMemorySettings }))
         }
+
         return inMemorySettings
       }
     } catch (err) {
-      // event_settings table might not exist in project; proceed to fallback
-    }
-
-    // 2. Fallback: Fetch from system config entry in contact_messages
-    try {
-      const { data, error } = await supabase
-        .from('contact_messages')
-        .select('*')
-        .eq('email', '__system_registration_settings__')
-        .order('created_at', { ascending: false })
-        .limit(1)
-
-      if (!error && data && data.length > 0) {
-        const parsed = JSON.parse(data[0].message)
-        inMemorySettings = {
-          day1Closed: Boolean(parsed.day1Closed),
-          day2Closed: Boolean(parsed.day2Closed)
-        }
-        if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.setItem('egt_registration_settings', JSON.stringify(inMemorySettings))
-          window.dispatchEvent(new CustomEvent('egt_settings_updated', { detail: inMemorySettings }))
-        }
-        return inMemorySettings
-      }
-    } catch (err) {
-      console.warn('Supabase fallback fetch settings error:', err)
+      console.warn('Error fetching event_settings from Supabase:', err)
     }
   }
 
-  // 3. Fallback to localStorage / inMemory
   return inMemorySettings
 }
 
@@ -213,45 +196,34 @@ export async function updateRegistrationSettings(newSettings) {
   }
 
   if (supabase) {
-    let cloudSaved = false
-
-    // 1. Try persisting to dedicated 'event_settings' table
     try {
-      const { error } = await supabase
-        .from('event_settings')
-        .upsert({
-          id: 'registration_controls',
-          day1_closed: Boolean(updated.day1Closed),
-          day2_closed: Boolean(updated.day2Closed),
-          updated_at: new Date().toISOString()
-        })
+      // 1. Update day1_closed row in event_settings
+      if (newSettings.day1Closed !== undefined) {
+        const { error: e1 } = await supabase
+          .from('event_settings')
+          .update({ value: Boolean(updated.day1Closed) })
+          .eq('key', 'day1_closed')
 
-      if (!error) {
-        cloudSaved = true
+        if (e1) {
+          console.warn('Supabase update day1_closed notice:', e1)
+          await supabase.from('event_settings').upsert({ key: 'day1_closed', value: Boolean(updated.day1Closed) })
+        }
+      }
+
+      // 2. Update day2_closed row in event_settings
+      if (newSettings.day2Closed !== undefined) {
+        const { error: e2 } = await supabase
+          .from('event_settings')
+          .update({ value: Boolean(updated.day2Closed) })
+          .eq('key', 'day2_closed')
+
+        if (e2) {
+          console.warn('Supabase update day2_closed notice:', e2)
+          await supabase.from('event_settings').upsert({ key: 'day2_closed', value: Boolean(updated.day2Closed) })
+        }
       }
     } catch (err) {
-      // event_settings table may not exist
-    }
-
-    // 2. Fallback: Persist to contact_messages system record
-    if (!cloudSaved) {
-      try {
-        const payload = {
-          name: '__SYSTEM_CONFIG__',
-          email: '__system_registration_settings__',
-          category: 'system_settings',
-          message: JSON.stringify({
-            day1Closed: Boolean(updated.day1Closed),
-            day2Closed: Boolean(updated.day2Closed),
-            updatedAt: new Date().toISOString()
-          }),
-          created_at: new Date().toISOString()
-        }
-        await supabase.from('contact_messages').insert([payload])
-        cloudSaved = true
-      } catch (err) {
-        console.warn('Failed to save settings to contact_messages fallback:', err)
-      }
+      console.warn('Supabase updateRegistrationSettings exception:', err)
     }
   }
 
