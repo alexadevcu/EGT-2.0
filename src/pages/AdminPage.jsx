@@ -388,6 +388,20 @@ export default function AdminPage({ setCurrentPage }) {
           return r
         })
 
+        // Pre-initialize ALL standard Day 1 categories so every category sheet tab is synced/cleared properly
+        categorySheets = {
+          'Vocals & Jamming': [],
+          'Dance & Choreography': [],
+          'Stand-up Comedy': [],
+          'Beatboxing & Rap': [],
+          'Mono-Acts & Drama': [],
+          'Magic & Illusions': [],
+          'Instrumental Performance': [],
+          'Modeling': [],
+          'Poetry & Spoken Word': [],
+          'Other Creative Talent': []
+        }
+
         // Group rows by individual category for separate category sheet tabs
         dataToExport.forEach((row, idx) => {
           const catName = normalizeCategoryName(row.category)
@@ -499,23 +513,22 @@ export default function AdminPage({ setCurrentPage }) {
 
       console.log(`[GoogleSheetSync] Sending ${rows.length} rows + ${Object.keys(categorySheets).length} category tabs to ${validatedWebhook}...`)
 
-      // Send payload to Google Apps Script Webhook via URLSearchParams (guaranteed delivery in no-cors mode)
-      const formParams = new URLSearchParams()
-      formParams.append('data', JSON.stringify({
+      // Send payload to Google Apps Script Webhook directly as JSON (text/plain avoids URL size limits & encoding issues)
+      const payload = {
         dayKey,
         dayName,
         headers,
         rows,
         categorySheets
-      }))
+      }
 
       await fetch(validatedWebhook, {
         method: 'POST',
         mode: 'no-cors',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'Content-Type': 'text/plain;charset=utf-8'
         },
-        body: formParams.toString()
+        body: JSON.stringify(payload)
       })
 
       console.log(`[GoogleSheetSync] Request dispatched to Google Apps Script successfully.`)
@@ -538,27 +551,117 @@ export default function AdminPage({ setCurrentPage }) {
     }
   }
 
-  // Google Apps Script Template for User Setup (Production Tested)
+  // Google Apps Script Template for User Setup (Production Tested with Multi-Tab Category Sync)
   const appsScriptCode = `function doPost(e) {
   try {
     var raw = "";
-    if (e && e.parameter && e.parameter.data) {
-      raw = e.parameter.data;
-    } else if (e && e.postData && e.postData.contents) {
+    if (e && e.postData && e.postData.contents) {
       raw = e.postData.contents;
       if (raw.indexOf("data=") === 0) {
-        raw = decodeURIComponent(raw.substring(5).replace(/\\+/g, " "));
+        try {
+          raw = decodeURIComponent(raw.substring(5).replace(/\\+/g, " "));
+        } catch (e1) {
+          raw = unescape(raw.substring(5).replace(/\\+/g, " "));
+        }
       }
+    } else if (e && e.parameter && e.parameter.data) {
+      raw = e.parameter.data;
     }
     
-    if (!raw) throw new Error("No data parameter received in request");
+    if (!raw) throw new Error("No data received in request");
     
-    var data = JSON.parse(raw);
+    var data = (typeof raw === 'object') ? raw : JSON.parse(raw);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
+    
+    // Category aliases and keyword mappings for smart tab detection
+    var categoryKeywords = {
+      'Vocals & Jamming': ['vocal', 'sing', 'jamming', 'acoustic', 'song', 'music'],
+      'Dance & Choreography': ['dance', 'choreo', 'dancing', 'dancer'],
+      'Stand-up Comedy': ['comedy', 'stand-up', 'standup', 'comic', 'stand up'],
+      'Beatboxing & Rap': ['beatbox', 'rap', 'hip-hop', 'hip hop'],
+      'Mono-Acts & Drama': ['drama', 'mono', 'skit', 'theatre', 'theater', 'acting', 'play'],
+      'Magic & Illusions': ['magic', 'illusion', 'mentalism'],
+      'Instrumental Performance': ['instrument', 'guitar', 'piano', 'keyboard', 'flute', 'violin', 'drum'],
+      'Modeling': ['model', 'ramp', 'fashion'],
+      'Poetry & Spoken Word': ['poet', 'poetry', 'spoken', 'shayari', 'kavita'],
+      'Other Creative Talent': ['other', 'misc', 'creative', 'talent'],
+      '3-Member Squads': ['3-member', '3 member', '3 members', '3-members', '3 player', '3 squad', 'trio', '3'],
+      '4-Member Squads': ['4-member', '4 member', '4 members', '4-members', '4 player', '4 squad', 'quad', '4']
+    };
+    
+    // 1. Helper function to find Master Sheet without destroying user-created category tabs
+    function findMasterSheet(masterTabName, dayKey) {
+      var sheets = ss.getSheets();
+      var masterAliases = dayKey === 'day1'
+        ? ['all day 1 performers', 'all day 1', 'day 1', 'master', 'all', 'all performers', 'all registrations', 'sheet1']
+        : ['all day 2 tech squads', 'all day 2', 'day 2', 'master', 'all', 'all squads', 'all tech squads', 'sheet1'];
+      
+      // Match existing master / all sheet
+      for (var a = 0; a < masterAliases.length; a++) {
+        for (var i = 0; i < sheets.length; i++) {
+          var name = sheets[i].getName().toLowerCase().trim();
+          if (name === masterAliases[a]) {
+            sheets[i].setName(masterTabName);
+            return sheets[i];
+          }
+        }
+      }
+      
+      // If only 1 sheet exists in total, use it
+      if (sheets.length === 1) {
+        sheets[0].setName(masterTabName);
+        return sheets[0];
+      }
+      
+      // If multiple sheets already exist (e.g. user made category tabs), insert Master sheet at position 0
+      return ss.insertSheet(masterTabName, 0);
+    }
+    
+    // 2. Helper function to find existing category sheet tab (exact, clean, or keyword alias) or create new
+    function findCategorySheet(categoryName) {
+      var sheets = ss.getSheets();
+      var cleanTarget = categoryName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      var keywords = categoryKeywords[categoryName] || [];
+      
+      // A. Exact Name Match (case-insensitive)
+      for (var i = 0; i < sheets.length; i++) {
+        var existingName = sheets[i].getName();
+        if (existingName.toLowerCase().trim() === categoryName.toLowerCase().trim()) {
+          return sheets[i];
+        }
+      }
+      
+      // B. Alphanumeric Cleaned Match
+      for (var i = 0; i < sheets.length; i++) {
+        var existingName = sheets[i].getName();
+        var cleanExisting = existingName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (cleanExisting === cleanTarget) {
+          return sheets[i];
+        }
+      }
+      
+      // C. Keyword / Alias Match (skip Master sheets)
+      for (var i = 0; i < sheets.length; i++) {
+        var existingName = sheets[i].getName().toLowerCase();
+        if (existingName.indexOf('all day') === 0 || existingName === 'master' || existingName === 'all') continue;
+        
+        for (var k = 0; k < keywords.length; k++) {
+          if (existingName.indexOf(keywords[k]) !== -1) {
+            return sheets[i];
+          }
+        }
+      }
+      
+      // D. Clean tab name (max length 50, valid sheet characters) and insert new
+      var cleanTabName = categoryName.replace(/[\\*\\/\\?\\:\\\\\\[\\]]/g, '').trim().substring(0, 50);
+      return ss.insertSheet(cleanTabName);
+    }
     
     // Helper function to format and populate a sheet tab with table headers and styling
     function populateSheetTab(sheet, sheetHeaders, sheetRows, headerBgColor) {
-      sheet.clear();
+      sheet.clearContents();
+      sheet.clearFormats();
+      
       var allRows = [];
       if (sheetHeaders && sheetHeaders.length > 0) {
         allRows.push(sheetHeaders);
@@ -583,7 +686,7 @@ export default function AdminPage({ setCurrentPage }) {
         var range = sheet.getRange(1, 1, numRows, numCols);
         range.setValues(allRows);
         
-        // Style Gold/Dark Header Row
+        // Style Header Row
         var headerRange = sheet.getRange(1, 1, 1, numCols);
         headerRange.setBackground(headerBgColor || '#1a1711');
         headerRange.setFontColor('#f7d978');
@@ -593,20 +696,26 @@ export default function AdminPage({ setCurrentPage }) {
         headerRange.setHorizontalAlignment('center');
         sheet.setFrozenRows(1);
         
-        // Zebra striping for data rows
+        // Fast batch styling for data rows
         if (numRows > 1) {
           var dataRange = sheet.getRange(2, 1, numRows - 1, numCols);
           dataRange.setFontFamily('Arial');
           dataRange.setFontSize(10);
           
+          var bgColors = [];
           for (var rowIdx = 2; rowIdx <= numRows; rowIdx++) {
             var rowBg = (rowIdx % 2 === 0) ? '#f8f8fa' : '#ffffff';
-            sheet.getRange(rowIdx, 1, 1, numCols).setBackground(rowBg);
+            var rowColorArr = [];
+            for (var c = 0; c < numCols; c++) {
+              rowColorArr.push(rowBg);
+            }
+            bgColors.push(rowColorArr);
           }
+          dataRange.setBackgrounds(bgColors);
         }
         
         // Auto-fit columns
-        for (var c = 1; c <= numCols; c++) {
+        for (var c = 1; c <= Math.min(numCols, 25); c++) {
           try { sheet.autoResizeColumn(c); } catch (err) {}
         }
       }
@@ -614,11 +723,7 @@ export default function AdminPage({ setCurrentPage }) {
     
     // 1. Populate Master Sheet Tab
     var masterTabName = data.dayKey === 'day1' ? 'All Day 1 Performers' : 'All Day 2 Tech Squads';
-    var masterSheet = ss.getSheetByName(masterTabName);
-    if (!masterSheet) {
-      masterSheet = ss.getSheets()[0];
-      masterSheet.setName(masterTabName);
-    }
+    var masterSheet = findMasterSheet(masterTabName, data.dayKey);
     populateSheetTab(masterSheet, data.headers, data.rows, '#1a1711');
     
     // 2. Populate Individual Category Sheets (for Day 1 and Day 2)
@@ -627,15 +732,8 @@ export default function AdminPage({ setCurrentPage }) {
       for (var k = 0; k < catNames.length; k++) {
         var catName = catNames[k];
         var catRows = data.categorySheets[catName];
-        if (!catRows || catRows.length === 0) continue;
-        
-        // Clean sheet tab name (Google Sheets max tab name length is 100, forbidden chars: * / ? : \\ [ ])
-        var cleanTabName = catName.replace(/[\\*\\/\\?\\:\\\\\\[\\]]/g, '').trim().substring(0, 50);
-        var catSheet = ss.getSheetByName(cleanTabName);
-        if (!catSheet) {
-          catSheet = ss.insertSheet(cleanTabName);
-        }
-        populateSheetTab(catSheet, data.headers, catRows, '#2e1c38');
+        var catSheet = findCategorySheet(catName);
+        populateSheetTab(catSheet, data.headers, catRows || [], '#2e1c38');
       }
     }
     
@@ -2657,14 +2755,14 @@ function doGet(e) {
 
               <ol className="list-decimal list-inside space-y-1.5 text-gray-300 leading-relaxed font-normal">
                 <li>Create or open your Google Sheet for <strong>Day 1</strong> or <strong>Day 2</strong>.</li>
-                <li>Click <strong>Extensions</strong> → <strong>Apps Script</strong>, delete existing code, and paste the copied script.</li>
-                <li>Click <strong>Deploy</strong> → <strong>New deployment</strong> (or <strong>Manage deployments</strong> → <strong>Edit</strong> → <strong>New version</strong>) → Select type: <strong>Web app</strong>.</li>
-                <li>Set <em>Execute as</em>: <strong>Me</strong> and <em>Who has access</em>: <strong className="text-amber-300">Anyone</strong> *(Required!)*.</li>
+                <li>Click <strong>Extensions</strong> → <strong>Apps Script</strong>, replace all code with the copied script, and click <strong>Save (Ctrl+S)</strong>.</li>
+                <li>Click <strong>Deploy</strong> → <strong>Manage deployments</strong> (or <em>New deployment</em> if first time).</li>
+                <li>Click the <strong>✏️ Edit (pencil icon)</strong> on the active deployment → Under Version, select <strong className="text-amber-300">"New version"</strong> → Ensure access is set to <strong className="text-amber-300">Anyone</strong>.</li>
                 <li>Click <strong>Deploy</strong>, copy the generated Web app URL (ending in <code className="text-[#f7d978]">/exec</code>), and paste it in the fields above!</li>
               </ol>
 
-              <div className="mt-2 text-[11px] text-emerald-300 bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/20 font-sans">
-                💡 <strong>Pro-Tip:</strong> In Google Sheets, convert to table format via <strong>Format → Convert to table</strong> for easy filtering, sorting, and squad search!
+              <div className="mt-2 text-[11px] text-amber-300 bg-amber-950/40 p-2.5 rounded-xl border border-amber-500/30 font-sans">
+                ⚠️ <strong>Important:</strong> Whenever you update Apps Script code in Google Sheets, you <strong>must</strong> select <strong>"New version"</strong> in <em>Manage deployments</em> so the live webhook uses the category-sync script!
               </div>
             </div>
 
