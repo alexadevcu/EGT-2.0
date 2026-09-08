@@ -12,7 +12,7 @@ import {
   Zap,
   Ban
 } from 'lucide-react'
-import { saveDay2Registration, isSupabaseConfigured, getRegistrationSettings } from '../supabaseClient'
+import { saveDay2Registration, isSupabaseConfigured, getRegistrationSettings, fetchRegistrationSettings } from '../supabaseClient'
 
 export default function Day2RegistrationPage({ setCurrentPage }) {
   const [submittedPass, setSubmittedPass] = useState(null)
@@ -22,10 +22,15 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    const checkSettings = () => {
-      setIsClosed(getRegistrationSettings().day2Closed)
+    const checkSettings = (e) => {
+      const settings = e?.detail || getRegistrationSettings()
+      setIsClosed(Boolean(settings.day2Closed))
     }
     checkSettings()
+    fetchRegistrationSettings().then((s) => {
+      if (s) setIsClosed(Boolean(s.day2Closed))
+    }).catch(() => {})
+
     window.addEventListener('egt_settings_updated', checkSettings)
     return () => window.removeEventListener('egt_settings_updated', checkSettings)
   }, [])

@@ -14,6 +14,7 @@ import PageTransitionOverlay from './components/PageTransitionOverlay'
 import CurtainOverlay from './components/CurtainOverlay'
 import ContactModal from './components/ContactModal'
 import { Analytics, track } from '@vercel/analytics/react'
+import { fetchRegistrationSettings } from './supabaseClient'
 
 // Function to resolve initial page from URL to prevent emitting home on deep links
 const getInitialPage = () => {
@@ -33,6 +34,15 @@ export default function App() {
   const [currentPage, setCurrentPageState] = useState(getInitialPage)
   const [transitionType, setTransitionType] = useState('idle')
   const [isContactOpen, setIsContactOpen] = useState(false)
+
+  // Live Registration Settings Global Sync (Fetches on initial load + polls every 20s)
+  useEffect(() => {
+    fetchRegistrationSettings().catch(() => {})
+    const interval = setInterval(() => {
+      fetchRegistrationSettings().catch(() => {})
+    }, 20000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Support browser Back/Forward (popstate) navigation
   useEffect(() => {

@@ -33,7 +33,11 @@ import {
   MessageSquare,
   PhoneCall,
   Mail,
-  Phone
+  Phone,
+  BarChart3,
+  PieChart,
+  Layers,
+  Sparkles
 } from 'lucide-react'
 import {
   getDay1Registrations,
@@ -44,6 +48,7 @@ import {
   signOutAdmin,
   getAdminSession,
   getRegistrationSettings,
+  fetchRegistrationSettings,
   updateRegistrationSettings,
   updateRegistrationStatus,
   getContactMessages,
@@ -112,6 +117,126 @@ function safeHref(url) {
   }
 }
 
+// Category Name Normalizer for accurate genre aggregation
+export function normalizeCategoryName(rawCat = '') {
+  const str = String(rawCat || '').trim()
+  if (!str) return 'Other Creative Talent'
+  const lower = str.toLowerCase()
+  if (lower.includes('vocal') || lower.includes('sing') || lower.includes('jamming') || lower.includes('acoustic')) {
+    return 'Vocals & Jamming'
+  }
+  if (lower.includes('dance') || lower.includes('choreo')) {
+    return 'Dance & Choreography'
+  }
+  if (lower.includes('model') || lower.includes('ramp') || lower.includes('fashion')) {
+    return 'Modeling'
+  }
+  if (lower.includes('comedy') || lower.includes('stand-up') || lower.includes('standup')) {
+    return 'Stand-up Comedy'
+  }
+  if (lower.includes('beatbox') || lower.includes('rap') || lower.includes('hip-hop') || lower.includes('hip hop')) {
+    return 'Beatboxing & Rap'
+  }
+  if (lower.includes('mono') || lower.includes('drama') || lower.includes('skit') || lower.includes('theatre') || lower.includes('acting')) {
+    return 'Mono-Acts & Drama'
+  }
+  if (lower.includes('magic') || lower.includes('illusion') || lower.includes('mentalism')) {
+    return 'Magic & Illusions'
+  }
+  if (lower.includes('instrumental') || lower.includes('guitar') || lower.includes('keyboard') || lower.includes('piano') || lower.includes('flute') || lower.includes('violin') || lower.includes('drums')) {
+    return 'Instrumental Performance'
+  }
+  if (lower.includes('poetry') || lower.includes('spoken') || lower.includes('shayari') || lower.includes('kavita')) {
+    return 'Poetry & Spoken Word'
+  }
+  if (lower.includes('other') || lower.includes('creative') || lower.includes('talent')) {
+    return str.length > 20 ? str : 'Other Creative Talent'
+  }
+  return str
+}
+
+// Comprehensive Category & Student Breakdown Analytics Calculator
+export function calculateCategoryAnalytics(day1Data = [], day2Data = []) {
+  const categoryMap = {}
+  let totalDay1Students = 0
+  const totalDay1Acts = Array.isArray(day1Data) ? day1Data.length : 0
+
+  if (Array.isArray(day1Data)) {
+    day1Data.forEach((row) => {
+      if (!row) return
+      const canonicalName = normalizeCategoryName(row.category)
+      const members = parseDay1TeamMembers(row)
+      const isTeam =
+        (row.entry_type || '').toLowerCase() === 'team' ||
+        Boolean(row.team_name && row.team_name.trim().length > 0) ||
+        members.length > 0
+      const studentCount = isTeam ? 1 + members.length : 1
+
+      totalDay1Students += studentCount
+
+      if (!categoryMap[canonicalName]) {
+        categoryMap[canonicalName] = {
+          name: canonicalName,
+          actsCount: 0,
+          totalStudents: 0,
+          soloCount: 0,
+          teamCount: 0,
+          rawCategories: new Set()
+        }
+      }
+
+      categoryMap[canonicalName].actsCount += 1
+      categoryMap[canonicalName].totalStudents += studentCount
+      categoryMap[canonicalName].rawCategories.add((row.category || '').trim())
+      if (isTeam) {
+        categoryMap[canonicalName].teamCount += 1
+      } else {
+        categoryMap[canonicalName].soloCount += 1
+      }
+    })
+  }
+
+  const day1Categories = Object.values(categoryMap)
+    .map(c => ({
+      ...c,
+      rawCategories: Array.from(c.rawCategories)
+    }))
+    .sort((a, b) => b.actsCount - a.actsCount || b.totalStudents - a.totalStudents)
+
+  const totalDay2Squads = Array.isArray(day2Data) ? day2Data.length : 0
+  let day2_3MemberSquads = 0
+  let day2_4MemberSquads = 0
+  let totalDay2Students = 0
+
+  if (Array.isArray(day2Data)) {
+    day2Data.forEach((row) => {
+      if (!row) return
+      const is4Member = Boolean(row.teammate_3 || row.teammate_3_name)
+      if (is4Member) {
+        day2_4MemberSquads += 1
+        totalDay2Students += 4
+      } else {
+        day2_3MemberSquads += 1
+        totalDay2Students += 3
+      }
+    })
+  }
+
+  return {
+    totalActiveCategories: day1Categories.length + (totalDay2Squads > 0 ? 1 : 0),
+    totalDay1CategoriesCount: day1Categories.length,
+    totalDay1Acts,
+    totalDay1Students,
+    day1Categories,
+    totalDay2Squads,
+    totalDay2Students,
+    day2_3MemberSquads,
+    day2_4MemberSquads,
+    grandTotalRegistrations: totalDay1Acts + totalDay2Squads,
+    grandTotalStudents: totalDay1Students + totalDay2Students
+  }
+}
+
 export default function AdminPage({ setCurrentPage }) {
   // Supabase Auth State
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -125,16 +250,24 @@ export default function AdminPage({ setCurrentPage }) {
 
   // Registration Controls (Open vs Full/Closed)
   const [regSettings, setRegSettings] = useState(getRegistrationSettings())
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(null) // 'day1Closed' | 'day2Closed' | null
 
-  const handleToggleRegistration = (dayKey) => {
-    const updated = updateRegistrationSettings({
-      [dayKey]: !regSettings[dayKey]
-    })
-    setRegSettings(updated)
+  const handleToggleRegistration = async (dayKey) => {
+    setIsUpdatingSettings(dayKey)
+    try {
+      const updated = await updateRegistrationSettings({
+        [dayKey]: !regSettings[dayKey]
+      })
+      setRegSettings(updated)
+    } catch (err) {
+      console.error('Failed to update registration settings:', err)
+    } finally {
+      setIsUpdatingSettings(null)
+    }
   }
 
   // Data & Tabs State
-  const [activeTab, setActiveTab] = useState('day1') // 'day1' | 'day2' | 'inquiries'
+  const [activeTab, setActiveTab] = useState('day1') // 'day1' | 'day2' | 'inquiries' | 'analytics'
   const [day1Data, setDay1Data] = useState([])
   const [day2Data, setDay2Data] = useState([])
   const [contactMessages, setContactMessages] = useState([])
@@ -146,6 +279,9 @@ export default function AdminPage({ setCurrentPage }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [selectedItem, setSelectedItem] = useState(null)
+
+  // Live Category & Student Analytics
+  const analytics = calculateCategoryAnalytics(day1Data, day2Data)
 
   // Direct Google Sheets Webhook Sync State
   const [day1WebhookUrl, setDay1WebhookUrl] = useState(
@@ -189,6 +325,8 @@ export default function AdminPage({ setCurrentPage }) {
     try {
       let headers = []
       let rows = []
+
+      let categorySheets = {}
 
       if (dayKey === 'day1') {
         const maxTeammates = Math.max(0, ...dataToExport.map(row => parseDay1TeamMembers(row).length))
@@ -248,6 +386,15 @@ export default function AdminPage({ setCurrentPage }) {
             r.push(m.fullName || '', m.uid || '', m.section || '', m.group || '', m.block || '')
           }
           return r
+        })
+
+        // Group rows by individual category for separate category sheet tabs
+        dataToExport.forEach((row, idx) => {
+          const catName = normalizeCategoryName(row.category)
+          if (!categorySheets[catName]) {
+            categorySheets[catName] = []
+          }
+          categorySheets[catName].push(rows[idx])
         })
       } else {
         // Day 2 Tech Arena
@@ -313,6 +460,20 @@ export default function AdminPage({ setCurrentPage }) {
             row.teammate_3_block || ''
           ]
         })
+
+        // Group rows by squad size for separate tabs
+        categorySheets = {
+          '3-Member Squads': [],
+          '4-Member Squads': []
+        }
+        dataToExport.forEach((row, idx) => {
+          const is4 = Boolean(row.teammate_3 || row.teammate_3_name)
+          if (is4) {
+            categorySheets['4-Member Squads'].push(rows[idx])
+          } else {
+            categorySheets['3-Member Squads'].push(rows[idx])
+          }
+        })
       }
 
       // Validate webhook URL before fetch — must be https: and end with /exec
@@ -336,7 +497,7 @@ export default function AdminPage({ setCurrentPage }) {
         return
       }
 
-      console.log(`[GoogleSheetSync] Sending ${rows.length} rows to ${validatedWebhook}...`)
+      console.log(`[GoogleSheetSync] Sending ${rows.length} rows + ${Object.keys(categorySheets).length} category tabs to ${validatedWebhook}...`)
 
       // Send payload to Google Apps Script Webhook via URLSearchParams (guaranteed delivery in no-cors mode)
       const formParams = new URLSearchParams()
@@ -344,7 +505,8 @@ export default function AdminPage({ setCurrentPage }) {
         dayKey,
         dayName,
         headers,
-        rows
+        rows,
+        categorySheets
       }))
 
       await fetch(validatedWebhook, {
@@ -358,10 +520,11 @@ export default function AdminPage({ setCurrentPage }) {
 
       console.log(`[GoogleSheetSync] Request dispatched to Google Apps Script successfully.`)
 
+      const subSheetsCount = Object.keys(categorySheets).length
       setSyncStatus({
         day: dayKey,
         success: true,
-        message: `Successfully pushed ${rows.length} ${dayName} records into your Google Sheet table!`
+        message: `Successfully pushed ${rows.length} ${dayName} records into Google Sheets! Created master table + ${subSheetsCount} individual category sheets.`
       })
     } catch (err) {
       console.error('Google Sheet Push Error:', err)
@@ -392,60 +555,87 @@ export default function AdminPage({ setCurrentPage }) {
     
     var data = JSON.parse(raw);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss.getSheets()[0];
     
-    // Clear old data and format table fresh
-    sheet.clear();
-    
-    var allRows = [];
-    if (data.headers && data.headers.length > 0) {
-      allRows.push(data.headers);
-    }
-    if (data.rows && data.rows.length > 0) {
-      for (var i = 0; i < data.rows.length; i++) {
-        allRows.push(data.rows[i]);
+    // Helper function to format and populate a sheet tab with table headers and styling
+    function populateSheetTab(sheet, sheetHeaders, sheetRows, headerBgColor) {
+      sheet.clear();
+      var allRows = [];
+      if (sheetHeaders && sheetHeaders.length > 0) {
+        allRows.push(sheetHeaders);
       }
-    }
-    
-    if (allRows.length > 0) {
-      var numRows = allRows.length;
-      var numCols = allRows[0].length;
-      
-      // Ensure all rows match column length
-      for (var r = 0; r < numRows; r++) {
-        while (allRows[r].length < numCols) {
-          allRows[r].push("");
+      if (sheetRows && sheetRows.length > 0) {
+        for (var i = 0; i < sheetRows.length; i++) {
+          allRows.push(sheetRows[i]);
         }
       }
       
-      var range = sheet.getRange(1, 1, numRows, numCols);
-      range.setValues(allRows);
-      
-      // Style Gold/Dark Header Row
-      var headerRange = sheet.getRange(1, 1, 1, numCols);
-      headerRange.setBackground('#1a1711');
-      headerRange.setFontColor('#f7d978');
-      headerRange.setFontWeight('bold');
-      headerRange.setFontFamily('Arial');
-      headerRange.setFontSize(11);
-      headerRange.setHorizontalAlignment('center');
-      sheet.setFrozenRows(1);
-      
-      // Zebra striping for data rows
-      if (numRows > 1) {
-        var dataRange = sheet.getRange(2, 1, numRows - 1, numCols);
-        dataRange.setFontFamily('Arial');
-        dataRange.setFontSize(10);
+      if (allRows.length > 0) {
+        var numRows = allRows.length;
+        var numCols = allRows[0].length;
         
-        for (var rowIdx = 2; rowIdx <= numRows; rowIdx++) {
-          var rowBg = (rowIdx % 2 === 0) ? '#f4f4f6' : '#ffffff';
-          sheet.getRange(rowIdx, 1, 1, numCols).setBackground(rowBg);
+        // Ensure all rows match column length
+        for (var r = 0; r < numRows; r++) {
+          while (allRows[r].length < numCols) {
+            allRows[r].push("");
+          }
+        }
+        
+        var range = sheet.getRange(1, 1, numRows, numCols);
+        range.setValues(allRows);
+        
+        // Style Gold/Dark Header Row
+        var headerRange = sheet.getRange(1, 1, 1, numCols);
+        headerRange.setBackground(headerBgColor || '#1a1711');
+        headerRange.setFontColor('#f7d978');
+        headerRange.setFontWeight('bold');
+        headerRange.setFontFamily('Arial');
+        headerRange.setFontSize(11);
+        headerRange.setHorizontalAlignment('center');
+        sheet.setFrozenRows(1);
+        
+        // Zebra striping for data rows
+        if (numRows > 1) {
+          var dataRange = sheet.getRange(2, 1, numRows - 1, numCols);
+          dataRange.setFontFamily('Arial');
+          dataRange.setFontSize(10);
+          
+          for (var rowIdx = 2; rowIdx <= numRows; rowIdx++) {
+            var rowBg = (rowIdx % 2 === 0) ? '#f8f8fa' : '#ffffff';
+            sheet.getRange(rowIdx, 1, 1, numCols).setBackground(rowBg);
+          }
+        }
+        
+        // Auto-fit columns
+        for (var c = 1; c <= numCols; c++) {
+          try { sheet.autoResizeColumn(c); } catch (err) {}
         }
       }
-      
-      // Auto-fit columns
-      for (var c = 1; c <= numCols; c++) {
-        try { sheet.autoResizeColumn(c); } catch (err) {}
+    }
+    
+    // 1. Populate Master Sheet Tab
+    var masterTabName = data.dayKey === 'day1' ? 'All Day 1 Performers' : 'All Day 2 Tech Squads';
+    var masterSheet = ss.getSheetByName(masterTabName);
+    if (!masterSheet) {
+      masterSheet = ss.getSheets()[0];
+      masterSheet.setName(masterTabName);
+    }
+    populateSheetTab(masterSheet, data.headers, data.rows, '#1a1711');
+    
+    // 2. Populate Individual Category Sheets (for Day 1 and Day 2)
+    if (data.categorySheets) {
+      var catNames = Object.keys(data.categorySheets);
+      for (var k = 0; k < catNames.length; k++) {
+        var catName = catNames[k];
+        var catRows = data.categorySheets[catName];
+        if (!catRows || catRows.length === 0) continue;
+        
+        // Clean sheet tab name (Google Sheets max tab name length is 100, forbidden chars: * / ? : \\ [ ])
+        var cleanTabName = catName.replace(/[\\*\\/\\?\\:\\\\\\[\\]]/g, '').trim().substring(0, 50);
+        var catSheet = ss.getSheetByName(cleanTabName);
+        if (!catSheet) {
+          catSheet = ss.insertSheet(cleanTabName);
+        }
+        populateSheetTab(catSheet, data.headers, catRows, '#2e1c38');
       }
     }
     
@@ -465,7 +655,7 @@ function doGet(e) {
   return ContentService.createTextOutput(JSON.stringify({
     status: "online",
     sheetName: ss ? ss.getSheets()[0].getName() : "Unknown Sheet",
-    message: "EGT 2.0 Webhook is active!"
+    message: "EGT 2.0 Webhook with Category Tabs is active!"
   })).setMimeType(ContentService.MimeType.JSON);
 }`
 
@@ -490,14 +680,18 @@ function doGet(e) {
   const loadAllData = async () => {
     setLoading(true)
     try {
-      const [d1, d2, msgs] = await Promise.all([
+      const [d1, d2, msgs, settings] = await Promise.all([
         getDay1Registrations(),
         getDay2Registrations(),
-        getContactMessages()
+        getContactMessages(),
+        fetchRegistrationSettings().catch(() => getRegistrationSettings())
       ])
       setDay1Data(d1)
       setDay2Data(d2)
       setContactMessages(msgs)
+      if (settings) {
+        setRegSettings(settings)
+      }
     } catch (err) {
       console.warn('Failed to load data:', err)
     } finally {
@@ -508,26 +702,40 @@ function doGet(e) {
   // Silent Background Auto-Refresh (does not disrupt active UI or show spinners)
   const loadAllDataSilently = async () => {
     try {
-      const [d1, d2, msgs] = await Promise.all([
+      const [d1, d2, msgs, settings] = await Promise.all([
         getDay1Registrations(),
         getDay2Registrations(),
-        getContactMessages()
+        getContactMessages(),
+        fetchRegistrationSettings().catch(() => getRegistrationSettings())
       ])
       setDay1Data(d1)
       setDay2Data(d2)
       setContactMessages(msgs)
+      if (settings) {
+        setRegSettings(settings)
+      }
     } catch (err) {
       console.warn('Silent refresh error:', err)
     }
   }
 
   useEffect(() => {
+    const handleSettingsUpdate = () => {
+      setRegSettings(getRegistrationSettings())
+    }
+    window.addEventListener('egt_settings_updated', handleSettingsUpdate)
+
     if (isAuthenticated) {
       loadAllData()
-      // Live Auto-Sync: Automatically check for new registrations every 15 seconds
+      // Live Auto-Sync: Automatically check for new registrations and settings every 15 seconds
       const pollInterval = setInterval(loadAllDataSilently, 15000)
-      return () => clearInterval(pollInterval)
+      return () => {
+        clearInterval(pollInterval)
+        window.removeEventListener('egt_settings_updated', handleSettingsUpdate)
+      }
     }
+
+    return () => window.removeEventListener('egt_settings_updated', handleSettingsUpdate)
   }, [isAuthenticated])
 
   // Admin Auth Handler — with brute-force lockout after 5 failed attempts
@@ -625,7 +833,39 @@ function doGet(e) {
 
     let rows = []
 
-    if (activeTab === 'inquiries') {
+    if (activeTab === 'analytics') {
+      rows.push(['EGT 2.0 — CATEGORY & PARTICIPANT ANALYTICS SUMMARY'].map(cleanField).join(','))
+      rows.push([`Generated: ${new Date().toLocaleString()}`, `Total Categories: ${analytics.totalActiveCategories}`, `Total Registrations: ${analytics.grandTotalRegistrations}`, `Total Performing/Participating Students: ${analytics.grandTotalStudents}`].map(cleanField).join(','))
+      rows.push([''].map(cleanField).join(','))
+      
+      rows.push(['── DAY 1 STAGE TALENT CATEGORY BREAKDOWN ──'].map(cleanField).join(','))
+      rows.push(['Category Name', 'Total Acts / Registrations', 'Total Performing Students', 'Solo Acts', 'Team / Group Acts', 'Share of Day 1 Entries (%)'].map(cleanField).join(','))
+      
+      analytics.day1Categories.forEach(cat => {
+        const pct = analytics.totalDay1Acts > 0 ? ((cat.actsCount / analytics.totalDay1Acts) * 100).toFixed(1) + '%' : '0%'
+        rows.push([
+          cat.name,
+          cat.actsCount,
+          cat.totalStudents,
+          cat.soloCount,
+          cat.teamCount,
+          pct
+        ].map(cleanField).join(','))
+      })
+
+      rows.push(['DAY 1 TOTAL', analytics.totalDay1Acts, analytics.totalDay1Students, '', '', '100%'].map(cleanField).join(','))
+      rows.push([''].map(cleanField).join(','))
+
+      rows.push(['── DAY 2 HARRY POTTER TECH ARENA SQUAD BREAKDOWN ──'].map(cleanField).join(','))
+      rows.push(['Squad Category / Format', 'Total Squads', 'Total Tech Students', 'Members Per Squad', '', ''].map(cleanField).join(','))
+      rows.push(['3-Member Technical Squads', analytics.day2_3MemberSquads, analytics.day2_3MemberSquads * 3, '3 Members', '', ''].map(cleanField).join(','))
+      rows.push(['4-Member Technical Squads', analytics.day2_4MemberSquads, analytics.day2_4MemberSquads * 4, '4 Members', '', ''].map(cleanField).join(','))
+      rows.push(['DAY 2 TOTAL', analytics.totalDay2Squads, analytics.totalDay2Students, 'Squad Team Track', '', ''].map(cleanField).join(','))
+      rows.push([''].map(cleanField).join(','))
+
+      rows.push(['── OVERALL EVENT AGGREGATION ──'].map(cleanField).join(','))
+      rows.push(['Grand Total Registrations', analytics.grandTotalRegistrations, 'Grand Total Participating Students', analytics.grandTotalStudents, '', ''].map(cleanField).join(','))
+    } else if (activeTab === 'inquiries') {
       rows.push([
         'Timestamp',
         'Name',
@@ -805,7 +1045,7 @@ function doGet(e) {
     const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     
-    const filename = `EGT2_${activeTab === 'day1' ? 'Day1_Performers' : (activeTab === 'day2' ? 'Day2_TechSquads' : 'Inquiries_and_Messages')}_Responses.csv`
+    const filename = `EGT2_${activeTab === 'day1' ? 'Day1_Performers' : (activeTab === 'day2' ? 'Day2_TechSquads' : (activeTab === 'analytics' ? 'Category_and_Student_Breakdown' : 'Inquiries_and_Messages'))}_Responses.csv`
     const link = document.createElement('a')
     link.href = url
     link.setAttribute('download', filename)
@@ -942,7 +1182,7 @@ function doGet(e) {
           } else if (categoryFilter === 'modeling') {
             matchesFilter = (item.category || '').toLowerCase().includes('model') || (item.category || '').toLowerCase().includes('ramp')
           } else if (categoryFilter === 'singing') {
-            matchesFilter = (item.category || '').toLowerCase().includes('singing') || (item.category || '').toLowerCase().includes('vocal')
+            matchesFilter = (item.category || '').toLowerCase().includes('singing') || (item.category || '').toLowerCase().includes('vocal') || (item.category || '').toLowerCase().includes('jamming')
           } else if (categoryFilter === 'comedy') {
             matchesFilter = (item.category || '').toLowerCase().includes('comedy')
           } else if (categoryFilter === 'beatboxing') {
@@ -952,13 +1192,16 @@ function doGet(e) {
           } else if (categoryFilter === 'poetry') {
             matchesFilter = (item.category || '').toLowerCase().includes('poetry') || (item.category || '').toLowerCase().includes('spoken')
           } else if (categoryFilter === 'dramatic') {
-            matchesFilter = (item.category || '').toLowerCase().includes('dramatic') || (item.category || '').toLowerCase().includes('monologue')
+            matchesFilter = (item.category || '').toLowerCase().includes('dramatic') || (item.category || '').toLowerCase().includes('mono') || (item.category || '').toLowerCase().includes('drama')
           } else if (categoryFilter === 'magic') {
             matchesFilter = (item.category || '').toLowerCase().includes('magic') || (item.category || '').toLowerCase().includes('mentalism')
           } else if (categoryFilter === 'other') {
             matchesFilter = (item.category || '').toLowerCase().includes('other')
           } else {
-            matchesFilter = (item.category || '').toLowerCase().includes(categoryFilter.toLowerCase())
+            // Match canonical category name or direct substring
+            const normalized = normalizeCategoryName(item.category)
+            matchesFilter = normalized.toLowerCase() === categoryFilter.toLowerCase() ||
+              (item.category || '').toLowerCase().includes(categoryFilter.toLowerCase())
           }
         } else {
           // Day 2 Tech Squad filtering
@@ -1056,54 +1299,94 @@ function doGet(e) {
         </div>
       </div>
 
-      {/* Metrics Bar (4 Columns) */}
+      {/* Metrics Bar (4 Columns with Exact Registration Counts & Student Headcounts) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="glass-panel p-5 rounded-2xl border border-white/10">
+        <div 
+          onClick={() => { setActiveTab('analytics'); setCategoryFilter('all'); }}
+          className="glass-panel p-5 rounded-2xl border border-white/10 hover:border-[#f7d978]/50 transition-all cursor-pointer group"
+          title="Click to view detailed Category & Student Breakdown"
+        >
           <div className="flex items-center justify-between">
-            <span className="font-['Space_Grotesk'] text-xs font-bold text-gray-400 uppercase">
+            <span className="font-['Space_Grotesk'] text-xs font-bold text-gray-400 uppercase group-hover:text-[#f7d978] transition-colors">
               Total Registrations
             </span>
             <Users className="w-5 h-5 text-[#f7d978]" />
           </div>
-          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2">
-            {day1Data.length + day2Data.length}
+          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2 flex items-baseline gap-2">
+            <span>{day1Data.length + day2Data.length}</span>
+            <span className="text-xs font-normal font-sans text-gray-400">
+              entries
+            </span>
           </p>
+          <span className="text-[11px] text-gray-400 block mt-1">
+            {analytics.grandTotalStudents} total students participating
+          </span>
         </div>
 
-        <div className="glass-panel p-5 rounded-2xl border border-rose-500/30">
+        <div 
+          onClick={() => { setActiveTab('day1'); setCategoryFilter('all'); }}
+          className="glass-panel p-5 rounded-2xl border border-rose-500/30 hover:border-rose-500/60 transition-all cursor-pointer group"
+          title="Click to view Day 1 Performers roster"
+        >
           <div className="flex items-center justify-between">
             <span className="font-['Space_Grotesk'] text-xs font-bold text-rose-400 uppercase">
-              Day 1 Performers
+              Day 1 Registrations
             </span>
             <Mic className="w-5 h-5 text-rose-400" />
           </div>
-          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2">
-            {day1Data.length}
+          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2 flex items-baseline gap-2">
+            <span>{day1Data.length}</span>
+            <span className="text-xs font-normal font-sans text-rose-300/70">
+              acts
+            </span>
           </p>
+          <span className="text-[11px] text-rose-300/80 block mt-1">
+            {analytics.totalDay1Students} total performing students
+          </span>
         </div>
 
-        <div className="glass-panel p-5 rounded-2xl border border-cyan-400/30">
+        <div 
+          onClick={() => { setActiveTab('day2'); setCategoryFilter('all'); }}
+          className="glass-panel p-5 rounded-2xl border border-cyan-400/30 hover:border-cyan-400/60 transition-all cursor-pointer group"
+          title="Click to view Day 2 Tech Squads roster"
+        >
           <div className="flex items-center justify-between">
             <span className="font-['Space_Grotesk'] text-xs font-bold text-cyan-400 uppercase">
-              Day 2 Tech Wizards
+              Day 2 Tech Squads
             </span>
             <Code className="w-5 h-5 text-cyan-400" />
           </div>
-          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2">
-            {day2Data.length}
+          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2 flex items-baseline gap-2">
+            <span>{day2Data.length}</span>
+            <span className="text-xs font-normal font-sans text-cyan-300/70">
+              squads
+            </span>
           </p>
+          <span className="text-[11px] text-cyan-300/80 block mt-1">
+            {analytics.totalDay2Students} total coding wizards
+          </span>
         </div>
 
-        <div className="glass-panel p-5 rounded-2xl border border-amber-400/30">
+        <div 
+          onClick={() => { setActiveTab('analytics'); setCategoryFilter('all'); }}
+          className="glass-panel p-5 rounded-2xl border border-purple-500/30 hover:border-purple-500/60 transition-all cursor-pointer group bg-gradient-to-br from-purple-950/20 to-transparent"
+          title="Click to view full Category Breakdown"
+        >
           <div className="flex items-center justify-between">
-            <span className="font-['Space_Grotesk'] text-xs font-bold text-amber-400 uppercase">
-              Inquiries &amp; Messages
+            <span className="font-['Space_Grotesk'] text-xs font-bold text-purple-400 uppercase">
+              Active Categories
             </span>
-            <MessageSquare className="w-5 h-5 text-amber-400" />
+            <BarChart3 className="w-5 h-5 text-purple-400" />
           </div>
-          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2">
-            {contactMessages.length}
+          <p className="font-['Syne'] text-3xl font-extrabold text-white mt-2 flex items-baseline gap-2">
+            <span>{analytics.totalActiveCategories}</span>
+            <span className="text-xs font-normal font-sans text-purple-300/70">
+              categories
+            </span>
           </p>
+          <span className="text-[11px] text-purple-300/80 block mt-1">
+            {analytics.totalDay1CategoriesCount} Day 1 + 1 Tech Track
+          </span>
         </div>
       </div>
 
@@ -1127,13 +1410,20 @@ function doGet(e) {
           {/* Day 1 Toggle */}
           <button
             onClick={() => handleToggleRegistration('day1Closed')}
-            className={`flex-1 md:flex-initial px-4 py-2.5 rounded-2xl border text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            disabled={isUpdatingSettings === 'day1Closed'}
+            className={`flex-1 md:flex-initial px-4 py-2.5 rounded-2xl border text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60 ${
               regSettings.day1Closed
                 ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 shadow-rose-950/50'
                 : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-emerald-950/50'
             }`}
+            title="Toggle Day 1 registration status live across all devices"
           >
-            {regSettings.day1Closed ? (
+            {isUpdatingSettings === 'day1Closed' ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin text-[#f7d978]" />
+                <span>Syncing Cloud...</span>
+              </>
+            ) : regSettings.day1Closed ? (
               <>
                 <ToggleLeft className="w-4 h-4 text-rose-400" />
                 <span>Day 1: FULL / CLOSED</span>
@@ -1149,13 +1439,20 @@ function doGet(e) {
           {/* Day 2 Toggle */}
           <button
             onClick={() => handleToggleRegistration('day2Closed')}
-            className={`flex-1 md:flex-initial px-4 py-2.5 rounded-2xl border text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            disabled={isUpdatingSettings === 'day2Closed'}
+            className={`flex-1 md:flex-initial px-4 py-2.5 rounded-2xl border text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-60 ${
               regSettings.day2Closed
                 ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 shadow-rose-950/50'
                 : 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-cyan-950/50'
             }`}
+            title="Toggle Day 2 registration status live across all devices"
           >
-            {regSettings.day2Closed ? (
+            {isUpdatingSettings === 'day2Closed' ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin text-[#f7d978]" />
+                <span>Syncing Cloud...</span>
+              </>
+            ) : regSettings.day2Closed ? (
               <>
                 <ToggleLeft className="w-4 h-4 text-rose-400" />
                 <span>Day 2: FULL / CLOSED</span>
@@ -1269,50 +1566,60 @@ function doGet(e) {
       </div>
 
       {/* Controls: Tabs, Search & Filters */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
         
         {/* Tab Buttons */}
-        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10 font-['Space_Grotesk'] text-xs font-bold w-full sm:w-auto flex-wrap sm:flex-nowrap gap-1 sm:gap-0">
+        <div className="flex flex-wrap sm:flex-nowrap bg-white/5 p-1 rounded-2xl border border-white/10 font-['Space_Grotesk'] text-xs font-bold w-full xl:w-auto gap-1 sm:gap-0 shrink-0">
           <button
             onClick={() => { setActiveTab('day1'); setCategoryFilter('all'); }}
-            className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
               activeTab === 'day1' ? 'bg-[#f7d978] text-black shadow-md' : 'text-gray-300 hover:text-white'
             }`}
           >
-            <Mic className="w-4 h-4" />
+            <Mic className="w-4 h-4 shrink-0" />
             <span>Day 1 Performers ({day1Data.length})</span>
           </button>
 
           <button
             onClick={() => { setActiveTab('day2'); setCategoryFilter('all'); }}
-            className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
               activeTab === 'day2' ? 'bg-cyan-400 text-black shadow-md' : 'text-gray-300 hover:text-white'
             }`}
           >
-            <Code className="w-4 h-4" />
+            <Code className="w-4 h-4 shrink-0" />
             <span>Day 2 Tech Squads ({day2Data.length})</span>
           </button>
 
           <button
+            onClick={() => { setActiveTab('analytics'); setCategoryFilter('all'); }}
+            className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
+              activeTab === 'analytics' ? 'bg-purple-600 text-white shadow-md' : 'text-gray-300 hover:text-white'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4 shrink-0" />
+            <span>Category Stats ({analytics.totalActiveCategories})</span>
+          </button>
+
+          <button
             onClick={() => { setActiveTab('inquiries'); setCategoryFilter('all'); }}
-            className={`flex-1 sm:flex-none px-5 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap ${
               activeTab === 'inquiries' ? 'bg-amber-400 text-black shadow-md' : 'text-gray-300 hover:text-white'
             }`}
           >
-            <MessageSquare className="w-4 h-4" />
+            <MessageSquare className="w-4 h-4 shrink-0" />
             <span>Inquiries ({contactMessages.length})</span>
           </button>
         </div>
 
         {/* Search & Category/Format Filter */}
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full xl:w-auto">
+          <div className="relative flex-1 sm:w-60 min-w-[180px]">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3 pointer-events-none" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search Name, UID, Email, Message..."
+              placeholder={activeTab === 'analytics' ? 'Search Categories...' : 'Search Name, UID, Email...'}
               className="w-full bg-white/5 border border-white/15 rounded-xl pl-9 pr-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#f7d978]"
             />
           </div>
@@ -1320,9 +1627,15 @@ function doGet(e) {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full sm:w-auto bg-[#12121c] border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#f7d978] cursor-pointer shadow-lg"
+            className="flex-1 sm:flex-initial bg-[#12121c] border border-white/20 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#f7d978] cursor-pointer shadow-lg whitespace-nowrap"
           >
-            {activeTab === 'inquiries' ? (
+            {activeTab === 'analytics' ? (
+              <>
+                <option value="all">All Event Segments (Day 1 &amp; Day 2)</option>
+                <option value="day1">Day 1 Stage Talent Categories Only</option>
+                <option value="day2">Day 2 Tech Arena Formats Only</option>
+              </>
+            ) : activeTab === 'inquiries' ? (
               <>
                 <option value="all">All Inquiry Topics</option>
                 <option value="General Inquiry">General Inquiry &amp; Feedback</option>
@@ -1364,7 +1677,7 @@ function doGet(e) {
           <button
             onClick={loadAllData}
             disabled={loading}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50"
+            className="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 hover:text-white text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 whitespace-nowrap shrink-0"
             title="Fetch latest registrations from database"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-amber-400' : 'text-purple-300'}`} />
@@ -1647,6 +1960,392 @@ function doGet(e) {
               </tbody>
             </table>
           </div>
+        </div>
+      ) : activeTab === 'analytics' ? (
+        /* CATEGORY BREAKDOWN & STUDENT HEADCOUNT ANALYTICS DASHBOARD */
+        <div className="space-y-8 animate-in fade-in duration-300">
+          {/* Top Analytics Summary Banner */}
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-purple-500/30 bg-gradient-to-br from-purple-950/30 via-[#0e0c1a] to-[#070709] shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+            
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-['Space_Grotesk'] font-bold uppercase tracking-wider">
+                  <BarChart3 className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Category &amp; Headcount Analytics</span>
+                </div>
+                <h2 className="font-['Syne'] text-2xl sm:text-3xl font-extrabold text-white">
+                  Registration Category Distribution
+                </h2>
+                <p className="font-sans text-xs sm:text-sm text-gray-300 max-w-2xl leading-relaxed">
+                  Real-time aggregation of registered acts and total student headcount across Day 1 stage arts and Day 2 technical coding squads. Accounts for lead performers + all team co-performers.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                <button
+                  onClick={exportToCSV}
+                  className="px-4 py-2.5 rounded-xl bg-[#f7d978] hover:bg-[#e6c86e] text-black font-['Space_Grotesk'] text-xs font-bold flex items-center gap-2 transition-transform hover:scale-105 active:scale-95 shadow-lg shadow-amber-950/40 cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>Export Category Report (CSV)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick KPI Counters */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8 pt-6 border-t border-white/10">
+              <div className="bg-black/40 border border-white/10 p-4 rounded-2xl">
+                <span className="font-['Space_Grotesk'] text-[11px] uppercase tracking-wider text-gray-400 block">
+                  Total Registrations
+                </span>
+                <span className="font-['Syne'] text-2xl font-bold text-[#f7d978] mt-1 block">
+                  {analytics.grandTotalRegistrations}
+                </span>
+                <span className="text-[10px] text-gray-400 block mt-0.5">
+                  {analytics.grandTotalStudents} total students
+                </span>
+              </div>
+
+              <div className="bg-black/40 border border-white/10 p-4 rounded-2xl">
+                <span className="font-['Space_Grotesk'] text-[11px] uppercase tracking-wider text-rose-400 block">
+                  Day 1 Registrations
+                </span>
+                <span className="font-['Syne'] text-2xl font-bold text-rose-400 mt-1 block">
+                  {analytics.totalDay1Acts}
+                </span>
+                <span className="text-[10px] text-rose-300/70 block mt-0.5">
+                  {analytics.totalDay1Students} performing artists
+                </span>
+              </div>
+
+              <div className="bg-black/40 border border-white/10 p-4 rounded-2xl">
+                <span className="font-['Space_Grotesk'] text-[11px] uppercase tracking-wider text-cyan-400 block">
+                  Day 2 Tech Squads
+                </span>
+                <span className="font-['Syne'] text-2xl font-bold text-cyan-400 mt-1 block">
+                  {analytics.totalDay2Squads}
+                </span>
+                <span className="text-[10px] text-cyan-300/70 block mt-0.5">
+                  {analytics.totalDay2Students} tech coders
+                </span>
+              </div>
+
+              <div className="bg-black/40 border border-white/10 p-4 rounded-2xl">
+                <span className="font-['Space_Grotesk'] text-[11px] uppercase tracking-wider text-purple-400 block">
+                  Active Categories
+                </span>
+                <span className="font-['Syne'] text-2xl font-bold text-purple-400 mt-1 block">
+                  {analytics.totalActiveCategories}
+                </span>
+                <span className="text-[10px] text-purple-300/70 block mt-0.5">
+                  {analytics.totalDay1CategoriesCount} Day 1 + 1 Day 2
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* DAY 1 CATEGORY BREAKDOWN TABLE */}
+          {(categoryFilter === 'all' || categoryFilter === 'day1') && (
+            <div className="glass-panel rounded-3xl border border-rose-500/30 overflow-hidden shadow-2xl">
+              <div className="p-5 bg-gradient-to-r from-rose-950/30 via-black to-purple-950/20 border-b border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                    <Mic className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-['Syne'] text-lg font-bold text-white flex items-center gap-2">
+                      <span>Day 1: The Stage Talent Breakdown</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 text-[10px] font-['Space_Grotesk'] font-bold">
+                        {analytics.day1Categories.length} Categories Registered
+                      </span>
+                    </h3>
+                    <p className="font-sans text-xs text-gray-400">
+                      Detailed headcount of solo performers and group team members registered under each art category.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => { setActiveTab('day1'); setCategoryFilter('all'); }}
+                  className="text-xs text-rose-300 hover:text-rose-200 font-['Space_Grotesk'] font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <span>View All Day 1 Roster</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-['Space_Grotesk'] text-xs">
+                  <thead className="bg-white/5 border-b border-white/10 uppercase text-gray-400 text-[11px] tracking-wider">
+                    <tr>
+                      <th className="py-4 px-6">Talent Category</th>
+                      <th className="py-4 px-6 text-center">Registered Acts</th>
+                      <th className="py-4 px-6 text-center">Total Students Performing</th>
+                      <th className="py-4 px-6 text-center">Solo vs Team Split</th>
+                      <th className="py-4 px-6">Day 1 Share</th>
+                      <th className="py-4 px-6 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 font-sans">
+                    {analytics.day1Categories.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center py-12 text-gray-400 text-sm font-light">
+                          No Day 1 registrations recorded yet.
+                        </td>
+                      </tr>
+                    ) : (
+                      analytics.day1Categories
+                        .filter(cat => cat.name.toLowerCase().includes((searchTerm || '').toLowerCase()))
+                        .map((cat, idx) => {
+                          const actSharePct = analytics.totalDay1Acts > 0
+                            ? Math.round((cat.actsCount / analytics.totalDay1Acts) * 100)
+                            : 0
+                          const studentSharePct = analytics.totalDay1Students > 0
+                            ? Math.round((cat.totalStudents / analytics.totalDay1Students) * 100)
+                            : 0
+
+                          return (
+                            <tr key={cat.name} className="hover:bg-white/5 transition-colors">
+                              <td className="py-4 px-6 font-bold text-white whitespace-nowrap">
+                                <div className="flex items-center gap-2.5">
+                                  <span className="w-6 h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center font-mono text-[11px] text-gray-400">
+                                    {idx + 1}
+                                  </span>
+                                  <div>
+                                    <span className="text-white text-sm font-['Syne']">{cat.name}</span>
+                                    <span className="block text-[11px] text-gray-400 font-mono">
+                                      {studentSharePct}% of total Day 1 performers
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td className="py-4 px-6 text-center whitespace-nowrap">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full bg-rose-500/15 border border-rose-500/30 font-['Space_Grotesk'] font-bold text-rose-300 text-xs">
+                                  {cat.actsCount} {cat.actsCount === 1 ? 'Act' : 'Acts'}
+                                </span>
+                              </td>
+
+                              <td className="py-4 px-6 text-center whitespace-nowrap">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-purple-500/15 border border-purple-500/30 font-['Syne'] font-extrabold text-[#f7d978] text-sm">
+                                  <Users className="w-3.5 h-3.5 text-purple-400" />
+                                  <span>{cat.totalStudents}</span>
+                                  <span className="text-[11px] font-normal text-gray-300">Students</span>
+                                </span>
+                              </td>
+
+                              <td className="py-4 px-6 text-center whitespace-nowrap">
+                                <div className="inline-flex items-center gap-2 text-xs font-['Space_Grotesk']">
+                                  <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px]">
+                                    {cat.soloCount} Solo
+                                  </span>
+                                  <span className="text-gray-500">•</span>
+                                  <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[11px]">
+                                    {cat.teamCount} Team Groups
+                                  </span>
+                                </div>
+                              </td>
+
+                              <td className="py-4 px-6 min-w-[160px]">
+                                <div className="space-y-1.5">
+                                  <div className="flex justify-between text-[11px] font-mono text-gray-400">
+                                    <span>{actSharePct}% of acts</span>
+                                    <span>{cat.actsCount} / {analytics.totalDay1Acts}</span>
+                                  </div>
+                                  <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                                    <div
+                                      className="h-full bg-gradient-to-r from-rose-500 to-purple-500 rounded-full transition-all duration-500"
+                                      style={{ width: `${Math.max(actSharePct, 6)}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </td>
+
+                              <td className="py-4 px-6 text-right whitespace-nowrap">
+                                <button
+                                  onClick={() => {
+                                    setActiveTab('day1')
+                                    setCategoryFilter(cat.name)
+                                  }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/15 text-gray-200 hover:text-white text-xs font-['Space_Grotesk'] font-bold transition-all cursor-pointer hover:scale-105"
+                                  title={`View all ${cat.name} registrations`}
+                                >
+                                  <span>View Acts</span>
+                                  <ExternalLink className="w-3.5 h-3.5 text-[#f7d978]" />
+                                </button>
+                              </td>
+                            </tr>
+                          )
+                        })
+                    )}
+                  </tbody>
+
+                  {/* Day 1 Totals Summary Footer */}
+                  {analytics.day1Categories.length > 0 && (
+                    <tfoot className="bg-white/5 border-t-2 border-white/15 font-bold">
+                      <tr>
+                        <td className="py-4 px-6 font-['Syne'] text-white text-sm uppercase">
+                          Day 1 Total Active Talent
+                        </td>
+                        <td className="py-4 px-6 text-center text-rose-300 font-['Space_Grotesk'] text-sm">
+                          {analytics.totalDay1Acts} Acts
+                        </td>
+                        <td className="py-4 px-6 text-center text-[#f7d978] font-['Syne'] text-base">
+                          {analytics.totalDay1Students} Performing Students
+                        </td>
+                        <td className="py-4 px-6 text-center text-gray-300 font-mono text-xs">
+                          {analytics.day1Categories.reduce((acc, c) => acc + c.soloCount, 0)} Solo • {analytics.day1Categories.reduce((acc, c) => acc + c.teamCount, 0)} Teams
+                        </td>
+                        <td className="py-4 px-6 font-mono text-xs text-gray-300">
+                          100% of Stage Volume
+                        </td>
+                        <td className="py-4 px-6 text-right">
+                          <button
+                            onClick={() => { setActiveTab('day1'); setCategoryFilter('all'); }}
+                            className="text-xs text-[#f7d978] hover:underline font-bold"
+                          >
+                            All Acts &rarr;
+                          </button>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* DAY 2 SQUAD CATEGORY & FORMAT BREAKDOWN */}
+          {(categoryFilter === 'all' || categoryFilter === 'day2') && (
+            <div className="glass-panel rounded-3xl border border-cyan-400/30 overflow-hidden shadow-2xl">
+              <div className="p-5 bg-gradient-to-r from-cyan-950/30 via-black to-blue-950/20 border-b border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+                    <Code className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-['Syne'] text-lg font-bold text-white flex items-center gap-2">
+                      <span>Day 2: Wizard's Code Arena (Tech Squad Formats)</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-['Space_Grotesk'] font-bold">
+                        {analytics.totalDay2Squads} Squads Registered
+                      </span>
+                    </h3>
+                    <p className="font-sans text-xs text-gray-400">
+                      Distribution of 3-Member and 4-Member technical squads competing in the 3-round coding arena.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => { setActiveTab('day2'); setCategoryFilter('all'); }}
+                  className="text-xs text-cyan-300 hover:text-cyan-200 font-['Space_Grotesk'] font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <span>View All Day 2 Squads</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 3-Member Squads Card */}
+                <div className="p-5 rounded-2xl bg-black/40 border border-cyan-500/20 hover:border-cyan-500/40 transition-all flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-xs font-['Space_Grotesk'] font-bold">
+                        Standard Squad (3 Members)
+                      </span>
+                      <span className="font-mono text-xs text-gray-400">
+                        {analytics.totalDay2Squads > 0 ? Math.round((analytics.day2_3MemberSquads / analytics.totalDay2Squads) * 100) : 0}% of squads
+                      </span>
+                    </div>
+
+                    <div className="mt-4 flex items-baseline justify-between">
+                      <div>
+                        <span className="font-['Syne'] text-3xl font-extrabold text-white">
+                          {analytics.day2_3MemberSquads}
+                        </span>
+                        <span className="text-xs text-gray-400 ml-2">Registered Squads</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-['Syne'] text-2xl font-bold text-cyan-400">
+                          {analytics.day2_3MemberSquads * 3}
+                        </span>
+                        <span className="text-xs text-gray-400 block">Total Coders</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                    <span className="text-xs text-gray-400 font-mono">1 Leader + 2 Teammates</span>
+                    <button
+                      onClick={() => {
+                        setActiveTab('day2')
+                        setCategoryFilter('3-members')
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 text-xs font-bold font-['Space_Grotesk'] cursor-pointer transition-colors"
+                    >
+                      Filter 3-Member Squads &rarr;
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4-Member Squads Card */}
+                <div className="p-5 rounded-2xl bg-black/40 border border-purple-500/20 hover:border-purple-500/40 transition-all flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-xs font-['Space_Grotesk'] font-bold">
+                        Full Squad (4 Members)
+                      </span>
+                      <span className="font-mono text-xs text-gray-400">
+                        {analytics.totalDay2Squads > 0 ? Math.round((analytics.day2_4MemberSquads / analytics.totalDay2Squads) * 100) : 0}% of squads
+                      </span>
+                    </div>
+
+                    <div className="mt-4 flex items-baseline justify-between">
+                      <div>
+                        <span className="font-['Syne'] text-3xl font-extrabold text-white">
+                          {analytics.day2_4MemberSquads}
+                        </span>
+                        <span className="text-xs text-gray-400 ml-2">Registered Squads</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-['Syne'] text-2xl font-bold text-purple-400">
+                          {analytics.day2_4MemberSquads * 4}
+                        </span>
+                        <span className="text-xs text-gray-400 block">Total Coders</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
+                    <span className="text-xs text-gray-400 font-mono">1 Leader + 3 Teammates</span>
+                    <button
+                      onClick={() => {
+                        setActiveTab('day2')
+                        setCategoryFilter('4-members')
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 text-xs font-bold font-['Space_Grotesk'] cursor-pointer transition-colors"
+                    >
+                      Filter 4-Member Squads &rarr;
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Day 2 Footer Aggregation */}
+              <div className="px-6 py-4 bg-white/5 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <span className="font-['Syne'] font-bold text-gray-300">
+                  Total Day 2 Coding Participants: <span className="text-cyan-400 text-sm font-extrabold">{analytics.totalDay2Students} Students</span> across <span className="text-white font-bold">{analytics.totalDay2Squads} Technical Squads</span>
+                </span>
+                <button
+                  onClick={() => { setActiveTab('day2'); setCategoryFilter('all'); }}
+                  className="text-xs text-cyan-300 hover:underline font-bold"
+                >
+                  View All Day 2 Records &rarr;
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         /* Main Roster Table */

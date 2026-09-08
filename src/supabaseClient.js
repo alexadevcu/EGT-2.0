@@ -127,35 +127,135 @@ export function checkSubmissionRateLimit(key = 'egt_last_sub') {
 }
 
 // ----------------------------------------------------
-// REGISTRATION OPEN / FULL TOGGLE SYSTEM
+// REGISTRATION OPEN / FULL TOGGLE SYSTEM (WITH CLOUD PERSISTENCE)
 // ----------------------------------------------------
-export function getRegistrationSettings() {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const cached = localStorage.getItem('egt_registration_settings')
-      if (cached) {
-        return JSON.parse(cached)
-      }
+let inMemorySettings = { day1Closed: false, day2Closed: false }
+
+// Safely initialize from local storage cache
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const cached = localStorage.getItem('egt_registration_settings')
+    if (cached) {
+      inMemorySettings = { ...inMemorySettings, ...JSON.parse(cached) }
     }
-  } catch (err) {
-    console.warn('Failed to parse registration settings:', err)
   }
-  return { day1Closed: false, day2Closed: false }
+} catch (e) {
+  console.warn('Initial registration settings cache load notice:', e)
 }
 
-export function updateRegistrationSettings(newSettings) {
-  try {
-    const current = getRegistrationSettings()
-    const updated = { ...current, ...newSettings }
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('egt_registration_settings', JSON.stringify(updated))
-      window.dispatchEvent(new Event('egt_settings_updated'))
+export function getRegistrationSettings() {
+  return { ...inMemorySettings }
+}
+
+export async function fetchRegistrationSettings() {
+  if (supabase) {
+    // 1. Try fetching from dedicated 'event_settings' table
+    try {
+      const { data, error } = await supabase
+        .from('event_settings')
+        .select('*')
+        .eq('id', 'registration_controls')
+        .maybeSingle()
+
+      if (!error && data) {
+        inMemorySettings = {
+          day1Closed: Boolean(data.day1_closed),
+          day2Closed: Boolean(data.day2_closed)
+        }
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('egt_registration_settings', JSON.stringify(inMemorySettings))
+          window.dispatchEvent(new CustomEvent('egt_settings_updated', { detail: inMemorySettings }))
+        }
+        return inMemorySettings
+      }
+    } catch (err) {
+      // event_settings table might not exist in project; proceed to fallback
     }
-    return updated
-  } catch (err) {
-    console.warn('Failed to update registration settings:', err)
-    return newSettings
+
+    // 2. Fallback: Fetch from system config entry in contact_messages
+    try {
+      const { data, error } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .eq('email', '__system_registration_settings__')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (!error && data && data.length > 0) {
+        const parsed = JSON.parse(data[0].message)
+        inMemorySettings = {
+          day1Closed: Boolean(parsed.day1Closed),
+          day2Closed: Boolean(parsed.day2Closed)
+        }
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem('egt_registration_settings', JSON.stringify(inMemorySettings))
+          window.dispatchEvent(new CustomEvent('egt_settings_updated', { detail: inMemorySettings }))
+        }
+        return inMemorySettings
+      }
+    } catch (err) {
+      console.warn('Supabase fallback fetch settings error:', err)
+    }
   }
+
+  // 3. Fallback to localStorage / inMemory
+  return inMemorySettings
+}
+
+export async function updateRegistrationSettings(newSettings) {
+  const updated = { ...inMemorySettings, ...newSettings }
+  inMemorySettings = updated
+
+  // Optimistically update local cache and broadcast reactivity
+  if (typeof window !== 'undefined' && window.localStorage) {
+    localStorage.setItem('egt_registration_settings', JSON.stringify(updated))
+    window.dispatchEvent(new CustomEvent('egt_settings_updated', { detail: updated }))
+  }
+
+  if (supabase) {
+    let cloudSaved = false
+
+    // 1. Try persisting to dedicated 'event_settings' table
+    try {
+      const { error } = await supabase
+        .from('event_settings')
+        .upsert({
+          id: 'registration_controls',
+          day1_closed: Boolean(updated.day1Closed),
+          day2_closed: Boolean(updated.day2Closed),
+          updated_at: new Date().toISOString()
+        })
+
+      if (!error) {
+        cloudSaved = true
+      }
+    } catch (err) {
+      // event_settings table may not exist
+    }
+
+    // 2. Fallback: Persist to contact_messages system record
+    if (!cloudSaved) {
+      try {
+        const payload = {
+          name: '__SYSTEM_CONFIG__',
+          email: '__system_registration_settings__',
+          category: 'system_settings',
+          message: JSON.stringify({
+            day1Closed: Boolean(updated.day1Closed),
+            day2Closed: Boolean(updated.day2Closed),
+            updatedAt: new Date().toISOString()
+          }),
+          created_at: new Date().toISOString()
+        }
+        await supabase.from('contact_messages').insert([payload])
+        cloudSaved = true
+      } catch (err) {
+        console.warn('Failed to save settings to contact_messages fallback:', err)
+      }
+    }
+  }
+
+  return updated
 }
 
 // ----------------------------------------------------
@@ -163,8 +263,8 @@ export function updateRegistrationSettings(newSettings) {
 // ----------------------------------------------------
 
 export async function saveDay1Registration(data) {
-  // 1. Event Capacity Check
-  const settings = getRegistrationSettings()
+  // 1. Event Capacity Check (live cloud verification)
+  const settings = await fetchRegistrationSettings().catch(() => getRegistrationSettings())
   if (settings.day1Closed) {
     return {
       success: false,
@@ -356,8 +456,8 @@ export async function saveDay1Registration(data) {
 }
 
 export async function saveDay2Registration(data) {
-  // 1. Event Capacity Check
-  const settings = getRegistrationSettings()
+  // 1. Event Capacity Check (live cloud verification)
+  const settings = await fetchRegistrationSettings().catch(() => getRegistrationSettings())
   if (settings.day2Closed) {
     return {
       success: false,
@@ -744,14 +844,15 @@ export async function getContactMessages() {
       if (error) {
         console.warn('Supabase getContactMessages warning:', error)
       } else if (data) {
-        return data
+        return data.filter(item => item?.email !== '__system_registration_settings__' && item?.name !== '__SYSTEM_CONFIG__')
       }
     } catch (err) {
       console.warn('Supabase getContactMessages exception:', err)
     }
   }
 
-  return getFromLocalStorage('egt_contact_messages')
+  const local = getFromLocalStorage('egt_contact_messages')
+  return local.filter(item => item?.email !== '__system_registration_settings__' && item?.name !== '__SYSTEM_CONFIG__')
 }
 
 export async function deleteContactMessage(id) {

@@ -14,7 +14,7 @@ import {
   Trash2,
   Users
 } from 'lucide-react'
-import { saveDay1Registration, isSupabaseConfigured, getRegistrationSettings } from '../supabaseClient'
+import { saveDay1Registration, isSupabaseConfigured, getRegistrationSettings, fetchRegistrationSettings } from '../supabaseClient'
 
 export default function Day1RegistrationPage({ setCurrentPage }) {
   const [submittedPass, setSubmittedPass] = useState(null)
@@ -24,10 +24,15 @@ export default function Day1RegistrationPage({ setCurrentPage }) {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
-    const checkSettings = () => {
-      setIsClosed(getRegistrationSettings().day1Closed)
+    const checkSettings = (e) => {
+      const settings = e?.detail || getRegistrationSettings()
+      setIsClosed(Boolean(settings.day1Closed))
     }
     checkSettings()
+    fetchRegistrationSettings().then((s) => {
+      if (s) setIsClosed(Boolean(s.day1Closed))
+    }).catch(() => {})
+
     window.addEventListener('egt_settings_updated', checkSettings)
     return () => window.removeEventListener('egt_settings_updated', checkSettings)
   }, [])
