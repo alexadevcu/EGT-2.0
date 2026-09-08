@@ -22,8 +22,10 @@ import {
   Send,
   Globe,
   Sparkles,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Ban
 } from 'lucide-react'
+import { getRegistrationSettings, fetchRegistrationSettings } from '../supabaseClient'
 
 // Assets
 import heroBlendImg from '../assets/hero_blend.jpg'
@@ -75,6 +77,22 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
   const [openFaq, setOpenFaq] = useState(null)
   const [activeGalleryTab, setActiveGalleryTab] = useState('all')
   const sliderRef = useRef(null)
+
+  // Registration Open / Closed Live Settings
+  const [regSettings, setRegSettings] = useState(getRegistrationSettings())
+
+  useEffect(() => {
+    const handleSettingsUpdate = (e) => {
+      const s = e?.detail || getRegistrationSettings()
+      setRegSettings({ ...s })
+    }
+    handleSettingsUpdate()
+    fetchRegistrationSettings().then(s => {
+      if (s) setRegSettings({ ...s })
+    }).catch(() => {})
+    window.addEventListener('egt_settings_updated', handleSettingsUpdate)
+    return () => window.removeEventListener('egt_settings_updated', handleSettingsUpdate)
+  }, [])
 
   // Trigger Real Theatre Curtain Gathering Animation on Landing
   useEffect(() => {
@@ -435,21 +453,43 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
 
           {/* Action CTAs: Full width on mobile */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-6 sm:mt-8 w-full max-w-sm sm:max-w-none mx-auto px-2">
-            <button
-              onClick={() => setCurrentPage('day1')}
-              className="w-full sm:w-auto justify-center bg-gradient-to-r from-[#e5b84c] via-[#f7d978] to-[#c9982e] text-[#1c0800] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(247,217,120,0.5)] flex items-center gap-2 cursor-pointer border border-yellow-200/60"
-            >
-              <Mic className="w-4 h-4" />
-              <span>Register Day 1 Performer</span>
-            </button>
+            {regSettings.day1Closed ? (
+              <button
+                onClick={() => setCurrentPage('day1')}
+                className="w-full sm:w-auto justify-center bg-rose-950/80 border border-rose-500/50 text-rose-300 font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:bg-rose-900/80 transition-all flex items-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(244,63,94,0.3)]"
+                title="Day 1 registrations are currently full / closed"
+              >
+                <Ban className="w-4 h-4 text-rose-400" />
+                <span>Day 1: Full / Closed</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setCurrentPage('day1')}
+                className="w-full sm:w-auto justify-center bg-gradient-to-r from-[#e5b84c] via-[#f7d978] to-[#c9982e] text-[#1c0800] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:scale-105 transition-all shadow-[0_0_30px_rgba(247,217,120,0.5)] flex items-center gap-2 cursor-pointer border border-yellow-200/60"
+              >
+                <Mic className="w-4 h-4" />
+                <span>Register Day 1 Performer</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => setCurrentPage('day2')}
-              className="w-full sm:w-auto justify-center bg-[#09090d]/90 text-[#00F2FF] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:bg-cyan-500/10 transition-all shadow-[0_0_25px_rgba(0,242,255,0.4)] flex items-center gap-2 cursor-pointer border-2 border-[#00F2FF]"
-            >
-              <Code className="w-4 h-4" />
-              <span>Register Day 2 Tech Wizard</span>
-            </button>
+            {regSettings.day2Closed ? (
+              <button
+                onClick={() => setCurrentPage('day2')}
+                className="w-full sm:w-auto justify-center bg-rose-950/80 border border-rose-500/50 text-rose-300 font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:bg-rose-900/80 transition-all flex items-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(244,63,94,0.3)]"
+                title="Day 2 registrations are currently full / closed"
+              >
+                <Ban className="w-4 h-4 text-rose-400" />
+                <span>Day 2: Full / Closed</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setCurrentPage('day2')}
+                className="w-full sm:w-auto justify-center bg-[#09090d]/90 text-[#00F2FF] font-['Space_Grotesk'] text-xs sm:text-sm font-bold uppercase px-6 sm:px-8 py-3.5 rounded-full hover:bg-cyan-500/10 transition-all shadow-[0_0_25px_rgba(0,242,255,0.4)] flex items-center gap-2 cursor-pointer border-2 border-[#00F2FF]"
+              >
+                <Code className="w-4 h-4" />
+                <span>Register Day 2 Tech Wizard</span>
+              </button>
+            )}
 
             <button
               onClick={() => setCurrentPage('day1')}
@@ -582,13 +622,23 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
                   <span>Explore Day 1 Details</span>
                   <ArrowUpRight className="w-4 h-4 text-[#f7d978]" />
                 </button>
-                <button
-                  onClick={() => setCurrentPage('day1')}
-                  className="w-full sm:w-auto btn-primary-gold justify-center"
-                >
-                  <Mic className="w-4 h-4" />
-                  <span>Register Act</span>
-                </button>
+                {regSettings.day1Closed ? (
+                  <button
+                    onClick={() => setCurrentPage('day1')}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-1.5 cursor-pointer hover:bg-rose-500/30 transition-all"
+                  >
+                    <Ban className="w-4 h-4 text-rose-400" />
+                    <span>Day 1: Closed</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setCurrentPage('day1')}
+                    className="w-full sm:w-auto btn-primary-gold justify-center"
+                  >
+                    <Mic className="w-4 h-4" />
+                    <span>Register Act</span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -628,13 +678,23 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
                   <span>Explore Day 2 Details</span>
                   <ArrowUpRight className="w-4 h-4 text-cyan-400" />
                 </button>
-                <button
-                  onClick={() => setCurrentPage('day2')}
-                  className="w-full sm:w-auto btn-primary-cyan justify-center"
-                >
-                  <Code className="w-4 h-4" />
-                  <span>Register Squad</span>
-                </button>
+                {regSettings.day2Closed ? (
+                  <button
+                    onClick={() => setCurrentPage('day2')}
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-['Space_Grotesk'] font-bold flex items-center justify-center gap-1.5 cursor-pointer hover:bg-rose-500/30 transition-all"
+                  >
+                    <Ban className="w-4 h-4 text-rose-400" />
+                    <span>Day 2: Closed</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setCurrentPage('day2')}
+                    className="w-full sm:w-auto btn-primary-cyan justify-center"
+                  >
+                    <Code className="w-4 h-4" />
+                    <span>Register Squad</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -1090,9 +1150,24 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       {/* ========================================================================= */}
       <section className="py-20 px-4 sm:px-6 md:px-12 text-center border-t border-white/10 bg-gradient-to-b from-[#070709] to-[#0c0c12]">
         <div className="max-w-3xl mx-auto space-y-6">
-          <span className="px-4 py-1.5 rounded-full bg-yellow-400/20 text-[#f7d978] font-sans text-xs font-bold tracking-wide border border-yellow-400/30">
-            Registrations Open
-          </span>
+          {regSettings.day1Closed && regSettings.day2Closed ? (
+            <span className="px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-300 font-sans text-xs font-bold tracking-wide border border-rose-500/30 inline-flex items-center gap-1.5">
+              <Ban className="w-3.5 h-3.5 text-rose-400" />
+              <span>Registrations Closed</span>
+            </span>
+          ) : regSettings.day1Closed ? (
+            <span className="px-4 py-1.5 rounded-full bg-amber-500/20 text-amber-300 font-sans text-xs font-bold tracking-wide border border-amber-500/30 inline-flex items-center gap-1.5">
+              <span>Day 1 Full • Day 2 Tech Open</span>
+            </span>
+          ) : regSettings.day2Closed ? (
+            <span className="px-4 py-1.5 rounded-full bg-amber-500/20 text-amber-300 font-sans text-xs font-bold tracking-wide border border-amber-500/30 inline-flex items-center gap-1.5">
+              <span>Day 1 Stage Open • Day 2 Full</span>
+            </span>
+          ) : (
+            <span className="px-4 py-1.5 rounded-full bg-yellow-400/20 text-[#f7d978] font-sans text-xs font-bold tracking-wide border border-yellow-400/30">
+              Registrations Open
+            </span>
+          )}
 
           <h2 className="font-sans text-4xl sm:text-6xl font-extrabold text-white leading-tight">
             Claim Your Spot on the Grand Stage
@@ -1103,21 +1178,43 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
           </p>
 
           <div className="flex flex-wrap justify-center gap-4 pt-4">
-            <button
-              onClick={() => setCurrentPage('day1')}
-              className="btn-primary-gold"
-            >
-              <Mic className="w-4 h-4" />
-              <span>Register as Performer</span>
-            </button>
+            {regSettings.day1Closed ? (
+              <button
+                onClick={() => setCurrentPage('day1')}
+                className="btn-secondary-glass border-rose-500/40 text-rose-300 flex items-center gap-2"
+                title="Day 1 registrations are closed"
+              >
+                <Ban className="w-4 h-4 text-rose-400" />
+                <span>Day 1: Closed</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setCurrentPage('day1')}
+                className="btn-primary-gold"
+              >
+                <Mic className="w-4 h-4" />
+                <span>Register as Performer</span>
+              </button>
+            )}
 
-            <button
-              onClick={() => setCurrentPage('day2')}
-              className="btn-primary-cyan"
-            >
-              <Code className="w-4 h-4" />
-              <span>Register as Tech Wizard</span>
-            </button>
+            {regSettings.day2Closed ? (
+              <button
+                onClick={() => setCurrentPage('day2')}
+                className="btn-secondary-glass border-rose-500/40 text-rose-300 flex items-center gap-2"
+                title="Day 2 registrations are closed"
+              >
+                <Ban className="w-4 h-4 text-rose-400" />
+                <span>Day 2: Closed</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setCurrentPage('day2')}
+                className="btn-primary-cyan"
+              >
+                <Code className="w-4 h-4" />
+                <span>Register as Tech Wizard</span>
+              </button>
+            )}
           </div>
         </div>
       </section>

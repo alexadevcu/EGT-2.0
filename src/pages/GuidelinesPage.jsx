@@ -1,9 +1,24 @@
 import React, { useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
+import { getRegistrationSettings, fetchRegistrationSettings } from '../supabaseClient'
 
 export default function GuidelinesPage({ setCurrentPage }) {
   // Reading progress bar state
   const [progressWidth, setProgressWidth] = useState(0)
+  const [regSettings, setRegSettings] = useState(getRegistrationSettings())
+
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      const s = e?.detail || getRegistrationSettings()
+      setRegSettings({ ...s })
+    }
+    handleUpdate()
+    fetchRegistrationSettings().then(s => {
+      if (s) setRegSettings({ ...s })
+    }).catch(() => {})
+    window.addEventListener('egt_settings_updated', handleUpdate)
+    return () => window.removeEventListener('egt_settings_updated', handleUpdate)
+  }, [])
 
   // Scroll to top on mount
   useEffect(() => {
@@ -972,21 +987,41 @@ export default function GuidelinesPage({ setCurrentPage }) {
 
           <div className="cta">
             <p className="cta-q">Ready to showcase your talent on stage?</p>
-            <button
-              type="button"
-              onClick={() => setCurrentPage('register-day1')}
-              className="ticket t-day1"
-            >
-              <span className="tk-main">
-                <span className="tk-eyebrow">EGT 2.0 · Day 01</span>
-                <span className="tk-label">
-                  Register for Day 1 <span className="arr">→</span>
+            {regSettings.day1Closed ? (
+              <button
+                type="button"
+                onClick={() => setCurrentPage('day1')}
+                className="ticket t-day1"
+                style={{ opacity: 0.85, borderColor: '#f43f5e' }}
+                title="Day 1 registrations are full / closed"
+              >
+                <span className="tk-main">
+                  <span className="tk-eyebrow" style={{ color: '#fda4af' }}>EGT 2.0 · Day 01</span>
+                  <span className="tk-label" style={{ color: '#f43f5e' }}>
+                    Day 1: Full / Closed <span className="arr">🚫</span>
+                  </span>
                 </span>
-              </span>
-              <span className="tk-stub">
-                ADMIT<br />ONE
-              </span>
-            </button>
+                <span className="tk-stub" style={{ color: '#fda4af' }}>
+                  CLOSED
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setCurrentPage('register-day1')}
+                className="ticket t-day1"
+              >
+                <span className="tk-main">
+                  <span className="tk-eyebrow">EGT 2.0 · Day 01</span>
+                  <span className="tk-label">
+                    Register for Day 1 <span className="arr">→</span>
+                  </span>
+                </span>
+                <span className="tk-stub">
+                  ADMIT<br />ONE
+                </span>
+              </button>
+            )}
           </div>
         </section>
 
@@ -1071,21 +1106,41 @@ export default function GuidelinesPage({ setCurrentPage }) {
 
           <div className="cta">
             <p className="cta-q">Ready to enter the wizarding world of tech?</p>
-            <button
-              type="button"
-              onClick={() => setCurrentPage('register-day2')}
-              className="ticket t-day2"
-            >
-              <span className="tk-main">
-                <span className="tk-eyebrow">EGT 2.0 · Day 02</span>
-                <span className="tk-label">
-                  Register for Day 2 <span className="arr">→</span>
+            {regSettings.day2Closed ? (
+              <button
+                type="button"
+                onClick={() => setCurrentPage('day2')}
+                className="ticket t-day2"
+                style={{ opacity: 0.85, borderColor: '#f43f5e' }}
+                title="Day 2 registrations are full / closed"
+              >
+                <span className="tk-main">
+                  <span className="tk-eyebrow" style={{ color: '#fda4af' }}>EGT 2.0 · Day 02</span>
+                  <span className="tk-label" style={{ color: '#f43f5e' }}>
+                    Day 2: Full / Closed <span className="arr">🚫</span>
+                  </span>
                 </span>
-              </span>
-              <span className="tk-stub">
-                ADMIT<br />ONE
-              </span>
-            </button>
+                <span className="tk-stub" style={{ color: '#fda4af' }}>
+                  CLOSED
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setCurrentPage('register-day2')}
+                className="ticket t-day2"
+              >
+                <span className="tk-main">
+                  <span className="tk-eyebrow">EGT 2.0 · Day 02</span>
+                  <span className="tk-label">
+                    Register for Day 2 <span className="arr">→</span>
+                  </span>
+                </span>
+                <span className="tk-stub">
+                  ADMIT<br />ONE
+                </span>
+              </button>
+            )}
           </div>
         </section>
 

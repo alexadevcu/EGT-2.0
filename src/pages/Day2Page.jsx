@@ -9,12 +9,28 @@ import {
   Code,
   UserCheck,
   Scroll,
-  Sparkles
+  Sparkles,
+  Ban
 } from 'lucide-react'
+import { getRegistrationSettings, fetchRegistrationSettings } from '../supabaseClient'
 
 export default function Day2Page({ onOpenRegister }) {
   const timelineRef = useRef(null)
   const [visibleItems, setVisibleItems] = useState({})
+  const [isClosed, setIsClosed] = useState(getRegistrationSettings().day2Closed)
+
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      const s = e?.detail || getRegistrationSettings()
+      setIsClosed(Boolean(s.day2Closed))
+    }
+    handleUpdate()
+    fetchRegistrationSettings().then(s => {
+      if (s) setIsClosed(Boolean(s.day2Closed))
+    }).catch(() => {})
+    window.addEventListener('egt_settings_updated', handleUpdate)
+    return () => window.removeEventListener('egt_settings_updated', handleUpdate)
+  }, [])
 
   const m2mSchedule = [
     {
@@ -181,13 +197,24 @@ export default function Day2Page({ onOpenRegister }) {
 
             {/* Single Registration CTA Button */}
             <div className="flex justify-center items-center mt-5 sm:mt-6 w-full max-w-xs sm:max-w-md mx-auto px-2">
-              <button
-                onClick={() => onOpenRegister('day2-wizard')}
-                className="w-full justify-center bg-gradient-to-r from-[#e5b84c] via-[#f2ca50] to-[#c9982e] text-[#1c0800] font-['Cinzel'] text-xs sm:text-base font-extrabold uppercase px-6 sm:px-10 py-3.5 sm:py-4 rounded-full transition-colors hover:brightness-110 shadow-[0_0_40px_rgba(242,202,80,0.85)] flex items-center gap-2 cursor-pointer border border-yellow-200/60 text-center leading-tight"
-              >
-                <Code className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                <span>REGISTER YOUR SQUAD (3-4 WIZARDS)</span>
-              </button>
+              {isClosed ? (
+                <button
+                  onClick={() => onOpenRegister('day2-wizard')}
+                  className="w-full justify-center bg-rose-950/80 border border-rose-500/60 text-rose-300 font-['Cinzel'] text-xs sm:text-base font-extrabold uppercase px-6 sm:px-10 py-3.5 sm:py-4 rounded-full shadow-[0_0_30px_rgba(244,63,94,0.4)] flex items-center gap-2 cursor-pointer text-center leading-tight hover:bg-rose-900/80"
+                  title="Day 2 registrations are currently full / closed"
+                >
+                  <Ban className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-rose-400" />
+                  <span>DAY 2: FULL / CLOSED</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => onOpenRegister('day2-wizard')}
+                  className="w-full justify-center bg-gradient-to-r from-[#e5b84c] via-[#f2ca50] to-[#c9982e] text-[#1c0800] font-['Cinzel'] text-xs sm:text-base font-extrabold uppercase px-6 sm:px-10 py-3.5 sm:py-4 rounded-full transition-colors hover:brightness-110 shadow-[0_0_40px_rgba(242,202,80,0.85)] flex items-center gap-2 cursor-pointer border border-yellow-200/60 text-center leading-tight"
+                >
+                  <Code className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                  <span>REGISTER YOUR SQUAD (3-4 WIZARDS)</span>
+                </button>
+              )}
             </div>
 
           </div>
@@ -455,13 +482,24 @@ export default function Day2Page({ onOpenRegister }) {
               <p className="font-['Space_Grotesk'] text-xs sm:text-sm text-gray-300 font-medium">
                 Department of CSE – Takshashila &bull; Free Event Registration
               </p>
-              <button
-                onClick={() => onOpenRegister('day2-wizard')}
-                className="w-full sm:w-auto bg-gradient-to-r from-[#e5b84c] via-[#f2ca50] to-[#c9982e] text-[#1c0800] font-['Cinzel'] font-extrabold text-xs sm:text-base px-8 sm:px-10 py-3.5 sm:py-4 rounded-full shadow-[0_0_40px_rgba(242,202,80,0.85)] transition-colors hover:brightness-110 cursor-pointer uppercase tracking-wider border border-yellow-200/60 inline-flex items-center justify-center gap-2"
-              >
-                <Code className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                <span>REGISTER SQUAD NOW</span>
-              </button>
+              {isClosed ? (
+                <button
+                  onClick={() => onOpenRegister('day2-wizard')}
+                  className="w-full sm:w-auto bg-rose-950/80 text-rose-300 border border-rose-500/60 font-['Cinzel'] font-extrabold text-xs sm:text-base px-8 sm:px-10 py-3.5 sm:py-4 rounded-full shadow-[0_0_30px_rgba(244,63,94,0.4)] hover:bg-rose-900/80 cursor-pointer uppercase tracking-wider inline-flex items-center justify-center gap-2"
+                  title="Day 2 registrations are currently full / closed"
+                >
+                  <Ban className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-rose-400" />
+                  <span>DAY 2: FULL / CLOSED</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => onOpenRegister('day2-wizard')}
+                  className="w-full sm:w-auto bg-gradient-to-r from-[#e5b84c] via-[#f2ca50] to-[#c9982e] text-[#1c0800] font-['Cinzel'] font-extrabold text-xs sm:text-base px-8 sm:px-10 py-3.5 sm:py-4 rounded-full shadow-[0_0_40px_rgba(242,202,80,0.85)] transition-colors hover:brightness-110 cursor-pointer uppercase tracking-wider border border-yellow-200/60 inline-flex items-center justify-center gap-2"
+                >
+                  <Code className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                  <span>REGISTER SQUAD NOW</span>
+                </button>
+              )}
             </div>
           </div>
         </section>

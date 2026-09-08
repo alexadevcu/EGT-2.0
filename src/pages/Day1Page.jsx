@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import stageHero from '../assets/stage_hero.jpg'
 import belgianWaffleLogo from '../assets/Logo/Belgiam Waffle and co..svg'
+import { getRegistrationSettings, fetchRegistrationSettings } from '../supabaseClient'
 import './Day1Page.css'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -35,6 +36,20 @@ const formats = [
 
 export default function Day1Page({ onOpenRegister }) {
   const page = useRef(null)
+  const [isClosed, setIsClosed] = useState(getRegistrationSettings().day1Closed)
+
+  useEffect(() => {
+    const handleUpdate = (e) => {
+      const s = e?.detail || getRegistrationSettings()
+      setIsClosed(Boolean(s.day1Closed))
+    }
+    handleUpdate()
+    fetchRegistrationSettings().then(s => {
+      if (s) setIsClosed(Boolean(s.day1Closed))
+    }).catch(() => {})
+    window.addEventListener('egt_settings_updated', handleUpdate)
+    return () => window.removeEventListener('egt_settings_updated', handleUpdate)
+  }, [])
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -255,9 +270,19 @@ export default function Day1Page({ onOpenRegister }) {
           </p>
 
           <div className="day1-hero__actions">
-            <button className="btn-hero-primary-gold" onClick={() => onOpenRegister('day1-performer')}>
-              REGISTER AS PERFORMER <span>→</span>
-            </button>
+            {isClosed ? (
+              <button
+                className="btn-hero-secondary-gold border-rose-500/60 text-rose-300 bg-rose-950/60 hover:bg-rose-900/60 shadow-[0_0_25px_rgba(244,63,94,0.3)]"
+                onClick={() => onOpenRegister('day1-performer')}
+                title="Registrations for Day 1 are currently full / closed"
+              >
+                DAY 1: FULL / CLOSED <span>🚫</span>
+              </button>
+            ) : (
+              <button className="btn-hero-primary-gold" onClick={() => onOpenRegister('day1-performer')}>
+                REGISTER AS PERFORMER <span>→</span>
+              </button>
+            )}
             <button className="btn-hero-secondary-gold" onClick={() => onOpenRegister('day1-audience')}>
               GET AUDIENCE PASS <span>🎟️</span>
             </button>
@@ -400,9 +425,19 @@ export default function Day1Page({ onOpenRegister }) {
               <em>IS YOURS.</em>
             </span>
           </h2>
-          <button className="day1-final__cta" onClick={() => onOpenRegister('day1-performer')}>
-            REGISTER AS PERFORMER <span>→</span>
-          </button>
+          {isClosed ? (
+            <button
+              className="day1-final__cta bg-rose-950/80 border-rose-500/60 text-rose-300 hover:bg-rose-900/80 shadow-[0_0_30px_rgba(244,63,94,0.4)]"
+              onClick={() => onOpenRegister('day1-performer')}
+              title="Registrations for Day 1 are currently full / closed"
+            >
+              DAY 1: FULL / CLOSED <span>🚫</span>
+            </button>
+          ) : (
+            <button className="day1-final__cta" onClick={() => onOpenRegister('day1-performer')}>
+              REGISTER AS PERFORMER <span>→</span>
+            </button>
+          )}
           <div className="mt-4">
             <span className="px-4 py-2 rounded-full bg-[#1e170d] border border-[#a68437]/50 text-[#e0b968] font-extrabold text-xs sm:text-sm tracking-wider inline-flex items-center gap-2 shadow-lg">
               09 SEPTEMBER 2026 • A1 AUDITORIUM
