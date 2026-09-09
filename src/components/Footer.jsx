@@ -81,7 +81,7 @@ export default function Footer({ setCurrentPage, onOpenRegister, onOpenContact }
             </p>
             <ul className="space-y-2 text-gray-400 font-medium">
               <li className="text-gray-300 font-semibold">9 Sept: The Stage (A1 Auditorium)</li>
-              <li className="text-gray-300 font-semibold">10 Sept: The Wizard’s Code (C1 Seminar Hall)</li>
+              <li className="text-gray-300 font-semibold">10 Sept: The Wizard’s Code (C3 Seminar Hall)</li>
             </ul>
           </div>
 

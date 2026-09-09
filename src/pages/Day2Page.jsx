@@ -52,7 +52,7 @@ export default function Day2Page({ onOpenRegister }) {
     {
       time: '10:30 AM – 11:30 AM',
       event: 'Round 1 – THE VAULT',
-      desc: 'Decipher the 10+1 cryptic seals inside C1 Seminar Hall to unlock the first key.',
+      desc: 'Decipher the 10+1 cryptic seals inside C3 Seminar Hall to unlock the first key.',
       icon: KeyRound,
       highlight: true,
       badge: 'Trial 1',
@@ -151,7 +151,7 @@ export default function Day2Page({ onOpenRegister }) {
             {/* Date & Location Pill Kicker */}
             <div className="flex items-center justify-center gap-2 mb-4">
               <span className="px-4 py-2 rounded-full bg-[#0b1a21] border border-[#1d778a]/50 text-[#5ed3e6] font-extrabold text-xs sm:text-sm tracking-wider inline-flex items-center gap-2 shadow-lg">
-                10 SEPTEMBER 2026 • C1 SEMINAR HALL
+                10 SEPTEMBER 2026 • C3 SEMINAR HALL
               </span>
             </div>
 

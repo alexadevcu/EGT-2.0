@@ -163,7 +163,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
       id: 'chamber',
       tag: 'DAY 2 • 10 SEPT',
       title: 'Round 1 – THE VAULT',
-      desc: '10:30 AM – 11:30 AM • Decipher 10+1 cryptic seals inside C1 Seminar Hall to unlock the first key.',
+      desc: '10:30 AM – 11:30 AM • Decipher 10+1 cryptic seals inside C3 Seminar Hall to unlock the first key.',
       day: 'day2',
       img: day2Round1Img,
       badgeClass: 'bg-black/90 backdrop-blur-md text-[#00F2FF] border-[#00F2FF]/70 shadow-lg'
@@ -349,7 +349,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
     },
     {
       q: 'What are the Harry Potter challenges on Day 2?',
-      a: 'Day 2 features a 3-round wizarding tech tournament at C1 Seminar Hall & Campus Wide: Round 1 – The Vault (10+1 Cryptic Logic Seals), Round 2 – The Hunt (Campus-Wide QR Horcrux Trail), and Round 3 – The Chamber (Top 20 Leaderboard Climax & Championship Trophy).'
+      a: 'Day 2 features a 3-round wizarding tech tournament at C3 Seminar Hall & Campus Wide: Round 1 – The Vault (10+1 Cryptic Logic Seals), Round 2 – The Hunt (Campus-Wide QR Horcrux Trail), and Round 3 – The Chamber (Top 20 Leaderboard Climax & Championship Trophy).'
     },
     {
       q: 'Is there any registration fee?',
@@ -650,7 +650,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
               <div>
                 <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 mb-4 sm:mb-6 relative z-10">
                   <span className="px-3.5 sm:px-4 py-1.5 rounded-full bg-[#22d3ee]/10 text-cyan-300 border border-[#22d3ee]/25 font-sans text-[11px] sm:text-xs font-semibold">
-                    10 September 2026 • C1 Seminar Hall
+                    10 September 2026 • C3 Seminar Hall
                   </span>
                   <span className="text-cyan-400 font-sans text-xs font-bold tracking-wide uppercase">Day 2 Tech Arena</span>
                 </div>
@@ -658,7 +658,7 @@ export default function HomePage({ setCurrentPage, onOpenRegister }) {
                 <h3 className="font-['Syne'] text-2xl xs:text-3xl sm:text-4xl font-extrabold text-white tracking-wide relative z-10">THE WIZARD’S CODE</h3>
                 <p className="font-sans text-xs sm:text-base font-semibold text-cyan-200/80 italic my-1.5 sm:my-2 relative z-10">"Harry Potter — The Wizarding World of Technology"</p>
                 <p className="font-sans text-xs sm:text-sm text-gray-300 leading-relaxed mb-4 sm:mb-6 font-normal relative z-10">
-                  Enter an enchanted 3-round wizarding tech tournament at C1 Seminar Hall &amp; Campus Wide. Battle through Round 1: The Vault (10+1 Cryptic Logic), Round 2: The Hunt (Campus QR Horcrux Trail), and Round 3: The Chamber (Top 20 Leaderboard Climax).
+                  Enter an enchanted 3-round wizarding tech tournament at C3 Seminar Hall &amp; Campus Wide. Battle through Round 1: The Vault (10+1 Cryptic Logic), Round 2: The Hunt (Campus QR Horcrux Trail), and Round 3: The Chamber (Top 20 Leaderboard Climax).
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 my-4 sm:my-6 relative z-10">

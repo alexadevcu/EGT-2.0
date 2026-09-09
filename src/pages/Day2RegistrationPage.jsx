@@ -121,7 +121,7 @@ export default function Day2RegistrationPage({ setCurrentPage }) {
       {/* Header Banner */}
       <div className="text-center max-w-3xl mx-auto space-y-3 mb-10">
         <span className="px-4 py-1.5 rounded-full bg-cyan-500/20 text-cyan-300 font-['Space_Grotesk'] text-xs font-bold border border-cyan-400/40 uppercase tracking-widest inline-block">
-          10 September 2026 • C1 Seminar Hall • Tech Arena
+          10 September 2026 • C3 Seminar Hall • Tech Arena
         </span>
         
         <h1 className="font-['Syne'] text-3xl sm:text-5xl font-extrabold text-white">
